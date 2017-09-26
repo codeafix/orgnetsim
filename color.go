@@ -1,13 +1,13 @@
 package orgnetsim
 
+import "math/rand"
+
 //A Color of an Agent
 type Color int
 
 //A List of named colours for Agents
 const (
 	Grey Color = iota
-	Black
-	White
 	Red
 	Green
 	Blue
@@ -17,3 +17,12 @@ const (
 )
 
 //go:generate stringer -type=Color
+
+//RandomlySelectAlternateColor selects a Color other than the one passed and other than Grey
+func RandomlySelectAlternateColor(color Color) Color {
+	altColor := Color(rand.Intn(7))
+	for altColor == color || altColor == 0 {
+		altColor = Color(rand.Intn(7))
+	}
+	return altColor
+}

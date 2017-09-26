@@ -5,6 +5,26 @@ import (
 	"testing"
 )
 
+func TestJsonSerialisationAgent(t *testing.T) {
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5}]}`
+	n := Network{}
+	n.Nodes = append(n.Nodes, &Agent{"id_1", 1, 0.2, 0.3, 0.4, make(chan bool), make(chan string), 5})
+	serJSON := n.Serialise()
+	if json != serJSON {
+		t.Errorf("Serialised json is not identical to original json %s", serJSON)
+	}
+}
+
+func TestJsonSerialisationLink(t *testing.T) {
+	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":0.4}],"nodes":null}`
+	n := Network{}
+	n.Links = append(n.Links, &Link{"id_1", "id_2", 0.4})
+	serJSON := n.Serialise()
+	if json != serJSON {
+		t.Errorf("Serialised json is not identical to original json %s", serJSON)
+	}
+}
+
 func TestNewNetworkCreatesValidAgentMap(t *testing.T) {
 	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
 	CheckAgentMap(t, json)
@@ -43,7 +63,7 @@ func TestNewNetworkCreatesValidLinkMapHierarchy(t *testing.T) {
 }
 
 func TestNewNetworkCreatesValidLinkMapHierarchyIgnoresDuplicateLinks(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_1","agent2Id":"id_2"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_3","agent2Id":"id_1"}]}`
 	CheckLinkMapHierarchy(t, json)
 }
 
@@ -62,12 +82,12 @@ func CheckLinkMapHierarchy(t *testing.T, json string) {
 	if len(agent1links) != 2 {
 		t.Errorf("Incorrect number of related nodes to Agent id_1 expected 2 got %d", len(agent1links))
 	}
-	for id, agent := range agent1links {
-		if id != agent.ID {
-			t.Errorf("Id and Agent.ID not equal in AgentLinkMap expected %s got %s", id, agent.ID)
+	for id, agentLink := range agent1links {
+		if id != agentLink.Agent.ID {
+			t.Errorf("Id and Agent.ID not equal in AgentLinkMap expected %s got %s", id, agentLink.Agent.ID)
 		}
-		if agent.ID != "id_2" && agent.ID != "id_3" {
-			t.Errorf("Unexpected agent related to Agent id_1 got %s", agent.ID)
+		if agentLink.Agent.ID != "id_2" && agentLink.Agent.ID != "id_3" {
+			t.Errorf("Unexpected agent related to Agent id_1 got %s", agentLink.Agent.ID)
 		}
 	}
 	agent2links, exists := n.AgentLinkMap["id_2"]
@@ -78,7 +98,7 @@ func CheckLinkMapHierarchy(t *testing.T, json string) {
 		t.Errorf("Incorrect number of related nodes to Agent id_2 expected 1 got %d", len(agent2links))
 	}
 	agent2Link, exists := agent2links["id_1"]
-	if !exists || "id_1" != agent2Link.ID {
+	if !exists || "id_1" != agent2Link.Agent.ID {
 		t.Errorf("Unexpected agent related to Agent id_2 expected id_1 %v", agent2links)
 	}
 	agent3links := n.AgentLinkMap["id_3"]
@@ -89,7 +109,7 @@ func CheckLinkMapHierarchy(t *testing.T, json string) {
 		t.Errorf("Incorrect number of related nodes to Agent id_3 expected 1 got %d", len(agent3links))
 	}
 	agent3Link, exists := agent3links["id_1"]
-	if !exists || "id_1" != agent3Link.ID {
+	if !exists || "id_1" != agent3Link.Agent.ID {
 		t.Errorf("Unexpected agent related to Agent id_3 expected id_1 %v", agent3links)
 	}
 }
@@ -120,7 +140,7 @@ func CheckLinkMapTwoParents(t *testing.T, json string) {
 		t.Errorf("Incorrect number of related nodes to Agent id_1 expected 1 got %d", len(agent1links))
 	}
 	agent1Link, exists := agent1links["id_3"]
-	if !exists || "id_3" != agent1Link.ID {
+	if !exists || "id_3" != agent1Link.Agent.ID {
 		t.Errorf("Unexpected agent related to Agent id_1 expected id_3 %v", agent1links)
 	}
 	agent2links, exists := n.AgentLinkMap["id_2"]
@@ -131,7 +151,7 @@ func CheckLinkMapTwoParents(t *testing.T, json string) {
 		t.Errorf("Incorrect number of related nodes to Agent id_2 expected 1 got %d", len(agent2links))
 	}
 	agent2Link, exists := agent2links["id_3"]
-	if !exists || "id_3" != agent2Link.ID {
+	if !exists || "id_3" != agent2Link.Agent.ID {
 		t.Errorf("Unexpected agent related to Agent id_2 expected id_3 %v", agent2links)
 	}
 	agent3links := n.AgentLinkMap["id_3"]
@@ -141,12 +161,12 @@ func CheckLinkMapTwoParents(t *testing.T, json string) {
 	if len(agent3links) != 2 {
 		t.Errorf("Incorrect number of related nodes to Agent id_3 expected 2 got %d", len(agent3links))
 	}
-	for id, agent := range agent3links {
-		if id != agent.ID {
-			t.Errorf("Id and Agent.ID not equal in AgentLinkMap expected %s got %s", id, agent.ID)
+	for id, agentLink := range agent3links {
+		if id != agentLink.Agent.ID {
+			t.Errorf("Id and Agent.ID not equal in AgentLinkMap expected %s got %s", id, agentLink.Agent.ID)
 		}
-		if agent.ID != "id_1" && agent.ID != "id_2" {
-			t.Errorf("Unexpected agent related to Agent id_3 got %s", agent.ID)
+		if agentLink.Agent.ID != "id_1" && agentLink.Agent.ID != "id_2" {
+			t.Errorf("Unexpected agent related to Agent id_3 got %s", agentLink.Agent.ID)
 		}
 	}
 }
@@ -216,14 +236,54 @@ func TestGetAgentByIDReturnsCorrectAgentWhenExists(t *testing.T) {
 	}
 }
 
-func TestGetAgentByIDReturnsEmptyStructWhenNotExists(t *testing.T) {
+func TestGetAgentByIDReturnsNilWhenNotExists(t *testing.T) {
 	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
 	n, err := NewNetwork(json)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 	agent := n.GetAgentByID("id_9")
-	if agent.ID != "" {
-		t.Errorf("Expected empty agent to be returned but got %v", agent)
+	if agent != nil {
+		t.Errorf("Expected nil to be returned but got %v", agent)
+	}
+}
+
+func TestUpdateLinkStrength(t *testing.T) {
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	n, err := NewNetwork(json)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = n.UpdateLinkStrength("id_5", "id_1", 3.1)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if n.AgentLinkMap["id_5"]["id_1"].Link.Strength != 3.1 {
+		t.Errorf("Link strength not updated")
+	}
+	if n.AgentLinkMap["id_1"]["id_5"].Link.Strength != 3.1 {
+		t.Errorf("Link strength not updated")
+	}
+}
+
+func TestUpdateLinkStrengthReportsErrorIfIdDoesntExist(t *testing.T) {
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	n, err := NewNetwork(json)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = n.UpdateLinkStrength("id_7", "id_1", 3.1)
+	if err == nil {
+		t.Errorf("Invalid link error not reported")
+	}
+	if !strings.Contains(err.Error(), "id_7") || !strings.Contains(err.Error(), "id_1") {
+		t.Errorf("Incorrect error reported: %s", err.Error())
+	}
+	err = n.UpdateLinkStrength("id_1", "id_7", 3.1)
+	if err == nil {
+		t.Errorf("Invalid link error not reported")
+	}
+	if !strings.Contains(err.Error(), "id_7") || !strings.Contains(err.Error(), "id_1") {
+		t.Errorf("Incorrect error reported: %s", err.Error())
 	}
 }

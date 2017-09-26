@@ -4,9 +4,9 @@ package orgnetsim
 
 import "fmt"
 
-const _Color_name = "GreyBlackWhiteRedGreenBlueYellowOrangePurple"
+const _Color_name = "GreyRedGreenBlueYellowOrangePurple"
 
-var _Color_index = [...]uint8{0, 4, 9, 14, 17, 22, 26, 32, 38, 44}
+var _Color_index = [...]uint8{0, 4, 7, 12, 16, 22, 28, 34}
 
 func (i Color) String() string {
 	if i < 0 || i >= Color(len(_Color_index)-1) {

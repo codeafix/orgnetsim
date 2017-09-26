@@ -14,23 +14,21 @@ type Agent struct {
 	ChangeCount    int32       `json:"change"`
 }
 
-type agent interface {
-	Interact(n network)
+//AgentInteracter is an interface that allows interaction with an Agent
+type AgentInteracter interface {
+	Interact(n RelationshipMgr)
 	SetColor(c Color)
 	TryMatch() bool
 	SendMsg(msg string) bool
 	RecieveMsg() (string, bool)
-	ClearMsg()
-	ClearMatch()
+	ClearInteractions()
 }
 
 /*Interact iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
 first successful match it finds. It then checks for any messages it recieved in its own Mail queue. If it receives
 one then it decides whether to update its color.
 */
-func (a *Agent) Interact(n network) {
-	a.ClearMatch()
-	a.ClearMsg()
+func (a *Agent) Interact(n RelationshipMgr) {
 	for _, ra := range n.GetRelatedAgents(a) {
 		if ra.TryMatch() {
 			ra.SendMsg(a.ID)
@@ -51,6 +49,12 @@ func (a *Agent) Interact(n network) {
 			}
 		}
 	}
+}
+
+// ClearInteractions clears the matched and mail channels
+func (a *Agent) ClearInteractions() {
+	a.ClearMsg()
+	a.ClearMatch()
 }
 
 //SetColor changes the color of the current Agent and counts the number of times the Agent changes color

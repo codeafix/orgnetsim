@@ -5,4 +5,5 @@ type Link struct {
 	Agent1ID string  `json:"agent1Id"`
 	Agent2ID string  `json:"agent2Id"`
 	Strength float64 `json:"strength"`
+	
 }

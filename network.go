@@ -22,7 +22,8 @@ type AgentLink struct {
 	Link  *Link
 }
 
-type network interface {
+//RelationshipMgr is an interface for the Network
+type RelationshipMgr interface {
 	GetRelatedAgents(a *Agent) []*Agent
 	GetAgentByID(id string) *Agent
 	UpdateLinkStrength(id1 string, id2 string) error

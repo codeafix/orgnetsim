@@ -50,7 +50,6 @@ func (n *Network) PopulateMaps() error {
 	for _, agent := range n.Nodes {
 		n.AgentsByID[agent.ID] = agent
 		agent.Mail = make(chan string, 1)
-		agent.Matched = make(chan bool, 1)
 	}
 	n.AgentLinkMap = make(map[string]map[string]AgentLink, len(n.Nodes))
 	for _, link := range n.Links {

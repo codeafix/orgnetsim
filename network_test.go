@@ -9,7 +9,7 @@ import (
 func TestJsonSerialisationAgent(t *testing.T) {
 	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5}]}`
 	n := Network{}
-	n.Nodes = append(n.Nodes, &Agent{"id_1", 1, 0.2, 0.3, 0.4, make(chan bool), make(chan string), 5})
+	n.Nodes = append(n.Nodes, &Agent{"id_1", 1, 0.2, 0.3, 0.4, make(chan string), 5})
 	serJSON := n.Serialise()
 	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
 }

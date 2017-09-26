@@ -7,7 +7,6 @@ type Agent struct {
 	Susceptability float64     `json:"susceptability"`
 	Influence      float64     `json:"influence"`
 	Contrariness   float64     `json:"contrariness"`
-	Matched        chan bool   `json:"-"`
 	Mail           chan string `json:"-"`
 	ChangeCount    int         `json:"change"`
 }
@@ -16,7 +15,7 @@ type Agent struct {
 type AgentInteracter interface {
 	SendMail(n RelationshipMgr)
 	ReadMail(n RelationshipMgr)
-	ClearInteractions()
+	ClearMail()
 }
 
 /*SendMail iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
@@ -24,11 +23,8 @@ first successful match it finds.
 */
 func (a *Agent) SendMail(n RelationshipMgr) {
 	for _, ra := range n.GetRelatedAgents(a) {
-		if ra.TryMatch() {
-			ra.SendMsg(a.ID)
-			break
-		} else {
-			continue
+		if ra.SendMsg(a.ID) {
+			return
 		}
 	}
 }
@@ -52,12 +48,6 @@ func (a *Agent) ReadMail(n RelationshipMgr) {
 	}
 }
 
-// ClearMail clears the matched and mail channels
-func (a *Agent) ClearMail() {
-	a.ClearMsg()
-	a.ClearMatch()
-}
-
 //SetColor changes the color of the current Agent and counts the number of times the Agent changes color
 func (a *Agent) SetColor(color Color) {
 	if a.Color != color {
@@ -66,19 +56,9 @@ func (a *Agent) SetColor(color Color) {
 	}
 }
 
-//TryMatch tries to add an entry into an Agent's Matched channel, if it succeeds, that Agent will be blocked
-//for matching to any other Agent and this function returns true (the Agent is Matched). If it returns
-//false the Agent is already matched.
-func (a *Agent) TryMatch() bool {
-	select {
-	case a.Matched <- true:
-		return true
-	default:
-		return false
-	}
-}
-
-//SendMsg adds a message to the Agent's Mail channel
+//SendMsg tries to add an entry into an Agent's Mail channel, if it succeeds, that Agent will be blocked
+//for any other Agent trying to send a Mail and this function returns true (the Agent is now Matched).
+//If it returns false the Agent is already matched by another Agent.
 func (a *Agent) SendMsg(msg string) bool {
 	select {
 	case a.Mail <- msg:
@@ -98,20 +78,10 @@ func (a *Agent) RecieveMsg() (string, bool) {
 	}
 }
 
-//ClearMsg throws away any message on the Agent's Mail channel
-func (a *Agent) ClearMsg() {
+//ClearMail throws away any message on the Agent's Mail channel
+func (a *Agent) ClearMail() {
 	select {
 	case <-a.Mail:
-		return
-	default:
-		return
-	}
-}
-
-//ClearMatch clears the flag on the Agent's Matched channel
-func (a *Agent) ClearMatch() {
-	select {
-	case <-a.Matched:
 		return
 	default:
 		return

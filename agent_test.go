@@ -180,6 +180,23 @@ func TestClearMatch(t *testing.T) {
 	}
 }
 
+func TestClearInteractionsClearsMailAndMatchedChannels(t *testing.T) {
+	a := newAgent()
+	a.Matched <- true
+	a.Mail <- "msg"
+	a.ClearInteractions()
+	select {
+	case matched := <-a.Matched:
+		t.Errorf("%t not cleared from Matched channel", matched)
+		return
+	case msg := <-a.Mail:
+		t.Errorf("%s not cleared from Mail channel", msg)
+		return
+	default:
+		return
+	}
+}
+
 func TestClearMatchDoesntBlockWhenChannelEmpty(t *testing.T) {
 	a := newAgent()
 	a.ClearMatch()

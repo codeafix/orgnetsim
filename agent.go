@@ -16,6 +16,12 @@ type Agent struct {
 
 type agent interface {
 	Interact(n network)
+	SetColor(c Color)
+	TryMatch() bool
+	SendMsg(msg string) bool
+	RecieveMsg() (string, bool)
+	ClearMsg()
+	ClearMatch()
 }
 
 /*Interact iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
@@ -25,7 +31,7 @@ one then it decides whether to update its color.
 func (a *Agent) Interact(n network) {
 	a.ClearMatch()
 	a.ClearMsg()
-	for _, ra := range n.GetRelatedAgents(*a) {
+	for _, ra := range n.GetRelatedAgents(a) {
 		if ra.TryMatch() {
 			ra.SendMsg(a.ID)
 			break

@@ -23,7 +23,7 @@ type AgentLink struct {
 }
 
 type network interface {
-	GetRelatedAgents(a Agent) []*Agent
+	GetRelatedAgents(a *Agent) []*Agent
 	GetAgentByID(id string) *Agent
 	UpdateLinkStrength(id1 string, id2 string) error
 }

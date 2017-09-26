@@ -141,7 +141,7 @@ func TestClearMailClearsMailAndMatchedChannels(t *testing.T) {
 	}
 }
 
-func TestRecieveMsgTimesOutWhenNoMsg(t *testing.T) {
+func TestRecieveMsgReturnsFalseWhenNoMsg(t *testing.T) {
 	a := newAgent()
 	_, received := a.RecieveMsg()
 	IsFalse(t, received, "Unexpected true returned from ReceiveMsg")

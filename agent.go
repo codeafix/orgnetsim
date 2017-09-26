@@ -1,7 +1,5 @@
 package orgnetsim
 
-import "time"
-
 //An Agent is a node in the network
 type Agent struct {
 	ID             string      `json:"id"`
@@ -95,7 +93,7 @@ func (a *Agent) RecieveMsg() (string, bool) {
 	select {
 	case msg := <-a.Mail:
 		return msg, true
-	case <-time.After(100 * time.Millisecond):
+	default:
 		return "", false
 	}
 }

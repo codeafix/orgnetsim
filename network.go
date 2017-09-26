@@ -26,7 +26,7 @@ type AgentLink struct {
 type RelationshipMgr interface {
 	GetRelatedAgents(a *Agent) []*Agent
 	GetAgentByID(id string) *Agent
-	UpdateLinkStrength(id1 string, id2 string) error
+	IncrementLinkStrength(id1 string, id2 string) error
 }
 
 //Serialise returns a json representation of the Network
@@ -110,9 +110,9 @@ func (n *Network) GetAgentByID(id string) *Agent {
 	return a
 }
 
-// UpdateLinkStrength updates the strength field of the link connecting Agents id1 and id2.
+// IncrementLinkStrength updates the strength field of the link connecting Agents id1 and id2.
 // Returns an error if no link is found
-func (n *Network) UpdateLinkStrength(id1 string, id2 string, strength float64) error {
+func (n *Network) IncrementLinkStrength(id1 string, id2 string) error {
 	lnkdMap, exists := n.AgentLinkMap[id1]
 	if !exists {
 		return fmt.Errorf("Invalid Link id1=%s id2=%s", id1, id2)
@@ -121,6 +121,6 @@ func (n *Network) UpdateLinkStrength(id1 string, id2 string, strength float64) e
 	if !exists {
 		return fmt.Errorf("Invalid Link id1=%s id2=%s", id1, id2)
 	}
-	agentLink.Link.Strength = strength
+	agentLink.Link.Strength = agentLink.Link.Strength + 1
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 type testNetwork struct {
 	relatedAgents []*Agent
 	agentByID     map[string]*Agent
+	LinkStrength  int
 }
 
 func (tn *testNetwork) GetRelatedAgents(a *Agent) []*Agent {
@@ -17,7 +18,8 @@ func (tn *testNetwork) GetAgentByID(id string) *Agent {
 	return tn.agentByID[id]
 }
 
-func (tn *testNetwork) UpdateLinkStrength(id1 string, id2 string) error {
+func (tn *testNetwork) IncrementLinkStrength(id1 string, id2 string) error {
+	tn.LinkStrength = tn.LinkStrength + 1
 	return nil
 }
 
@@ -55,11 +57,11 @@ func newAgent() *Agent {
 	return &a
 }
 
-func TestInteractSendsMsgToFirstAvailableRelatedAgent(t *testing.T) {
+func TestSendMailSendsMsgToFirstAvailableRelatedAgent(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
-	aut.Interact(tn)
+	aut.SendMail(tn)
 	matched := <-tn.GetAgentByID("id_3").Matched
 	IsTrue(t, matched, "First free agent in related agents is not matched")
 	msg, received := tn.GetAgentByID("id_3").RecieveMsg()
@@ -67,31 +69,48 @@ func TestInteractSendsMsgToFirstAvailableRelatedAgent(t *testing.T) {
 	AreEqual(t, "id_aut", msg, "Wrong message sent to first free agent")
 }
 
-func TestInteractReceivesMsgHigherSusceptabilityIgnoresMsg(t *testing.T) {
+func TestReadMailReceivesMsgIncrementsLinkStrength(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
 	aut.Susceptability = 1
 	aut.Color = Red
 	sent := aut.SendMsg("id_1")
-	aut.Interact(tn)
+	AreEqual(t, 0, tn.LinkStrength, "LinkStrength not initialised to 0")
+	aut.ReadMail(tn)
+	IsTrue(t, sent, "Msg not sent to Agent under test")
+	AreEqual(t, 1, tn.LinkStrength, "LinkStrength not incremented as part of reading a Mail")
+	sent = aut.SendMsg("id_1")
+	IsTrue(t, sent, "Msg not sent to Agent under test")
+	aut.ReadMail(tn)
+	AreEqual(t, 2, tn.LinkStrength, "LinkStrength not incremented as part of reading a Mail")
+}
+
+func TestReadMailReceivesMsgHigherSusceptabilityIgnoresMsg(t *testing.T) {
+	tn := newTestNetwork()
+	aut := newAgent()
+	aut.ID = "id_aut"
+	aut.Susceptability = 1
+	aut.Color = Red
+	sent := aut.SendMsg("id_1")
+	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	AreEqual(t, Red, aut.Color, "Agent Color should not change if Agent has higher susceptability")
 }
 
-func TestInteractReceivesMsgLowerSusceptabilityChangesColor(t *testing.T) {
+func TestReadMailReceivesMsgLowerSusceptabilityChangesColor(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
 	aut.Susceptability = 0.4
 	aut.Color = Red
 	sent := aut.SendMsg("id_1")
-	aut.Interact(tn)
+	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	AreEqual(t, Blue, aut.Color, "Agent Color should change to Blue if Agent has lower susceptability")
 }
 
-func TestInteractReceivesMsgLowerSusceptabilityHigherContrarinessRadomlyChangesColor(t *testing.T) {
+func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRadomlyChangesColor(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
@@ -99,10 +118,27 @@ func TestInteractReceivesMsgLowerSusceptabilityHigherContrarinessRadomlyChangesC
 	aut.Contrariness = 0.6
 	aut.Color = Red
 	sent := aut.SendMsg("id_1")
-	aut.Interact(tn)
+	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	NotEqual(t, Blue, aut.Color, "Agent Color should change to random Color if Agent has higher contrariness")
 	NotEqual(t, Red, aut.Color, "Agent Color should change to random Color if Agent has higher contrariness")
+}
+
+func TestClearMailClearsMailAndMatchedChannels(t *testing.T) {
+	a := newAgent()
+	a.Matched <- true
+	a.Mail <- "msg"
+	a.ClearMail()
+	select {
+	case matched := <-a.Matched:
+		t.Errorf("%t not cleared from Matched channel", matched)
+		return
+	case msg := <-a.Mail:
+		t.Errorf("%s not cleared from Mail channel", msg)
+		return
+	default:
+		return
+	}
 }
 
 func TestRecieveMsgTimesOutWhenNoMsg(t *testing.T) {
@@ -180,23 +216,6 @@ func TestClearMatch(t *testing.T) {
 	}
 }
 
-func TestClearInteractionsClearsMailAndMatchedChannels(t *testing.T) {
-	a := newAgent()
-	a.Matched <- true
-	a.Mail <- "msg"
-	a.ClearInteractions()
-	select {
-	case matched := <-a.Matched:
-		t.Errorf("%t not cleared from Matched channel", matched)
-		return
-	case msg := <-a.Mail:
-		t.Errorf("%s not cleared from Mail channel", msg)
-		return
-	default:
-		return
-	}
-}
-
 func TestClearMatchDoesntBlockWhenChannelEmpty(t *testing.T) {
 	a := newAgent()
 	a.ClearMatch()
@@ -215,9 +234,9 @@ func TestSetColorChangesColor(t *testing.T) {
 
 func TestSetColorIncrementsChangeCount(t *testing.T) {
 	a := newAgent()
-	AreEqual(t, a.ChangeCount, int32(0), "Default change count is not set to 0")
+	AreEqual(t, a.ChangeCount, 0, "Default change count is not set to 0")
 	a.SetColor(Blue)
-	AreEqual(t, a.ChangeCount, int32(1), "Change count is not incremented to 1")
+	AreEqual(t, a.ChangeCount, 1, "Change count is not incremented to 1")
 	a.SetColor(Red)
-	AreEqual(t, a.ChangeCount, int32(2), "Change count is not incremented to 2")
+	AreEqual(t, a.ChangeCount, 2, "Change count is not incremented to 2")
 }

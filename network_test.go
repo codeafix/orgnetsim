@@ -15,9 +15,9 @@ func TestJsonSerialisationAgent(t *testing.T) {
 }
 
 func TestJsonSerialisationLink(t *testing.T) {
-	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":0.4}],"nodes":null}`
+	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":4}],"nodes":null}`
 	n := Network{}
-	n.Links = append(n.Links, &Link{"id_1", "id_2", 0.4})
+	n.Links = append(n.Links, &Link{"id_1", "id_2", 4})
 	serJSON := n.Serialise()
 	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
 }
@@ -175,10 +175,14 @@ func TestUpdateLinkStrength(t *testing.T) {
 	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
-	err = n.UpdateLinkStrength("id_5", "id_1", 3.1)
+	err = n.IncrementLinkStrength("id_5", "id_1")
 	AssertSuccess(t, err)
-	AreEqual(t, 3.1, n.AgentLinkMap["id_5"]["id_1"].Link.Strength, "Link strength not updated")
-	AreEqual(t, 3.1, n.AgentLinkMap["id_1"]["id_5"].Link.Strength, "Link strength not updated")
+	AreEqual(t, 1, n.AgentLinkMap["id_5"]["id_1"].Link.Strength, "Link strength not updated")
+	AreEqual(t, 1, n.AgentLinkMap["id_1"]["id_5"].Link.Strength, "Link strength not updated")
+	err = n.IncrementLinkStrength("id_1", "id_5")
+	AssertSuccess(t, err)
+	AreEqual(t, 2, n.AgentLinkMap["id_5"]["id_1"].Link.Strength, "Link strength not updated")
+	AreEqual(t, 2, n.AgentLinkMap["id_1"]["id_5"].Link.Strength, "Link strength not updated")
 }
 
 func TestUpdateLinkStrengthReportsErrorIfIdDoesntExist(t *testing.T) {
@@ -186,13 +190,13 @@ func TestUpdateLinkStrengthReportsErrorIfIdDoesntExist(t *testing.T) {
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 
-	err = n.UpdateLinkStrength("id_7", "id_1", 3.1)
+	err = n.IncrementLinkStrength("id_7", "id_1")
 	NotEqual(t, nil, err, "Invalid link error not reported")
 	if !strings.Contains(err.Error(), "id_7") || !strings.Contains(err.Error(), "id_1") {
 		t.Errorf("Incorrect error reported: %s", err.Error())
 	}
 
-	err = n.UpdateLinkStrength("id_1", "id_7", 3.1)
+	err = n.IncrementLinkStrength("id_1", "id_7")
 	NotEqual(t, nil, err, "Invalid link error not reported")
 	if !strings.Contains(err.Error(), "id_7") || !strings.Contains(err.Error(), "id_1") {
 		t.Errorf("Incorrect error reported: %s", err.Error())

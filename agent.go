@@ -11,24 +11,20 @@ type Agent struct {
 	Contrariness   float64     `json:"contrariness"`
 	Matched        chan bool   `json:"-"`
 	Mail           chan string `json:"-"`
-	ChangeCount    int32       `json:"change"`
+	ChangeCount    int         `json:"change"`
 }
 
 //AgentInteracter is an interface that allows interaction with an Agent
 type AgentInteracter interface {
-	Interact(n RelationshipMgr)
-	SetColor(c Color)
-	TryMatch() bool
-	SendMsg(msg string) bool
-	RecieveMsg() (string, bool)
+	SendMail(n RelationshipMgr)
+	ReadMail(n RelationshipMgr)
 	ClearInteractions()
 }
 
-/*Interact iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
-first successful match it finds. It then checks for any messages it recieved in its own Mail queue. If it receives
-one then it decides whether to update its color.
+/*SendMail iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
+first successful match it finds.
 */
-func (a *Agent) Interact(n RelationshipMgr) {
+func (a *Agent) SendMail(n RelationshipMgr) {
 	for _, ra := range n.GetRelatedAgents(a) {
 		if ra.TryMatch() {
 			ra.SendMsg(a.ID)
@@ -37,9 +33,16 @@ func (a *Agent) Interact(n RelationshipMgr) {
 			continue
 		}
 	}
+}
+
+/*ReadMail checks for any messages it recieved in its own Mail queue. If it receives
+one then it decides whether to update its color.
+*/
+func (a *Agent) ReadMail(n RelationshipMgr) {
 	msg, received := a.RecieveMsg()
 	if received {
 		ra := n.GetAgentByID(msg)
+		n.IncrementLinkStrength(a.ID, ra.ID)
 		if ra.Influence > a.Susceptability {
 			if a.Contrariness > ra.Influence {
 				altColor := RandomlySelectAlternateColor(ra.Color)
@@ -51,8 +54,8 @@ func (a *Agent) Interact(n RelationshipMgr) {
 	}
 }
 
-// ClearInteractions clears the matched and mail channels
-func (a *Agent) ClearInteractions() {
+// ClearMail clears the matched and mail channels
+func (a *Agent) ClearMail() {
 	a.ClearMsg()
 	a.ClearMatch()
 }

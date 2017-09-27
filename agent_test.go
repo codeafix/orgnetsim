@@ -60,10 +60,20 @@ func TestSendMailSendsMsgToFirstAvailableRelatedAgent(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
-	aut.SendMail(tn)
+	count := aut.SendMail(tn)
+	AreEqual(t, 1, count, "Message not sent to first free Agent")
 	msg, received := tn.GetAgentByID("id_3").RecieveMsg()
 	IsTrue(t, received, "Message not sent to first free agent in related agents")
 	AreEqual(t, "id_aut", msg, "Wrong message sent to first free agent")
+}
+
+func TestSendMailDoesNotSendIfNoAvailableRelatedAgent(t *testing.T) {
+	tn := newTestNetwork()
+	aut := newAgent()
+	aut.ID = "id_aut"
+	tn.GetAgentByID("id_3").Mail <- "block"
+	count := aut.SendMail(tn)
+	AreEqual(t, 0, count, "Message sent but should not have been since there are no Agents free")
 }
 
 func TestReadMailReceivesMsgIncrementsLinkStrength(t *testing.T) {

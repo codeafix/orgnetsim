@@ -13,26 +13,27 @@ type Agent struct {
 
 //AgentInteracter is an interface that allows interaction with an Agent
 type AgentInteracter interface {
-	SendMail(n RelationshipMgr)
-	ReadMail(n RelationshipMgr)
+	SendMail(n RelationshipMgr) int
+	ReadMail(n RelationshipMgr) Color
 	ClearMail()
 }
 
 /*SendMail iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
 first successful match it finds.
 */
-func (a *Agent) SendMail(n RelationshipMgr) {
+func (a *Agent) SendMail(n RelationshipMgr) int {
 	for _, ra := range n.GetRelatedAgents(a) {
 		if ra.SendMsg(a.ID) {
-			return
+			return 1
 		}
 	}
+	return 0
 }
 
 /*ReadMail checks for any messages it recieved in its own Mail queue. If it receives
 one then it decides whether to update its color.
 */
-func (a *Agent) ReadMail(n RelationshipMgr) {
+func (a *Agent) ReadMail(n RelationshipMgr) Color {
 	msg, received := a.RecieveMsg()
 	if received {
 		ra := n.GetAgentByID(msg)
@@ -46,12 +47,13 @@ func (a *Agent) ReadMail(n RelationshipMgr) {
 			}
 		}
 	}
+	return a.Color
 }
 
 //SetColor changes the color of the current Agent and counts the number of times the Agent changes color
 func (a *Agent) SetColor(color Color) {
 	if a.Color != color {
-		a.ChangeCount = a.ChangeCount + 1
+		a.ChangeCount++
 		a.Color = color
 	}
 }

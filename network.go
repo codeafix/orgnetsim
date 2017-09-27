@@ -120,6 +120,6 @@ func (n *Network) IncrementLinkStrength(id1 string, id2 string) error {
 	if !exists {
 		return fmt.Errorf("Invalid Link id1=%s id2=%s", id1, id2)
 	}
-	agentLink.Link.Strength = agentLink.Link.Strength + 1
+	agentLink.Link.Strength++
 	return nil
 }

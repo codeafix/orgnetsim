@@ -1,13 +1,22 @@
 package orgnetsim
 
+import "fmt"
+
 //RunSim runs the simulation
 func RunSim() {
-	n, _ := NewNetwork("")
+	iterations := 500
+	n, _ := GenerateHierarchy()
 
-	colors := make([][]int, 100, 100)
-	conversations := make([]int, 100, 100)
+	colors := make([][]int, iterations+1, iterations+1)
+	conversations := make([]int, iterations+1, iterations+1)
 
-	for i := 0; i < 100; i++ {
+	colorCounts := make([]int, MaxColors, MaxColors)
+	for _, a := range n.Nodes {
+		colorCounts[a.Color]++
+	}
+	colors[0] = colorCounts
+
+	for i := 1; i <= iterations; i++ {
 		hold := make(chan bool)
 		convCount := make(chan int)
 
@@ -35,5 +44,16 @@ func RunSim() {
 		}
 		colors[i] = colorCounts
 		conversations[i] = convTotal
+	}
+
+	for c := 0; c < MaxColors; c++ {
+		fmt.Printf("%s,", Color(c).String())
+	}
+	fmt.Printf("Conversations\n")
+	for i := 0; i <= iterations; i++ {
+		for j := 0; j < MaxColors; j++ {
+			fmt.Printf("%d,", colors[i][j])
+		}
+		fmt.Printf("%d\n", conversations[i])
 	}
 }

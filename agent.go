@@ -40,7 +40,7 @@ func (a *Agent) ReadMail(n RelationshipMgr) Color {
 		n.IncrementLinkStrength(a.ID, ra.ID)
 		if ra.Influence > a.Susceptability {
 			if a.Contrariness > ra.Influence {
-				altColor := RandomlySelectAlternateColor(ra.Color)
+				altColor := RandomlySelectAlternateColor(a.Color)
 				a.SetColor(altColor)
 			} else {
 				a.SetColor(ra.Color)

@@ -31,3 +31,7 @@ func AssertSuccess(t *testing.T, err error) {
 		t.Errorf(err.Error())
 	}
 }
+
+func TestRunSim(t *testing.T) {
+	RunSim()
+}

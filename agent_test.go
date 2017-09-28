@@ -117,7 +117,7 @@ func TestReadMailReceivesMsgLowerSusceptabilityChangesColor(t *testing.T) {
 	AreEqual(t, Blue, aut.Color, "Agent Color should change to Blue if Agent has lower susceptability")
 }
 
-func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRadomlyChangesColor(t *testing.T) {
+func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRandomlyChangesColor(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
@@ -127,8 +127,8 @@ func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRadomlyChangesC
 	sent := aut.SendMsg("id_1")
 	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
-	NotEqual(t, Blue, aut.Color, "Agent Color should change to random Color if Agent has higher contrariness")
-	NotEqual(t, Red, aut.Color, "Agent Color should change to random Color if Agent has higher contrariness")
+	NotEqual(t, Grey, aut.Color, "Agent Color should change to random Color other than Grey if Agent has higher contrariness")
+	NotEqual(t, Red, aut.Color, "Agent Color should change to random Color other than it was if Agent has higher contrariness")
 }
 
 func TestRecieveMsgReturnsFalseWhenNoMsg(t *testing.T) {

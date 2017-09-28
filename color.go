@@ -17,7 +17,7 @@ const (
 )
 
 //MaxColors is the number of defined colors.
-const MaxColors int = 3
+const MaxColors int = 4
 
 //go:generate stringer -type=Color
 

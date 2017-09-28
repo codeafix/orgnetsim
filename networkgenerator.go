@@ -2,40 +2,71 @@ package orgnetsim
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 )
 
 //GenerateHierarchy generates a hierarchical network
 func GenerateHierarchy() (*Network, error) {
-	levels, teamsize := 4, 5
-	peerLinks, teamLinks, initColors, unsusceptibleAgents := false, false, false, false
+	levels, teamsize, teamLinkLevel := 4, 5, 3
+	peerLinks, teamLinks, initColors, unsusceptibleAgents, do := true, true, false, false, true
 
 	n := new(Network)
 	nodeCount := new(int)
 	*nodeCount = 1
 	a := GenerateRandomAgent(nodeCount, initColors)
-	generateChildren(n, a, nodeCount, 0, levels, teamsize, peerLinks, teamLinks, initColors, unsusceptibleAgents)
+	n.Nodes = append(n.Nodes, a)
+
+	leafTeamCount := int(math.Pow(float64(teamsize), float64(teamLinkLevel-1)))
+	leafTeams := make([][]*Agent, 0, leafTeamCount)
+
+	generateChildren(n, a, &leafTeams, nodeCount, 0, levels, teamsize, teamLinkLevel, peerLinks, teamLinks, initColors, unsusceptibleAgents)
+
+	if teamLinks {
+		for i := 0; i < leafTeamCount; i++ {
+			for j := i + 1; j < leafTeamCount; j++ {
+				l := NewLink(leafTeams[i][0], leafTeams[j][0])
+				n.Links = append(n.Links, l)
+			}
+		}
+	}
+
+	if unsusceptibleAgents {
+		for i := 0; i < leafTeamCount; i++ {
+			leafTeams[i][3].Susceptability = 5.0
+			leafTeams[i][3].Color = Blue
+		}
+	}
+
+	if do {
+		doa := GenerateRandomAgent(nodeCount, initColors)
+		doa.Susceptability = 5.0
+		doa.Color = Blue
+		n.Nodes = append(n.Nodes, doa)
+		for i := 0; i < leafTeamCount; i++ {
+			l := NewLink(doa, leafTeams[i][2])
+			n.Links = append(n.Links, l)
+		}
+	}
 
 	err := n.PopulateMaps()
 	return n, err
 }
 
-func generateChildren(n *Network, parent *Agent, nodeCount *int, level int, levels int, teamsize int, peerLinks bool, teamLinks bool, initColors bool, unsusceptibleAgents bool) *Agent {
+func generateChildren(n *Network, parent *Agent, leafTeams *[][]*Agent, nodeCount *int, level int, levels int, teamsize int, teamLinkLevel int, peerLinks bool, teamLinks bool, initColors bool, unsusceptibleAgents bool) {
 	level++
 	if level >= levels {
-		return nil
+		return
 	}
-	levelHasChildren := level < (levels - 1)
 
 	peers := make([]*Agent, teamsize, teamsize)
-	children := make([]*Agent, teamsize, teamsize)
 	for i := 0; i < teamsize; i++ {
 		a := GenerateRandomAgent(nodeCount, initColors)
 		peers[i] = a
 		l := NewLink(parent, a)
 		n.Nodes = append(n.Nodes, a)
 		n.Links = append(n.Links, l)
-		children[i] = generateChildren(n, a, nodeCount, level, levels, teamsize, peerLinks, teamLinks, initColors, unsusceptibleAgents)
+		generateChildren(n, a, leafTeams, nodeCount, level, levels, teamsize, teamLinkLevel, peerLinks, teamLinks, initColors, unsusceptibleAgents)
 	}
 
 	//Add peer links
@@ -48,25 +79,9 @@ func generateChildren(n *Network, parent *Agent, nodeCount *int, level int, leve
 		}
 	}
 
-	//Add an additional network that links 1 member from each team
-	if teamLinks && levelHasChildren {
-		for i := 0; i < teamsize; i++ {
-			for j := i + 1; j < teamsize; j++ {
-				l := NewLink(children[i], children[j])
-				n.Links = append(n.Links, l)
-			}
-		}
+	if level == teamLinkLevel {
+		*leafTeams = append(*leafTeams, peers)
 	}
-
-	//Mark certain Agents as unsusceptible and give them a Color
-	if unsusceptibleAgents && levelHasChildren {
-		for i := 0; i < teamsize; i++ {
-			children[i].Susceptability = 5.0
-			children[i].Color = Blue
-		}
-	}
-
-	return peers[0]
 }
 
 //GenerateRandomAgent creates an Agent with random properties
@@ -74,9 +89,9 @@ func GenerateRandomAgent(agentCount *int, initColors bool) *Agent {
 	a := Agent{
 		fmt.Sprintf("id_%d", *agentCount),
 		Grey,
-		rand.NormFloat64()*3 + 1,
-		rand.NormFloat64()*3 + 1,
-		rand.NormFloat64()*3 + 1,
+		rand.NormFloat64()*0.25 + 1,
+		rand.NormFloat64()*0.25 + 1,
+		rand.NormFloat64()*0.15 + 0.7,
 		nil,
 		0,
 	}
@@ -84,7 +99,7 @@ func GenerateRandomAgent(agentCount *int, initColors bool) *Agent {
 		if rand.Intn(2) == 1 {
 			a.Color = Red
 		} else {
-			a.Color = Blue
+			a.Color = Grey
 		}
 	}
 	*agentCount++

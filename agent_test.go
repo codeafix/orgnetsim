@@ -53,6 +53,7 @@ func newTestNetwork() *testNetwork {
 func newAgent() *Agent {
 	a := Agent{}
 	a.Mail = make(chan string, 1)
+	a.Memory = make(map[Color]struct{}, MaxColors)
 	return &a
 }
 

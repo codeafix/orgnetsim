@@ -2,13 +2,14 @@ package orgnetsim
 
 //An Agent is a node in the network
 type Agent struct {
-	ID             string      `json:"id"`
-	Color          Color       `json:"color"`
-	Susceptability float64     `json:"susceptability"`
-	Influence      float64     `json:"influence"`
-	Contrariness   float64     `json:"contrariness"`
-	Mail           chan string `json:"-"`
-	ChangeCount    int         `json:"change"`
+	ID             string             `json:"id"`
+	Color          Color              `json:"color"`
+	Susceptability float64            `json:"susceptability"`
+	Influence      float64            `json:"influence"`
+	Contrariness   float64            `json:"contrariness"`
+	Mail           chan string        `json:"-"`
+	ChangeCount    int                `json:"change"`
+	Memory         map[Color]struct{} `json:"-"`
 }
 
 //AgentInteracter is an interface that allows interaction with an Agent
@@ -51,10 +52,13 @@ func (a *Agent) ReadMail(n RelationshipMgr) Color {
 }
 
 //SetColor changes the color of the current Agent and counts the number of times the Agent changes color
+//It also adds each color to a memory so that once it changes it's mind it doesn't change back
 func (a *Agent) SetColor(color Color) {
-	if a.Color != color {
+	_, rem := a.Memory[color]
+	if !rem && a.Color != color {
 		a.ChangeCount++
 		a.Color = color
+		a.Memory[color] = struct{}{}
 	}
 }
 

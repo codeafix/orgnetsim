@@ -9,7 +9,7 @@ import (
 //GenerateHierarchy generates a hierarchical network
 func GenerateHierarchy() (*Network, error) {
 	levels, teamsize, teamLinkLevel := 4, 5, 3
-	peerLinks, teamLinks, initColors, unsusceptibleAgents, do := true, true, false, false, true
+	peerLinks, teamLinks, initColors, unsusceptibleAgents, do := true, true, false, false, false
 
 	n := new(Network)
 	nodeCount := new(int)
@@ -94,6 +94,7 @@ func GenerateRandomAgent(agentCount *int, initColors bool) *Agent {
 		rand.NormFloat64()*0.15 + 0.7,
 		nil,
 		0,
+		nil,
 	}
 	if initColors {
 		if rand.Intn(2) == 1 {

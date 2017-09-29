@@ -6,23 +6,33 @@ import (
 	"math/rand"
 )
 
-//GenerateHierarchy generates a hierarchical network
-func GenerateHierarchy() (*Network, error) {
-	levels, teamsize, teamLinkLevel := 4, 5, 3
-	peerLinks, teamLinks, initColors, unsusceptibleAgents, do := true, true, false, false, false
+//HierarchySpec provides parameters to the GenerateHierarchy functioning specifying the features of the
+//Hierarchical network to generate
+type HierarchySpec struct {
+	Levels           int     `json:"levels"`
+	TeamSize         int     `json:"teamSize"`
+	TeamLinkLevel    int     `json:"teamLinkLevel"`
+	LinkTeamPeers    bool    `json:"linkTeamPeers"`
+	LinkTeams        bool    `json:"linkTeams"`
+	InitColors       []Color `json:"initColors"`
+	EvangelistAgents bool    `json:"evangelistAgents"`
+	LoneEvangelist   bool    `json:"loneEvangelist"`
+}
 
+//GenerateHierarchy generates a hierarchical network
+func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	n := new(Network)
 	nodeCount := new(int)
 	*nodeCount = 1
-	a := GenerateRandomAgent(nodeCount, initColors)
+	a := GenerateRandomAgent(nodeCount, s.InitColors)
 	n.Nodes = append(n.Nodes, a)
 
-	leafTeamCount := int(math.Pow(float64(teamsize), float64(teamLinkLevel-1)))
+	leafTeamCount := int(math.Pow(float64(s.TeamSize), float64(s.TeamLinkLevel-1)))
 	leafTeams := make([][]*Agent, 0, leafTeamCount)
 
-	generateChildren(n, a, &leafTeams, nodeCount, 0, levels, teamsize, teamLinkLevel, peerLinks, teamLinks, initColors, unsusceptibleAgents)
+	generateChildren(n, a, &leafTeams, nodeCount, 0, s)
 
-	if teamLinks {
+	if s.LinkTeams {
 		for i := 0; i < leafTeamCount; i++ {
 			for j := i + 1; j < leafTeamCount; j++ {
 				l := NewLink(leafTeams[i][0], leafTeams[j][0])
@@ -31,15 +41,15 @@ func GenerateHierarchy() (*Network, error) {
 		}
 	}
 
-	if unsusceptibleAgents {
+	if s.EvangelistAgents {
 		for i := 0; i < leafTeamCount; i++ {
 			leafTeams[i][3].Susceptability = 5.0
 			leafTeams[i][3].Color = Blue
 		}
 	}
 
-	if do {
-		doa := GenerateRandomAgent(nodeCount, initColors)
+	if s.LoneEvangelist {
+		doa := GenerateRandomAgent(nodeCount, s.InitColors)
 		doa.Susceptability = 5.0
 		doa.Color = Blue
 		n.Nodes = append(n.Nodes, doa)
@@ -53,39 +63,39 @@ func GenerateHierarchy() (*Network, error) {
 	return n, err
 }
 
-func generateChildren(n *Network, parent *Agent, leafTeams *[][]*Agent, nodeCount *int, level int, levels int, teamsize int, teamLinkLevel int, peerLinks bool, teamLinks bool, initColors bool, unsusceptibleAgents bool) {
+func generateChildren(n *Network, parent *Agent, leafTeams *[][]*Agent, nodeCount *int, level int, s HierarchySpec) {
 	level++
-	if level >= levels {
+	if level >= s.Levels {
 		return
 	}
 
-	peers := make([]*Agent, teamsize, teamsize)
-	for i := 0; i < teamsize; i++ {
-		a := GenerateRandomAgent(nodeCount, initColors)
+	peers := make([]*Agent, s.TeamSize, s.TeamSize)
+	for i := 0; i < s.TeamSize; i++ {
+		a := GenerateRandomAgent(nodeCount, s.InitColors)
 		peers[i] = a
 		l := NewLink(parent, a)
 		n.Nodes = append(n.Nodes, a)
 		n.Links = append(n.Links, l)
-		generateChildren(n, a, leafTeams, nodeCount, level, levels, teamsize, teamLinkLevel, peerLinks, teamLinks, initColors, unsusceptibleAgents)
+		generateChildren(n, a, leafTeams, nodeCount, level, s)
 	}
 
 	//Add peer links
-	if peerLinks {
-		for i := 0; i < teamsize; i++ {
-			for j := i + 1; j < teamsize; j++ {
+	if s.LinkTeamPeers {
+		for i := 0; i < s.TeamSize; i++ {
+			for j := i + 1; j < s.TeamSize; j++ {
 				l := NewLink(peers[i], peers[j])
 				n.Links = append(n.Links, l)
 			}
 		}
 	}
 
-	if level == teamLinkLevel {
+	if level == s.TeamLinkLevel {
 		*leafTeams = append(*leafTeams, peers)
 	}
 }
 
 //GenerateRandomAgent creates an Agent with random properties
-func GenerateRandomAgent(agentCount *int, initColors bool) *Agent {
+func GenerateRandomAgent(agentCount *int, initColors []Color) *Agent {
 	a := Agent{
 		fmt.Sprintf("id_%d", *agentCount),
 		Grey,
@@ -96,12 +106,8 @@ func GenerateRandomAgent(agentCount *int, initColors bool) *Agent {
 		0,
 		nil,
 	}
-	if initColors {
-		if rand.Intn(2) == 1 {
-			a.Color = Red
-		} else {
-			a.Color = Grey
-		}
+	if len(initColors) > 0 {
+		a.Color = initColors[rand.Intn(len(initColors))]
 	}
 	*agentCount++
 	return &a

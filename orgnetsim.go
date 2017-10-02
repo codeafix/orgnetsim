@@ -1,13 +1,14 @@
 package orgnetsim
 
 //RunSim runs the simulation
-func RunSim(n *Network, iterations int) ([][]int, []int) {
+func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
 	colors := make([][]int, iterations+1, iterations+1)
 	conversations := make([]int, iterations+1, iterations+1)
 
 	colorCounts := make([]int, MaxColors, MaxColors)
-	for _, a := range n.Nodes {
-		colorCounts[a.Color]++
+	agents := n.Agents()
+	for _, a := range agents {
+		colorCounts[a.GetColor()]++
 	}
 	colors[0] = colorCounts
 
@@ -15,9 +16,9 @@ func RunSim(n *Network, iterations int) ([][]int, []int) {
 		hold := make(chan bool)
 		convCount := make(chan int)
 
-		nc := len(n.Nodes)
+		nc := len(agents)
 
-		for _, a := range n.Nodes {
+		for _, a := range agents {
 			agent := a
 			go func() {
 				<-hold
@@ -33,7 +34,7 @@ func RunSim(n *Network, iterations int) ([][]int, []int) {
 		close(convCount)
 
 		colorCounts := make([]int, MaxColors, MaxColors)
-		for _, a := range n.Nodes {
+		for _, a := range agents {
 			color := a.ReadMail(n)
 			colorCounts[color]++
 		}

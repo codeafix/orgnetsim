@@ -27,6 +27,12 @@ type RelationshipMgr interface {
 	GetRelatedAgents(a *Agent) []*Agent
 	GetAgentByID(id string) *Agent
 	IncrementLinkStrength(id1 string, id2 string) error
+	Agents() []*Agent
+}
+
+//Agents returns a list of the Agents Communicating on the Network
+func (n *Network) Agents() []*Agent {
+	return n.Nodes
 }
 
 //Serialise returns a json representation of the Network

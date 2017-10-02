@@ -23,6 +23,10 @@ func (tn *testNetwork) IncrementLinkStrength(id1 string, id2 string) error {
 	return nil
 }
 
+func (tn *testNetwork) Agents() []*Agent {
+	return nil
+}
+
 func (tn *testNetwork) addAgent(a *Agent) {
 	tn.relatedAgents = append(tn.relatedAgents, a)
 	tn.agentByID[a.ID] = a
@@ -63,7 +67,7 @@ func TestSendMailSendsMsgToFirstAvailableRelatedAgent(t *testing.T) {
 	aut.ID = "id_aut"
 	count := aut.SendMail(tn)
 	AreEqual(t, 1, count, "Message not sent to first free Agent")
-	msg, received := tn.GetAgentByID("id_3").RecieveMsg()
+	msg, received := tn.GetAgentByID("id_3").ReceiveMsg()
 	IsTrue(t, received, "Message not sent to first free agent in related agents")
 	AreEqual(t, "id_aut", msg, "Wrong message sent to first free agent")
 }
@@ -134,7 +138,7 @@ func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRandomlyChanges
 
 func TestRecieveMsgReturnsFalseWhenNoMsg(t *testing.T) {
 	a := newAgent()
-	_, received := a.RecieveMsg()
+	_, received := a.ReceiveMsg()
 	IsFalse(t, received, "Unexpected true returned from ReceiveMsg")
 }
 
@@ -142,7 +146,7 @@ func TestRecieveMsgGetsMsg(t *testing.T) {
 	a := newAgent()
 	origMsg := "myMsg"
 	a.Mail <- origMsg
-	msg, received := a.RecieveMsg()
+	msg, received := a.ReceiveMsg()
 	IsTrue(t, received, "Unexpected false returned from ReceiveMsg")
 	AreEqual(t, origMsg, msg, "Msgs not equal.")
 }

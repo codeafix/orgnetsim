@@ -12,11 +12,12 @@ type Agent struct {
 	Memory         map[Color]struct{} `json:"-"`
 }
 
-//AgentInteracter is an interface that allows interaction with an Agent
-type AgentInteracter interface {
+//Communicator is an interface that allows interaction with an Agent
+type Communicator interface {
 	SendMail(n RelationshipMgr) int
 	ReadMail(n RelationshipMgr) Color
 	ClearMail()
+	GetColor() Color
 }
 
 /*SendMail iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the
@@ -31,11 +32,11 @@ func (a *Agent) SendMail(n RelationshipMgr) int {
 	return 0
 }
 
-/*ReadMail checks for any messages it recieved in its own Mail queue. If it receives
+/*ReadMail checks for any messages it received in its own Mail queue. If it receives
 one then it decides whether to update its color.
 */
 func (a *Agent) ReadMail(n RelationshipMgr) Color {
-	msg, received := a.RecieveMsg()
+	msg, received := a.ReceiveMsg()
 	if received {
 		ra := n.GetAgentByID(msg)
 		n.IncrementLinkStrength(a.ID, ra.ID)
@@ -62,6 +63,11 @@ func (a *Agent) SetColor(color Color) {
 	}
 }
 
+//GetColor returns the Color of this Agent
+func (a *Agent) GetColor() Color {
+	return a.Color
+}
+
 //SendMsg tries to add an entry into an Agent's Mail channel, if it succeeds, that Agent will be blocked
 //for any other Agent trying to send a Mail and this function returns true (the Agent is now Matched).
 //If it returns false the Agent is already matched by another Agent.
@@ -74,8 +80,8 @@ func (a *Agent) SendMsg(msg string) bool {
 	}
 }
 
-//RecieveMsg picks a message up from the Agent's Mail channel
-func (a *Agent) RecieveMsg() (string, bool) {
+//ReceiveMsg picks a message up from the Agent's Mail channel
+func (a *Agent) ReceiveMsg() (string, bool) {
 	select {
 	case msg := <-a.Mail:
 		return msg, true

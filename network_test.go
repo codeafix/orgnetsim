@@ -6,6 +6,24 @@ import (
 	"testing"
 )
 
+func TestSerialisationOfAgentWithMemory(t *testing.T) {
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}]}`
+	n := Network{}
+	a := AgentWithMemory{AgentState{"id_1", 1, 0.2, 0.3, 0.4, nil, 5, ""}, nil}
+	a.Initialise()
+	n.Nodes = append(n.Nodes, &a)
+	serJSON := n.Serialise()
+	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
+}
+
+func TestDeserialisationOfAgentWithMemory(t *testing.T) {
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}]}`
+	n, err := NewNetwork(json)
+	AssertSuccess(t, err)
+	serJSON := n.Serialise()
+	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
+}
+
 func TestJsonSerialisationAgent(t *testing.T) {
 	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent"}]}`
 	n := Network{}

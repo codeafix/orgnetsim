@@ -51,7 +51,7 @@ This simulation uses the GenerateHierarchy function to generate a hierarchal net
 
 ## RelationshipMgr aka the Network
 In the examples networks with regular features have been generated automatically using the networkgenerator. However the Network struct (implements RelationshipMgr) has been designed so that it can be created from a JSON description of the network. Here is an example:
-```json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
+```json := '{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}'
 n, err := NewNetwork(json)
 	
 serJSON := n.Serialise()

@@ -7,9 +7,9 @@ import (
 )
 
 func TestJsonSerialisationAgent(t *testing.T) {
-	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5}]}`
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent"}]}`
 	n := Network{}
-	n.Nodes = append(n.Nodes, &Agent{"id_1", 1, 0.2, 0.3, 0.4, make(chan string), 5, make(map[Color]struct{}, MaxColors)})
+	n.Nodes = append(n.Nodes, &AgentState{"id_1", 1, 0.2, 0.3, 0.4, make(chan string), 5, "Agent"})
 	serJSON := n.Serialise()
 	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
 }
@@ -63,21 +63,21 @@ func CheckLinkMapHierarchy(t *testing.T, json string) {
 	IsTrue(t, exists, "Agent id_1 missing from AgentLinkMap")
 	AreEqual(t, 2, len(agent1links), "Incorrect number of related nodes to Agent id_1")
 	for id, agentLink := range agent1links {
-		AreEqual(t, id, agentLink.Agent.ID, "Id and Agent.ID not equal in AgentLinkMap")
-		IsTrue(t, agentLink.Agent.ID == "id_2" || agentLink.Agent.ID == "id_3", fmt.Sprintf("Unexpected agent related to Agent id_1 got %s", agentLink.Agent.ID))
+		AreEqual(t, id, agentLink.Agent.Identifier(), "Id and Agent.ID not equal in AgentLinkMap")
+		IsTrue(t, agentLink.Agent.Identifier() == "id_2" || agentLink.Agent.Identifier() == "id_3", fmt.Sprintf("Unexpected agent related to Agent id_1 got %s", agentLink.Agent.Identifier()))
 	}
 
 	agent2links, exists := n.AgentLinkMap["id_2"]
 	IsTrue(t, exists, "Agent id_2 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent2links), "Incorrect number of related nodes to Agent id_2")
 	agent2Link, exists := agent2links["id_1"]
-	IsTrue(t, exists && "id_1" == agent2Link.Agent.ID, fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_1 %v", agent2links))
+	IsTrue(t, exists && "id_1" == agent2Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_1 %v", agent2links))
 
 	agent3links, exists := n.AgentLinkMap["id_3"]
 	IsTrue(t, exists, "Agent id_3 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent3links), "Incorrect number of related nodes to Agent id_3")
 	agent3Link, exists := agent3links["id_1"]
-	IsTrue(t, exists && "id_1" == agent3Link.Agent.ID, fmt.Sprintf("Unexpected agent related to Agent id_3 expected id_1 %v", agent3links))
+	IsTrue(t, exists && "id_1" == agent3Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_3 expected id_1 %v", agent3links))
 }
 
 func TestNewNetworkCreatesValidLinkMapTwoParents(t *testing.T) {
@@ -99,20 +99,20 @@ func CheckLinkMapTwoParents(t *testing.T, json string) {
 	IsTrue(t, exists, "Agent id_1 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent1links), "Incorrect number of related nodes to Agent id_1")
 	agent1Link, exists := agent1links["id_3"]
-	IsTrue(t, exists && "id_3" == agent1Link.Agent.ID, fmt.Sprintf("Unexpected agent related to Agent id_1 expected id_3 %v", agent1links))
+	IsTrue(t, exists && "id_3" == agent1Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_1 expected id_3 %v", agent1links))
 
 	agent2links, exists := n.AgentLinkMap["id_2"]
 	IsTrue(t, exists, "Agent id_2 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent2links), "Incorrect number of related nodes to Agent id_2")
 	agent2Link, exists := agent2links["id_3"]
-	IsTrue(t, exists && "id_3" == agent2Link.Agent.ID, fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_3 %v", agent1links))
+	IsTrue(t, exists && "id_3" == agent2Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_3 %v", agent1links))
 
 	agent3links, exists := n.AgentLinkMap["id_3"]
 	IsTrue(t, exists, "Agent id_3 missing from AgentLinkMap")
 	AreEqual(t, 2, len(agent3links), "Incorrect number of related nodes to Agent id_3")
 	for id, agentLink := range agent3links {
-		AreEqual(t, id, agentLink.Agent.ID, "Id and Agent.ID not equal in AgentLinkMap")
-		IsTrue(t, agentLink.Agent.ID == "id_1" || agentLink.Agent.ID == "id_2", fmt.Sprintf("Unexpected agent related to Agent id_3 got %s", agentLink.Agent.ID))
+		AreEqual(t, id, agentLink.Agent.Identifier(), "Id and Agent.ID not equal in AgentLinkMap")
+		IsTrue(t, agentLink.Agent.Identifier() == "id_1" || agentLink.Agent.Identifier() == "id_2", fmt.Sprintf("Unexpected agent related to Agent id_3 got %s", agentLink.Agent.Identifier()))
 	}
 }
 
@@ -143,11 +143,11 @@ func TestGetRelatedAgentsReturnsCorrectList(t *testing.T) {
 		"id_5": false,
 	}
 	for _, agent := range relatedAgents {
-		_, exists := checks[agent.ID]
+		_, exists := checks[agent.Identifier()]
 		if exists {
-			checks[agent.ID] = true
+			checks[agent.Identifier()] = true
 		} else {
-			t.Errorf("Unexpected related Agent %s", agent.ID)
+			t.Errorf("Unexpected related Agent %s", agent.Identifier())
 		}
 	}
 	for id, check := range checks {
@@ -160,7 +160,7 @@ func TestGetAgentByIDReturnsCorrectAgentWhenExists(t *testing.T) {
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	agent := n.GetAgentByID("id_5")
-	AreEqual(t, "id_5", agent.ID, "Expected agent to be id_5")
+	AreEqual(t, "id_5", agent.Identifier(), "Expected agent to be id_5")
 }
 
 func TestGetAgentByIDReturnsNilWhenNotExists(t *testing.T) {
@@ -168,7 +168,7 @@ func TestGetAgentByIDReturnsNilWhenNotExists(t *testing.T) {
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	agent := n.GetAgentByID("id_9")
-	AreEqual(t, (*Agent)(nil), agent, "Expected nil to be returned")
+	AreEqual(t, (Agent)(nil), agent, "Expected nil to be returned")
 }
 
 func TestUpdateLinkStrength(t *testing.T) {

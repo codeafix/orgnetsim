@@ -28,7 +28,7 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	n.Nodes = append(n.Nodes, a)
 
 	leafTeamCount := int(math.Pow(float64(s.TeamSize), float64(s.TeamLinkLevel-1)))
-	leafTeams := make([][]*Agent, 0, leafTeamCount)
+	leafTeams := make([][]*AgentWithMemory, 0, leafTeamCount)
 
 	generateChildren(n, a, &leafTeams, nodeCount, 0, s)
 
@@ -63,13 +63,13 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	return n, err
 }
 
-func generateChildren(n *Network, parent *Agent, leafTeams *[][]*Agent, nodeCount *int, level int, s HierarchySpec) {
+func generateChildren(n *Network, parent Agent, leafTeams *[][]*AgentWithMemory, nodeCount *int, level int, s HierarchySpec) {
 	level++
 	if level >= s.Levels {
 		return
 	}
 
-	peers := make([]*Agent, s.TeamSize, s.TeamSize)
+	peers := make([]*AgentWithMemory, s.TeamSize, s.TeamSize)
 	for i := 0; i < s.TeamSize; i++ {
 		a := GenerateRandomAgent(nodeCount, s.InitColors)
 		peers[i] = a
@@ -95,15 +95,18 @@ func generateChildren(n *Network, parent *Agent, leafTeams *[][]*Agent, nodeCoun
 }
 
 //GenerateRandomAgent creates an Agent with random properties
-func GenerateRandomAgent(agentCount *int, initColors []Color) *Agent {
-	a := Agent{
-		fmt.Sprintf("id_%d", *agentCount),
-		Grey,
-		rand.NormFloat64()*0.25 + 1,
-		rand.NormFloat64()*0.25 + 1,
-		rand.NormFloat64()*0.15 + 0.7,
-		nil,
-		0,
+func GenerateRandomAgent(agentCount *int, initColors []Color) *AgentWithMemory {
+	a := AgentWithMemory{
+		AgentState{
+			fmt.Sprintf("id_%d", *agentCount),
+			Grey,
+			rand.NormFloat64()*0.25 + 1,
+			rand.NormFloat64()*0.25 + 1,
+			rand.NormFloat64()*0.15 + 0.7,
+			nil,
+			0,
+			"AgentWithMemory",
+		},
 		nil,
 	}
 	if len(initColors) > 0 {
@@ -114,10 +117,10 @@ func GenerateRandomAgent(agentCount *int, initColors []Color) *Agent {
 }
 
 //NewLink returns a Link between to two passed agents
-func NewLink(a1 *Agent, a2 *Agent) *Link {
+func NewLink(a1 Agent, a2 Agent) *Link {
 	l := Link{
-		a1.ID,
-		a2.ID,
+		a1.Identifier(),
+		a2.Identifier(),
 		0,
 	}
 	return &l

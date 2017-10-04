@@ -5,16 +5,16 @@ import (
 )
 
 type testNetwork struct {
-	relatedAgents []*Agent
-	agentByID     map[string]*Agent
+	relatedAgents []Agent
+	agentByID     map[string]Agent
 	LinkStrength  int
 }
 
-func (tn *testNetwork) GetRelatedAgents(a *Agent) []*Agent {
+func (tn *testNetwork) GetRelatedAgents(a Agent) []Agent {
 	return tn.relatedAgents
 }
 
-func (tn *testNetwork) GetAgentByID(id string) *Agent {
+func (tn *testNetwork) GetAgentByID(id string) Agent {
 	return tn.agentByID[id]
 }
 
@@ -23,19 +23,19 @@ func (tn *testNetwork) IncrementLinkStrength(id1 string, id2 string) error {
 	return nil
 }
 
-func (tn *testNetwork) Agents() []*Agent {
+func (tn *testNetwork) Agents() []Agent {
 	return nil
 }
 
-func (tn *testNetwork) addAgent(a *Agent) {
+func (tn *testNetwork) addAgent(a Agent) {
 	tn.relatedAgents = append(tn.relatedAgents, a)
-	tn.agentByID[a.ID] = a
+	tn.agentByID[a.Identifier()] = a
 }
 
 func newTestNetwork() *testNetwork {
 	tn := testNetwork{}
-	tn.relatedAgents = []*Agent{}
-	tn.agentByID = map[string]*Agent{}
+	tn.relatedAgents = []Agent{}
+	tn.agentByID = map[string]Agent{}
 	ra1 := newAgent()
 	ra1.ID = "id_1"
 	ra1.Influence = 0.5
@@ -54,10 +54,9 @@ func newTestNetwork() *testNetwork {
 	return &tn
 }
 
-func newAgent() *Agent {
-	a := Agent{}
+func newAgent() *AgentState {
+	a := AgentState{}
 	a.Mail = make(chan string, 1)
-	a.Memory = make(map[Color]struct{}, MaxColors)
 	return &a
 }
 
@@ -76,7 +75,7 @@ func TestSendMailDoesNotSendIfNoAvailableRelatedAgent(t *testing.T) {
 	tn := newTestNetwork()
 	aut := newAgent()
 	aut.ID = "id_aut"
-	tn.GetAgentByID("id_3").Mail <- "block"
+	tn.GetAgentByID("id_3").PostMsg("block")
 	count := aut.SendMail(tn)
 	AreEqual(t, 0, count, "Message sent but should not have been since there are no Agents free")
 }
@@ -87,12 +86,12 @@ func TestReadMailReceivesMsgIncrementsLinkStrength(t *testing.T) {
 	aut.ID = "id_aut"
 	aut.Susceptability = 1
 	aut.Color = Red
-	sent := aut.SendMsg("id_1")
+	sent := aut.PostMsg("id_1")
 	AreEqual(t, 0, tn.LinkStrength, "LinkStrength not initialised to 0")
 	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	AreEqual(t, 1, tn.LinkStrength, "LinkStrength not incremented as part of reading a Mail")
-	sent = aut.SendMsg("id_1")
+	sent = aut.PostMsg("id_1")
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	aut.ReadMail(tn)
 	AreEqual(t, 2, tn.LinkStrength, "LinkStrength not incremented as part of reading a Mail")
@@ -104,7 +103,7 @@ func TestReadMailReceivesMsgHigherSusceptabilityIgnoresMsg(t *testing.T) {
 	aut.ID = "id_aut"
 	aut.Susceptability = 1
 	aut.Color = Red
-	sent := aut.SendMsg("id_1")
+	sent := aut.PostMsg("id_1")
 	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	AreEqual(t, Red, aut.Color, "Agent Color should not change if Agent has higher susceptability")
@@ -116,7 +115,7 @@ func TestReadMailReceivesMsgLowerSusceptabilityChangesColor(t *testing.T) {
 	aut.ID = "id_aut"
 	aut.Susceptability = 0.4
 	aut.Color = Red
-	sent := aut.SendMsg("id_1")
+	sent := aut.PostMsg("id_1")
 	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	AreEqual(t, Blue, aut.Color, "Agent Color should change to Blue if Agent has lower susceptability")
@@ -129,7 +128,7 @@ func TestReadMailReceivesMsgLowerSusceptabilityHigherContrarinessRandomlyChanges
 	aut.Susceptability = 0.4
 	aut.Contrariness = 0.6
 	aut.Color = Red
-	sent := aut.SendMsg("id_1")
+	sent := aut.PostMsg("id_1")
 	aut.ReadMail(tn)
 	IsTrue(t, sent, "Msg not sent to Agent under test")
 	NotEqual(t, Grey, aut.Color, "Agent Color should change to random Color other than Grey if Agent has higher contrariness")
@@ -154,15 +153,15 @@ func TestRecieveMsgGetsMsg(t *testing.T) {
 func TestSendMsgSendsMsg(t *testing.T) {
 	a := newAgent()
 	origMsg := "myMsg"
-	sent := a.SendMsg(origMsg)
+	sent := a.PostMsg(origMsg)
 	IsTrue(t, sent, "Msg not sent")
 }
 
 func TestSendMsgFailsSecondTime(t *testing.T) {
 	a := newAgent()
 	origMsg := "myMsg"
-	a.SendMsg(origMsg)
-	sent := a.SendMsg(origMsg)
+	a.PostMsg(origMsg)
+	sent := a.PostMsg(origMsg)
 	IsFalse(t, sent, "2nd msg sent but should have returned failed and returned false")
 }
 

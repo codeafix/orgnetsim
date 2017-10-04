@@ -11,27 +11,32 @@ import (
 //A Network of Agents
 type Network struct {
 	Links        []*Link                         `json:"links"`
-	Nodes        []*Agent                        `json:"nodes"`
-	AgentsByID   map[string]*Agent               `json:"-"`
+	Nodes        []Agent                         `json:"nodes"`
+	AgentsByID   map[string]Agent                `json:"-"`
 	AgentLinkMap map[string]map[string]AgentLink `json:"-"`
+}
+
+type networkJSON struct {
+	Links []json.RawMessage
+	Nodes []json.RawMessage
 }
 
 //AgentLink holds both the Link and the Agent in the AgentLinkMap
 type AgentLink struct {
-	Agent *Agent
+	Agent Agent
 	Link  *Link
 }
 
 //RelationshipMgr is an interface for the Network
 type RelationshipMgr interface {
-	GetRelatedAgents(a *Agent) []*Agent
-	GetAgentByID(id string) *Agent
+	GetRelatedAgents(a Agent) []Agent
+	GetAgentByID(id string) Agent
 	IncrementLinkStrength(id1 string, id2 string) error
-	Agents() []*Agent
+	Agents() []Agent
 }
 
 //Agents returns a list of the Agents Communicating on the Network
-func (n *Network) Agents() []*Agent {
+func (n *Network) Agents() []Agent {
 	return n.Nodes
 }
 
@@ -39,6 +44,41 @@ func (n *Network) Agents() []*Agent {
 func (n *Network) Serialise() string {
 	jsonBody, _ := json.Marshal(n)
 	return string(jsonBody)
+}
+
+//UnmarshalJSON implements unmarshalling of Agents into Communicator
+func (n *Network) UnmarshalJSON(b []byte) error {
+	var network map[string]json.RawMessage
+	err := json.Unmarshal(b, &network)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(network["links"], &n.Links)
+
+	var nodes []json.RawMessage
+	json.Unmarshal(network["nodes"], &nodes)
+
+	n.Nodes = make([]Agent, len(nodes))
+
+	for i, raw := range nodes {
+		var fm map[string]interface{}
+		json.Unmarshal(raw, &fm)
+		switch fm["type"] {
+		case "Agent":
+			a := AgentState{}
+			json.Unmarshal(raw, &a)
+			n.Nodes[i] = &a
+		case "AgentWithMemory":
+			a := AgentWithMemory{}
+			json.Unmarshal(raw, &a)
+			n.Nodes[i] = &a
+		default:
+			a := AgentState{}
+			json.Unmarshal(raw, &a)
+			n.Nodes[i] = &a
+		}
+	}
+	return nil
 }
 
 // NewNetwork creates a new Network structure from the passed json string
@@ -52,12 +92,10 @@ func NewNetwork(jsonBody string) (*Network, error) {
 // PopulateMaps creates the map lookups from the Links and Nodes arrays
 func (n *Network) PopulateMaps() error {
 	err := ""
-	n.AgentsByID = make(map[string]*Agent, len(n.Nodes))
+	n.AgentsByID = make(map[string]Agent, len(n.Nodes))
 	for _, agent := range n.Nodes {
-		n.AgentsByID[agent.ID] = agent
-		agent.Mail = make(chan string, 1)
-		agent.Memory = make(map[Color]struct{}, MaxColors)
-		agent.Memory[Grey] = struct{}{}
+		n.AgentsByID[agent.Identifier()] = agent
+		agent.Initialise()
 	}
 	n.AgentLinkMap = make(map[string]map[string]AgentLink, len(n.Nodes))
 	for _, link := range n.Links {
@@ -76,13 +114,13 @@ func (n *Network) PopulateMaps() error {
 			agent1Map = map[string]AgentLink{}
 			n.AgentLinkMap[link.Agent1ID] = agent1Map
 		}
-		agent1Map[agent2.ID] = AgentLink{agent2, link}
+		agent1Map[agent2.Identifier()] = AgentLink{agent2, link}
 		agent2Map, exists := n.AgentLinkMap[link.Agent2ID]
 		if !exists {
 			agent2Map = map[string]AgentLink{}
 			n.AgentLinkMap[link.Agent2ID] = agent2Map
 		}
-		agent2Map[agent1.ID] = AgentLink{agent1, link}
+		agent2Map[agent1.Identifier()] = AgentLink{agent1, link}
 	}
 	if "" != err {
 		return errors.New(err)
@@ -92,11 +130,11 @@ func (n *Network) PopulateMaps() error {
 
 //GetRelatedAgents returns a slice of Agents adjacent in the Network to the passed Agent
 //The returned slice of Agents is always deliberately shuffled into random order
-func (n *Network) GetRelatedAgents(a *Agent) []*Agent {
-	lnkdagents := n.AgentLinkMap[a.ID]
-	acnt := len(n.AgentLinkMap[a.ID])
+func (n *Network) GetRelatedAgents(a Agent) []Agent {
+	lnkdagents := n.AgentLinkMap[a.Identifier()]
+	acnt := len(n.AgentLinkMap[a.Identifier()])
 	keys := make([]float64, acnt)
-	raMap := make(map[float64]*Agent, acnt)
+	raMap := make(map[float64]Agent, acnt)
 	i := 0
 	for _, agentLink := range lnkdagents {
 		keys[i] = rand.Float64()
@@ -104,7 +142,7 @@ func (n *Network) GetRelatedAgents(a *Agent) []*Agent {
 		i = i + 1
 	}
 	sort.Float64s(keys)
-	r := make([]*Agent, acnt)
+	r := make([]Agent, acnt)
 	for i, key := range keys {
 		r[i] = raMap[key]
 	}
@@ -112,7 +150,7 @@ func (n *Network) GetRelatedAgents(a *Agent) []*Agent {
 }
 
 // GetAgentByID returns a reference to the Agent with the given ID or nil if it doesn't exist
-func (n *Network) GetAgentByID(id string) *Agent {
+func (n *Network) GetAgentByID(id string) Agent {
 	a := n.AgentsByID[id]
 	return a
 }

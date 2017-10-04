@@ -10,7 +10,7 @@ import (
 
 //A Network of Agents
 type Network struct {
-	Links        []*Link                         `json:"links"`
+	Edges        []*Link                         `json:"links"`
 	Nodes        []Agent                         `json:"nodes"`
 	AgentsByID   map[string]Agent                `json:"-"`
 	AgentLinkMap map[string]map[string]AgentLink `json:"-"`
@@ -33,11 +33,17 @@ type RelationshipMgr interface {
 	GetAgentByID(id string) Agent
 	IncrementLinkStrength(id1 string, id2 string) error
 	Agents() []Agent
+	Links() []*Link
 }
 
 //Agents returns a list of the Agents Communicating on the Network
 func (n *Network) Agents() []Agent {
 	return n.Nodes
+}
+
+//Link returns a list of the links between Agents on the Network
+func (n *Network) Links() []*Link {
+	return n.Edges
 }
 
 //Serialise returns a json representation of the Network
@@ -53,7 +59,7 @@ func (n *Network) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(network["links"], &n.Links)
+	json.Unmarshal(network["links"], &n.Edges)
 
 	var nodes []json.RawMessage
 	json.Unmarshal(network["nodes"], &nodes)
@@ -98,7 +104,7 @@ func (n *Network) PopulateMaps() error {
 		agent.Initialise()
 	}
 	n.AgentLinkMap = make(map[string]map[string]AgentLink, len(n.Nodes))
-	for _, link := range n.Links {
+	for _, link := range n.Edges {
 		agent1, exists := n.AgentsByID[link.Agent1ID]
 		if !exists {
 			err = fmt.Sprintf("%sAgent1ID %s not found in list of Agents\n", err, link.Agent1ID)

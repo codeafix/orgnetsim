@@ -35,7 +35,7 @@ func TestJsonSerialisationAgent(t *testing.T) {
 func TestJsonSerialisationLink(t *testing.T) {
 	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":4}],"nodes":null}`
 	n := Network{}
-	n.Links = append(n.Links, &Link{"id_1", "id_2", 4})
+	n.Edges = append(n.Edges, &Link{"id_1", "id_2", 4})
 	serJSON := n.Serialise()
 	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
 }

@@ -27,6 +27,10 @@ func (tn *testNetwork) Agents() []Agent {
 	return nil
 }
 
+func (tn *testNetwork) Links() []*Link {
+	return nil
+}
+
 func (tn *testNetwork) addAgent(a Agent) {
 	tn.relatedAgents = append(tn.relatedAgents, a)
 	tn.agentByID[a.Identifier()] = a

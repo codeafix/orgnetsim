@@ -38,7 +38,7 @@ func AssertSuccess(t *testing.T, err error) {
 }
 
 //Convenience method to dump the colors and conversations arrays into a csv file
-func WriteOutput(t *testing.T, s HierarchySpec, colors [][]int, conversations []int) {
+func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]int, conversations []int) {
 	f, err := os.Create("./out.csv")
 	AssertSuccess(t, err)
 	defer f.Close()
@@ -49,18 +49,48 @@ func WriteOutput(t *testing.T, s HierarchySpec, colors [][]int, conversations []
 		buffer.WriteString(fmt.Sprintf("%s,", Color(c).String()))
 	}
 
-	buffer.WriteString("Conversations,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,EvangelistAgents,LoneEvangelist\n")
-	for i := 0; i < len(conversations); i++ {
-		for j := 0; j < MaxColors; j++ {
-			buffer.WriteString(fmt.Sprintf("%d,", colors[i][j]))
+	buffer.WriteString("Conversations,,Node,Change Count,,Link,Strength,,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,EvangelistAgents,LoneEvangelist,AgentsWithMemory\n")
+
+	agents := n.Agents()
+	links := n.Links()
+	iterations := len(conversations)
+	agentCount := len(agents)
+	linkCount := len(links)
+	totalLines := iterations
+	if agentCount > totalLines {
+		totalLines = agentCount
+	}
+	if linkCount > totalLines {
+		totalLines = linkCount
+	}
+
+	for i := 0; i < totalLines; i++ {
+		if i < iterations {
+			for j := 0; j < MaxColors; j++ {
+				buffer.WriteString(fmt.Sprintf("%d,", colors[i][j]))
+			}
+			buffer.WriteString(fmt.Sprintf("%d", conversations[i]))
+		} else {
+			for j := 0; j < MaxColors; j++ {
+				buffer.WriteString(",")
+			}
 		}
-		buffer.WriteString(fmt.Sprintf("%d", conversations[i]))
+		if i < agentCount {
+			buffer.WriteString(fmt.Sprintf(",,%s,%d", agents[i].Identifier(), agents[i].State().ChangeCount))
+		} else {
+			buffer.WriteString(",,,")
+		}
+		if i < linkCount {
+			buffer.WriteString(fmt.Sprintf(",,%s-%s,%d", links[i].Agent1ID, links[i].Agent2ID, links[i].Strength))
+		} else {
+			buffer.WriteString(",,,")
+		}
 		if i == 0 {
 			var initColors string
 			for x := 0; x < len(s.InitColors); x++ {
 				initColors = initColors + Color(s.InitColors[x]).String()
 			}
-			buffer.WriteString(fmt.Sprintf(",%d,%d,%d,%t,%t,%s,%t,%t\n", s.Levels, s.TeamSize, s.TeamLinkLevel, s.LinkTeamPeers, s.LinkTeams, initColors, s.EvangelistAgents, s.LoneEvangelist))
+			buffer.WriteString(fmt.Sprintf(",,%d,%d,%d,%t,%t,%s,%t,%t,%t\n", s.Levels, s.TeamSize, s.TeamLinkLevel, s.LinkTeamPeers, s.LinkTeams, initColors, s.EvangelistAgents, s.LoneEvangelist, s.AgentsWithMemory))
 		} else {
 			buffer.WriteString("\n")
 		}
@@ -73,19 +103,20 @@ func WriteOutput(t *testing.T, s HierarchySpec, colors [][]int, conversations []
 func TestRunSim(t *testing.T) {
 
 	s := HierarchySpec{
-		4,     //Levels
-		5,     //TeamSize
-		3,     //TeamLinkLevel
-		true,  //LinkTeamPeers
-		true,  //LinkTeams
-		nil,   //InitColors
-		false, //EvangelistAgents
-		false, //LoneEvangelist
+		4,                  //Levels
+		5,                  //TeamSize
+		3,                  //TeamLinkLevel
+		true,               //LinkTeamPeers
+		true,               //LinkTeams
+		[]Color{Grey, Red}, //InitColors
+		false,              //EvangelistAgents
+		false,              //LoneEvangelist
+		false,              //AgentsWithMemory
 	}
 
 	n, err := GenerateHierarchy(s)
 	AssertSuccess(t, err)
 
 	colors, conversations := RunSim(n, 500)
-	WriteOutput(t, s, colors, conversations)
+	WriteOutput(t, s, n, colors, conversations)
 }

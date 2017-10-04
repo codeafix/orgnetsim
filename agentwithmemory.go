@@ -25,6 +25,11 @@ func (a *AgentWithMemory) ReadMail(n RelationshipMgr) Color {
 	return a.Color
 }
 
+//State returns the struct containing the state of this Agent
+func (a *AgentWithMemory) State() *AgentState {
+	return &a.AgentState
+}
+
 //SetColor changes the color of the current Agent and counts the number of times the Agent changes color
 //It also adds each color to a memory so that once it changes it's mind it doesn't change back
 func (a *AgentWithMemory) SetColor(color Color) {

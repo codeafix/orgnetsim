@@ -18,6 +18,7 @@ type AgentState struct {
 type Agent interface {
 	Initialise()
 	Identifier() string
+	State() *AgentState
 	SendMail(n RelationshipMgr) int
 	ReadMail(n RelationshipMgr) Color
 	ClearMail()
@@ -35,6 +36,11 @@ func (a *AgentState) Initialise() {
 //Identifier returns the Identifier for the Agent
 func (a *AgentState) Identifier() string {
 	return a.ID
+}
+
+//State returns the struct containing the state of this Agent
+func (a *AgentState) State() *AgentState {
+	return a
 }
 
 /*SendMail iterates over a randomly ordered slice of related agents trying to find a match. It sends a mail to the

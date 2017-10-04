@@ -3,7 +3,7 @@ A simulator for Organisational Networks
 
 The simulator is created from a Network of Agents. The Network itself can be any arbitrary graph and contains a collection of Agents and a collection of links between those Agents. The simulator uses Colors to represent competing ideas on the Network. The default Color for an Agent is Grey. During a simulation Agents interact and decide whether or not to update their Color.
 
-##Overview
+## Overview
 The simulator runs over multiple iterations. Each iteration starts with every Agent in the Network attempting to contact another Agent in the list of Agents that are directly related to it (joined by a single link). The list of Agents related to it is obtained from the Network, and this list is always returned in a random order. Each Agent can only accept a single Mail in its Mail queue, so during this process each Agent will iterate over all other Agents directly related to it until it finds an Agent that has an empty Mail queue and can accept its Mail.
 
 Once all Agents have completed the process of trying to send a Mail the next phase begins. Now each Agent reads the Mail it has in its Mail queue if any. The Mail contains the Identifier of the Agent that sent it, and the receiving Agent uses this to look up the sending Agent from the Network. Each Agent has three properties: Influence, Susceptibility, and Contrariness. The receiving Agent compares its properties to that of the sending Agent and uses a simple algorithm to decide how to update its Color. If the sending Agent has a Influence higher than the receiving Agent's Susceptibility then the receiving Agent will update its Color. If the receiving Agent's Contrariness is higher than the sending Agent's Influence then the receiving Agent will update to a random Color different from its previous Color, and from the Color of the sending Agent. If the receiving Agent's Contrariness is lower than the sending Agent's Influence then the receiving Agent updates its Color to the same as the sending Agent.
@@ -24,7 +24,7 @@ for _, l := range n.Links() {
 }
 ```
 
-##Getting started
+## Getting started
 An example run of a simulation is provided as a test in orgnetsim_test.go
 ```func TestRunSim(t *testing.T) {
 
@@ -49,7 +49,7 @@ An example run of a simulation is provided as a test in orgnetsim_test.go
 ```
 This simulation uses the GenerateHierarchy function to generate a hierarchal network, and then passes that network into the RunSim function. The simulation is run for 500 iterations and then the slices returned from the simulation, the change count of each node, and the strength of each link are written into out.csv along with the list of parameters provided in the HierarchySpec struct used to generate the network. This is a convenient output for loading the results into a spreadsheet so that you can plot graphs of the number of Agents with each Color.
 
-##RelationshipMgr aka the Network
+## RelationshipMgr aka the Network
 In the examples networks with regular features have been generated automatically using the networkgenerator. However the Network struct (implements RelationshipMgr) has been designed so that it can be created from a JSON description of the network. Here is an example:
 ```json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
 n, err := NewNetwork(json)
@@ -90,6 +90,6 @@ LoneEvangelist is similar to EvangelistAgents except there is only one agent who
 
 The final option is AgentsWithMemory. When set to true this uses a different Agent model that also contains memory. An Agent remembers all the previous Colors it has updated itself to. When deciding to update to a new Color it will never choose a Color that it has already been set to in the past. Without Agent memory the simulation is useful for modeling the uptake of an idea or change that is less likely to be permanent, like the preference for wearing a particular colour, or perhaps political affiliations. Whereas using Agents with memory is more useful to model the introduction of ideas that are likely to involve a permanent change such as competing technologies where adopting the technology will result in a certain amount of lock-in.
 
-##TODOs
+## TODOs
 - [ ] Integrate into a web service
 - [ ] Create a network visualiser using D3

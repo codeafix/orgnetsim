@@ -11,7 +11,8 @@ Once all Agents have completed the process of trying to send a Mail the next pha
 The RunSim function in orgnetsim.go is the entry point for a simulation. A RelationshipMgr (the interface to a Network) is passed into this function along with a number of iterations. As each iteration is performed, the Agents held within the RelationshipMgr are updated, and a log is taken of the number of Agents with each Color, and the number of "conversations" that happened in the iteration. At the end of the simulation, two slices are returned. The first slice is a two dimensional slice. The first dimension is Color, the second dimension is the number of iterations. Each element contains the count of the number of Agents with the given Color on the specified iteration. The second slice contains a count of the number of "conversations" that occured between all agents for each iteration.
 
 After a simulation run has completed the Agents and Links can be accessed from the RelationshipMgr. Each Agent keeps a count of the number of times it updated its Color. Each Link keeps a count of the number of conversations that happen across that link. These can be accessed like this:
-```var n RelationshipMgr
+```
+var n RelationshipMgr
 
 for _, a := range n.Agents() {
 	agc := a.State().ChangeCount
@@ -26,7 +27,8 @@ for _, l := range n.Links() {
 
 ## Getting started
 An example run of a simulation is provided as a test in orgnetsim_test.go
-```func TestRunSim(t *testing.T) {
+```
+func TestRunSim(t *testing.T) {
 
 	s := HierarchySpec{
 		4,                  //Levels
@@ -51,7 +53,8 @@ This simulation uses the GenerateHierarchy function to generate a hierarchal net
 
 ## RelationshipMgr aka the Network
 In the examples networks with regular features have been generated automatically using the networkgenerator. However the Network struct (implements RelationshipMgr) has been designed so that it can be created from a JSON description of the network. Here is an example:
-```json := '{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}'
+```
+json := '{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}'
 n, err := NewNetwork(json)
 	
 serJSON := n.Serialise()
@@ -64,17 +67,18 @@ The network struct has been designed so that any organisational network (such as
 The number of possible competing ideas in a simulation is controlled by the MaxColors constant in color.go.
 
 A networkgenerator can be used to generate hierarchical networks with different structures. The generator is controlled by the fields on a HierarchySpec.
-```s := HierarchySpec{
-		4,                  //Levels
-		5,                  //TeamSize
-		3,                  //TeamLinkLevel
-		true,               //LinkTeamPeers
-		true,               //LinkTeams
-		[]Color{Grey, Red}, //InitColors
-		false,              //EvangelistAgents
-		false,              //LoneEvangelist
-		false,              //AgentsWithMemory
-	}
+```
+s := HierarchySpec{
+    4,                  //Levels
+    5,                  //TeamSize
+    3,                  //TeamLinkLevel
+    true,               //LinkTeamPeers
+    true,               //LinkTeams
+    []Color{Grey, Red}, //InitColors
+    false,              //EvangelistAgents
+    false,              //LoneEvangelist
+    false,              //AgentsWithMemory
+}
 ```
 The Network generated will always be Hierarchical with a single parent Agent. The number of Levels are the number of layers in the Hierarchy including the parent Agent. The TeamSize controls how many Agents are in each team. So in this example the parent Agent is the first layer, five Agents will be linked to the parent in the second layer, there will be five Agents linked to each agent in the second layer in the third layer, and in the fourth and final layer, five Agents will be linked to each Agent in the third layer. In total there will be 1 + 5 + 5*5 + 5*5*5 = 156 Agents.
 

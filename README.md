@@ -80,7 +80,7 @@ s := HierarchySpec{
     false,              //AgentsWithMemory
 }
 ```
-The Network generated will always be Hierarchical with a single parent Agent. The number of Levels are the number of layers in the Hierarchy including the parent Agent. The TeamSize controls how many Agents are in each team. So in this example the parent Agent is the first layer, five Agents will be linked to the parent in the second layer, there will be five Agents linked to each agent in the second layer in the third layer, and in the fourth and final layer, five Agents will be linked to each Agent in the third layer. In total there will be 1 + 5 + 5*5 + 5*5*5 = 156 Agents.
+The Network generated will always be Hierarchical with a single parent Agent. The number of Levels are the number of layers in the Hierarchy including the parent Agent. The TeamSize controls how many Agents are in each team. So in this example the parent Agent is the first layer, five Agents will be linked to the parent in the second layer, there will be five Agents linked to each agent in the second layer in the third layer, and in the fourth and final layer, five Agents will be linked to each Agent in the third layer. In total there will be `1 + 5 + 5*5 + 5*5*5` = 156 Agents.
 
 The LinkTeamPeers option allows you to control how Agents within a team are connected on the Network. If this option is false, Agents will only be connected to their direct ancestors and children in the Hierarchy. With LinkTeamPeers set to true each team that is created will have each Agent within the team connected to every other Agent within that team. So if there are five Agents, within a team each of them will have an additional four links to connect them to their peers within the team.
 

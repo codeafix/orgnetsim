@@ -49,7 +49,7 @@ func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]in
 		buffer.WriteString(fmt.Sprintf("%s,", Color(c).String()))
 	}
 
-	buffer.WriteString("Conversations,,Node,Change Count,,Link,Strength,,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,EvangelistAgents,LoneEvangelist,AgentsWithMemory\n")
+	buffer.WriteString("Conversations,,Node,Influence,Susceptibility,Contrariness,Change Count,,Link,Strength,,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,EvangelistAgents,LoneEvangelist,AgentsWithMemory\n")
 
 	agents := n.Agents()
 	links := n.Links()
@@ -76,7 +76,7 @@ func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]in
 			}
 		}
 		if i < agentCount {
-			buffer.WriteString(fmt.Sprintf(",,%s,%d", agents[i].Identifier(), agents[i].State().ChangeCount))
+			buffer.WriteString(fmt.Sprintf(",,%s,%f,%f,%f,%d", agents[i].Identifier(), agents[i].State().Influence, agents[i].State().Susceptability, agents[i].State().Contrariness, agents[i].State().ChangeCount))
 		} else {
 			buffer.WriteString(",,,")
 		}
@@ -107,7 +107,7 @@ func TestRunSim(t *testing.T) {
 		5,                  //TeamSize
 		3,                  //TeamLinkLevel
 		true,               //LinkTeamPeers
-		true,               //LinkTeams
+		false,              //LinkTeams
 		[]Color{Grey, Red}, //InitColors
 		false,              //EvangelistAgents
 		false,              //LoneEvangelist

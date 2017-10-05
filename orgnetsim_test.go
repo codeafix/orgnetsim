@@ -111,7 +111,7 @@ func TestRunSim(t *testing.T) {
 		[]Color{Grey, Red}, //InitColors
 		false,              //EvangelistAgents
 		false,              //LoneEvangelist
-		false,              //AgentsWithMemory
+		true,               //AgentsWithMemory
 	}
 
 	n, err := GenerateHierarchy(s)

@@ -63,7 +63,7 @@ In JSON each Agent in the "nodes" array has a "type" property which specifies wh
 
 The network struct has been designed so that any organisational network (such as your team/business unit org chart etc) can be used as the basis of a simulation. Teams need not be regularly sized, any graph can be specified as individual nodes and links between them. After the simulation is complete it will be possible to marshal the Network back to json. When the network is returned as json the Agent states including the ChangeCount and Link strengths are recorded. This is done to allow simulations to be run for many iterations or even stepped through in smaller increments.
 
-##Options to control a simulation
+## Options to control a simulation
 The number of possible competing ideas in a simulation is controlled by the MaxColors constant in color.go.
 
 A networkgenerator can be used to generate hierarchical networks with different structures. The generator is controlled by the fields on a HierarchySpec.

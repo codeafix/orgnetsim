@@ -23,6 +23,10 @@ func (tn *testNetwork) IncrementLinkStrength(id1 string, id2 string) error {
 	return nil
 }
 
+func (tn *testNetwork) MaxColors() int {
+	return 4
+}
+
 func (tn *testNetwork) Agents() []Agent {
 	return nil
 }
@@ -31,7 +35,10 @@ func (tn *testNetwork) Links() []*Link {
 	return nil
 }
 
-func (tn *testNetwork) addAgent(a Agent) {
+func (tn *testNetwork) AddLink(a1 Agent, a2 Agent) {
+}
+
+func (tn *testNetwork) AddAgent(a Agent) {
 	tn.relatedAgents = append(tn.relatedAgents, a)
 	tn.agentByID[a.Identifier()] = a
 }
@@ -47,14 +54,14 @@ func newTestNetwork() *testNetwork {
 	ra1.Contrariness = 0.5
 	ra1.Color = Blue
 	ra1.Mail <- "id_5"
-	tn.addAgent(ra1)
+	tn.AddAgent(ra1)
 	ra2 := newAgent()
 	ra2.ID = "id_2"
 	ra2.Mail <- "id_6"
-	tn.addAgent(ra2)
+	tn.AddAgent(ra2)
 	ra3 := newAgent()
 	ra3.ID = "id_3"
-	tn.addAgent(ra3)
+	tn.AddAgent(ra3)
 	return &tn
 }
 

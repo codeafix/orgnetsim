@@ -7,17 +7,17 @@ import (
 )
 
 func TestSerialisationOfAgentWithMemory(t *testing.T) {
-	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}]}`
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}],"maxColors":0}`
 	n := Network{}
-	a := AgentWithMemory{AgentState{"id_1", 1, 0.2, 0.3, 0.4, nil, 5, ""}, nil}
-	a.Initialise()
+	a := AgentWithMemory{AgentState{"id_1", 1, 0.2, 0.3, 0.4, nil, 5, ""}, nil, nil, 0}
+	a.Initialise(&n)
 	n.Nodes = append(n.Nodes, &a)
 	serJSON := n.Serialise()
 	AreEqual(t, json, serJSON, "Serialised json is not identical to original json")
 }
 
 func TestDeserialisationOfAgentWithMemory(t *testing.T) {
-	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}]}`
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory"}],"maxColors":0}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	serJSON := n.Serialise()
@@ -25,7 +25,7 @@ func TestDeserialisationOfAgentWithMemory(t *testing.T) {
 }
 
 func TestJsonSerialisationAgent(t *testing.T) {
-	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent"}]}`
+	json := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent"}],"maxColors":0}`
 	n := Network{}
 	n.Nodes = append(n.Nodes, &AgentState{"id_1", 1, 0.2, 0.3, 0.4, make(chan string), 5, "Agent"})
 	serJSON := n.Serialise()
@@ -33,7 +33,7 @@ func TestJsonSerialisationAgent(t *testing.T) {
 }
 
 func TestJsonSerialisationLink(t *testing.T) {
-	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":4}],"nodes":null}`
+	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":4}],"nodes":null,"maxColors":0}`
 	n := Network{}
 	n.Edges = append(n.Edges, &Link{"id_1", "id_2", 4})
 	serJSON := n.Serialise()

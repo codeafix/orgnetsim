@@ -10,10 +10,11 @@ import (
 
 //A Network of Agents
 type Network struct {
-	Edges        []*Link                         `json:"links"`
-	Nodes        []Agent                         `json:"nodes"`
-	AgentsByID   map[string]Agent                `json:"-"`
-	AgentLinkMap map[string]map[string]AgentLink `json:"-"`
+	Edges         []*Link                         `json:"links"`
+	Nodes         []Agent                         `json:"nodes"`
+	AgentsByID    map[string]Agent                `json:"-"`
+	AgentLinkMap  map[string]map[string]AgentLink `json:"-"`
+	MaxColorCount int                             `json:"maxColors"`
 }
 
 type networkJSON struct {
@@ -32,8 +33,16 @@ type RelationshipMgr interface {
 	GetRelatedAgents(a Agent) []Agent
 	GetAgentByID(id string) Agent
 	IncrementLinkStrength(id1 string, id2 string) error
+	AddAgent(a Agent)
+	AddLink(a1 Agent, a2 Agent)
 	Agents() []Agent
 	Links() []*Link
+	MaxColors() int
+}
+
+//MaxColors returns the maximum number of color states that the agents are permitted on this network
+func (n *Network) MaxColors() int {
+	return n.MaxColorCount
 }
 
 //Agents returns a list of the Agents Communicating on the Network
@@ -41,9 +50,24 @@ func (n *Network) Agents() []Agent {
 	return n.Nodes
 }
 
-//Link returns a list of the links between Agents on the Network
+//Links returns a list of the links between Agents on the Network
 func (n *Network) Links() []*Link {
 	return n.Edges
+}
+
+//AddAgent adds a new Agent to the network
+func (n *Network) AddAgent(a Agent) {
+	n.Nodes = append(n.Nodes, a)
+}
+
+//AddLink adds a new Link between the two passed agents
+func (n *Network) AddLink(a1 Agent, a2 Agent) {
+	l := Link{
+		a1.Identifier(),
+		a2.Identifier(),
+		0,
+	}
+	n.Edges = append(n.Edges, &l)
 }
 
 //Serialise returns a json representation of the Network
@@ -60,6 +84,7 @@ func (n *Network) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	json.Unmarshal(network["links"], &n.Edges)
+	json.Unmarshal(network["maxColors"], &n.MaxColorCount)
 
 	var nodes []json.RawMessage
 	json.Unmarshal(network["nodes"], &nodes)
@@ -101,7 +126,7 @@ func (n *Network) PopulateMaps() error {
 	n.AgentsByID = make(map[string]Agent, len(n.Nodes))
 	for _, agent := range n.Nodes {
 		n.AgentsByID[agent.Identifier()] = agent
-		agent.Initialise()
+		agent.Initialise(n)
 	}
 	n.AgentLinkMap = make(map[string]map[string]AgentLink, len(n.Nodes))
 	for _, link := range n.Edges {

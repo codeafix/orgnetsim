@@ -5,7 +5,7 @@ func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
 	colors := make([][]int, iterations+1, iterations+1)
 	conversations := make([]int, iterations+1, iterations+1)
 
-	colorCounts := make([]int, MaxColors, MaxColors)
+	colorCounts := make([]int, n.MaxColors(), n.MaxColors())
 	agents := n.Agents()
 	for _, a := range agents {
 		colorCounts[a.GetColor()]++
@@ -33,7 +33,7 @@ func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
 		}
 		close(convCount)
 
-		colorCounts := make([]int, MaxColors, MaxColors)
+		colorCounts := make([]int, n.MaxColors(), n.MaxColors())
 		for _, a := range agents {
 			color := a.ReadMail(n)
 			colorCounts[color]++

@@ -3,7 +3,9 @@ package orgnetsim
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -38,18 +40,18 @@ func AssertSuccess(t *testing.T, err error) {
 }
 
 //Convenience method to dump the colors and conversations arrays into a csv file
-func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]int, conversations []int) {
-	f, err := os.Create("./out.csv")
+func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipMgr, colors [][]int, conversations []int) {
+	f, err := os.Create(filename)
 	AssertSuccess(t, err)
 	defer f.Close()
 
 	var buffer bytes.Buffer
 
-	for c := 0; c < MaxColors; c++ {
+	for c := 0; c < n.MaxColors(); c++ {
 		buffer.WriteString(fmt.Sprintf("%s,", Color(c).String()))
 	}
 
-	buffer.WriteString("Conversations,,Node,Influence,Susceptibility,Contrariness,Change Count,,Link,Strength,,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,EvangelistAgents,LoneEvangelist,AgentsWithMemory\n")
+	buffer.WriteString("Conversations,,Node,Influence,Susceptibility,Contrariness,Color,Change Count,,Link,Strength,,Levels,TeamSize,TeamLinkLevel,LinkTeamPeers,LinkTeams,InitColors,MaxColors,EvangelistAgents,LoneEvangelist,AgentsWithMemory\n")
 
 	agents := n.Agents()
 	links := n.Links()
@@ -66,19 +68,19 @@ func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]in
 
 	for i := 0; i < totalLines; i++ {
 		if i < iterations {
-			for j := 0; j < MaxColors; j++ {
+			for j := 0; j < n.MaxColors(); j++ {
 				buffer.WriteString(fmt.Sprintf("%d,", colors[i][j]))
 			}
 			buffer.WriteString(fmt.Sprintf("%d", conversations[i]))
 		} else {
-			for j := 0; j < MaxColors; j++ {
+			for j := 0; j < n.MaxColors(); j++ {
 				buffer.WriteString(",")
 			}
 		}
 		if i < agentCount {
-			buffer.WriteString(fmt.Sprintf(",,%s,%f,%f,%f,%d", agents[i].Identifier(), agents[i].State().Influence, agents[i].State().Susceptability, agents[i].State().Contrariness, agents[i].State().ChangeCount))
+			buffer.WriteString(fmt.Sprintf(",,%s,%f,%f,%f,%s,%d", agents[i].Identifier(), agents[i].State().Influence, agents[i].State().Susceptability, agents[i].State().Contrariness, agents[i].State().Color.String(), agents[i].State().ChangeCount))
 		} else {
-			buffer.WriteString(",,,")
+			buffer.WriteString(",,,,,,,")
 		}
 		if i < linkCount {
 			buffer.WriteString(fmt.Sprintf(",,%s-%s,%d", links[i].Agent1ID, links[i].Agent2ID, links[i].Strength))
@@ -90,7 +92,7 @@ func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]in
 			for x := 0; x < len(s.InitColors); x++ {
 				initColors = initColors + Color(s.InitColors[x]).String()
 			}
-			buffer.WriteString(fmt.Sprintf(",,%d,%d,%d,%t,%t,%s,%t,%t,%t\n", s.Levels, s.TeamSize, s.TeamLinkLevel, s.LinkTeamPeers, s.LinkTeams, initColors, s.EvangelistAgents, s.LoneEvangelist, s.AgentsWithMemory))
+			buffer.WriteString(fmt.Sprintf(",,%d,%d,%d,%t,%t,%s,%d,%t,%t,%t\n", s.Levels, s.TeamSize, s.TeamLinkLevel, s.LinkTeamPeers, s.LinkTeams, initColors, s.MaxColors, s.EvangelistAgents, s.LoneEvangelist, s.AgentsWithMemory))
 		} else {
 			buffer.WriteString("\n")
 		}
@@ -98,25 +100,49 @@ func WriteOutput(t *testing.T, s HierarchySpec, n RelationshipMgr, colors [][]in
 
 	_, err = f.Write(buffer.Bytes())
 	AssertSuccess(t, err)
+	err = f.Close()
+	AssertSuccess(t, err)
 }
 
 func TestRunSim(t *testing.T) {
+	s := GenerateNetwork(t)
+	RunSimFromJSON(t, s)
+}
+
+func GenerateNetwork(t *testing.T) HierarchySpec {
 
 	s := HierarchySpec{
-		4,                  //Levels
-		5,                  //TeamSize
-		3,                  //TeamLinkLevel
-		true,               //LinkTeamPeers
-		false,              //LinkTeams
-		[]Color{Grey, Red}, //InitColors
-		false,              //EvangelistAgents
-		false,              //LoneEvangelist
-		true,               //AgentsWithMemory
+		Levels:           4,
+		TeamSize:         5,
+		TeamLinkLevel:    3,
+		LinkTeamPeers:    true,
+		LinkTeams:        false,
+		InitColors:       []Color{Grey, Red},
+		MaxColors:        4,
+		EvangelistAgents: false,
+		LoneEvangelist:   false,
+		AgentsWithMemory: true,
 	}
 
 	n, err := GenerateHierarchy(s)
 	AssertSuccess(t, err)
 
-	colors, conversations := RunSim(n, 500)
-	WriteOutput(t, s, n, colors, conversations)
+	json := n.Serialise()
+
+	ioutil.WriteFile("out.json", []byte(json), os.ModeAppend)
+
+	return s
+}
+
+func RunSimFromJSON(t *testing.T, s HierarchySpec) {
+	infile := "out.json"
+	json, err := ioutil.ReadFile(infile)
+	AssertSuccess(t, err)
+
+	n, err := NewNetwork(string(json))
+	AssertSuccess(t, err)
+
+	colors, conversations := RunSim(n, 2000)
+	outfile := strings.Replace(infile, ".json", ".csv", 1)
+	WriteOutput(t, outfile, s, n, colors, conversations)
 }

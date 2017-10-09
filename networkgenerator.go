@@ -15,6 +15,7 @@ type HierarchySpec struct {
 	LinkTeamPeers    bool    `json:"linkTeamPeers"`
 	LinkTeams        bool    `json:"linkTeams"`
 	InitColors       []Color `json:"initColors"`
+	MaxColors        int     `json:"maxColors"`
 	EvangelistAgents bool    `json:"evangelistAgents"`
 	LoneEvangelist   bool    `json:"loneEvangelist"`
 	AgentsWithMemory bool    `json:"agentsWithMemory"`
@@ -23,10 +24,11 @@ type HierarchySpec struct {
 //GenerateHierarchy generates a hierarchical network
 func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	n := new(Network)
+	n.MaxColorCount = s.MaxColors
 	nodeCount := new(int)
 	*nodeCount = 1
-	a := GenerateRandomAgent(nodeCount, s.InitColors, s.AgentsWithMemory)
-	n.Nodes = append(n.Nodes, a)
+	a := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
+	n.AddAgent(a)
 
 	leafTeamCount := int(math.Pow(float64(s.TeamSize), float64(s.TeamLinkLevel-1)))
 	leafTeams := make([][]Agent, 0, leafTeamCount)
@@ -36,8 +38,7 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	if s.LinkTeams {
 		for i := 0; i < leafTeamCount; i++ {
 			for j := i + 1; j < leafTeamCount; j++ {
-				l := NewLink(leafTeams[i][0], leafTeams[j][0])
-				n.Edges = append(n.Edges, l)
+				n.AddLink(leafTeams[i][0], leafTeams[j][0])
 			}
 		}
 	}
@@ -50,13 +51,12 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	}
 
 	if s.LoneEvangelist {
-		doa := GenerateRandomAgent(nodeCount, s.InitColors, s.AgentsWithMemory)
+		doa := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
 		doa.State().Susceptability = 5.0
 		doa.State().Color = Blue
-		n.Nodes = append(n.Nodes, doa)
+		n.AddAgent(doa)
 		for i := 0; i < leafTeamCount; i++ {
-			l := NewLink(doa, leafTeams[i][2])
-			n.Edges = append(n.Edges, l)
+			n.AddLink(doa, leafTeams[i][2])
 		}
 	}
 
@@ -72,11 +72,10 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 
 	peers := make([]Agent, s.TeamSize, s.TeamSize)
 	for i := 0; i < s.TeamSize; i++ {
-		a := GenerateRandomAgent(nodeCount, s.InitColors, s.AgentsWithMemory)
+		a := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
 		peers[i] = a
-		l := NewLink(parent, a)
-		n.Nodes = append(n.Nodes, a)
-		n.Edges = append(n.Edges, l)
+		n.AddAgent(a)
+		n.AddLink(parent, a)
 		generateChildren(n, a, leafTeams, nodeCount, level, s)
 	}
 
@@ -84,8 +83,7 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 	if s.LinkTeamPeers {
 		for i := 0; i < s.TeamSize; i++ {
 			for j := i + 1; j < s.TeamSize; j++ {
-				l := NewLink(peers[i], peers[j])
-				n.Edges = append(n.Edges, l)
+				n.AddLink(peers[i], peers[j])
 			}
 		}
 	}
@@ -95,40 +93,36 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 	}
 }
 
+func generateID(agentCount *int) string {
+	s := fmt.Sprintf("id_%d", *agentCount)
+	*agentCount++
+	return s
+}
+
 //GenerateRandomAgent creates an Agent with random properties
-func GenerateRandomAgent(agentCount *int, initColors []Color, withMemory bool) Agent {
+func GenerateRandomAgent(id string, initColors []Color, withMemory bool) Agent {
 	as := AgentState{
-		fmt.Sprintf("id_%d", *agentCount),
-		Grey,
-		rand.NormFloat64()*0.25 + 1,
-		rand.NormFloat64()*0.25 + 1,
-		rand.NormFloat64()*0.15 + 0.7,
-		nil,
-		0,
-		"AgentWithMemory",
+		ID:             id,
+		Color:          Grey,
+		Influence:      rand.NormFloat64()*0.25 + 1,
+		Susceptability: rand.NormFloat64()*0.25 + 1,
+		Contrariness:   rand.NormFloat64()*0.15 + 0.7,
+		Mail:           nil,
+		ChangeCount:    0,
+		Type:           "AgentWithMemory",
 	}
 	if len(initColors) > 0 {
 		as.Color = initColors[rand.Intn(len(initColors))]
 	}
-	*agentCount++
-
 	if withMemory {
 		a := AgentWithMemory{
-			as,
-			nil,
+			AgentState:     as,
+			PreviousColors: nil,
+			ShortMemory:    nil,
+			MaxColors:      0,
 		}
 		return &a
 	}
 
 	return &as
-}
-
-//NewLink returns a Link between to two passed agents
-func NewLink(a1 Agent, a2 Agent) *Link {
-	l := Link{
-		a1.Identifier(),
-		a2.Identifier(),
-		0,
-	}
-	return &l
 }

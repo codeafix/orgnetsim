@@ -16,7 +16,7 @@ type AgentState struct {
 
 //Agent is an interface that allows interaction with an Agent
 type Agent interface {
-	Initialise()
+	Initialise(n RelationshipMgr)
 	Identifier() string
 	State() *AgentState
 	SendMail(n RelationshipMgr) int
@@ -28,7 +28,7 @@ type Agent interface {
 }
 
 //Initialise ensures the agent is correctly initialised
-func (a *AgentState) Initialise() {
+func (a *AgentState) Initialise(n RelationshipMgr) {
 	a.Mail = make(chan string, 1)
 	a.Type = reflect.TypeOf(a).Elem().Name()
 }
@@ -77,7 +77,7 @@ func (a *AgentState) UpdateColor(n RelationshipMgr, ra *AgentState) (Color, bool
 	n.IncrementLinkStrength(a.Identifier(), ra.Identifier())
 	if ra.Influence > a.Susceptability {
 		if a.Contrariness > ra.Influence {
-			altColor := RandomlySelectAlternateColor(a.Color)
+			altColor := RandomlySelectAlternateColor(a.Color, n.MaxColors())
 			return altColor, true
 		}
 		return ra.Color, true

@@ -102,12 +102,7 @@ func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipM
 	AssertSuccess(t, err)
 }
 
-func TestRunSim(t *testing.T) {
-	s := GenerateNetwork(t)
-	RunSimFromJSON(t, s)
-}
-
-func GenerateNetwork(t *testing.T) HierarchySpec {
+func GenerateNetwork(t *testing.T, filename string) HierarchySpec {
 
 	s := HierarchySpec{
 		Levels:           4,
@@ -127,7 +122,7 @@ func GenerateNetwork(t *testing.T) HierarchySpec {
 
 	json := n.Serialise()
 
-	f, err := os.Create("out.json")
+	f, err := os.Create(filename)
 	AssertSuccess(t, err)
 	defer f.Close()
 
@@ -137,15 +132,28 @@ func GenerateNetwork(t *testing.T) HierarchySpec {
 	return s
 }
 
-func RunSimFromJSON(t *testing.T, s HierarchySpec) {
-	infile := "out.json"
-	json, err := ioutil.ReadFile(infile)
+func RunSimFromJSON(t *testing.T, filename string, s HierarchySpec) {
+	json, err := ioutil.ReadFile(filename)
 	AssertSuccess(t, err)
 
 	n, err := NewNetwork(string(json))
 	AssertSuccess(t, err)
 
 	colors, conversations := RunSim(n, 2000)
-	outfile := strings.Replace(infile, ".json", ".csv", 1)
+	outfile := strings.Replace(filename, ".json", ".csv", 1)
 	WriteOutput(t, outfile, s, n, colors, conversations)
+}
+
+func TestGenerateAndRunSim(t *testing.T) {
+	filename := "tst.json"
+	s := GenerateNetwork(t, filename)
+	RunSimFromJSON(t, filename, s)
+}
+
+//Run a sim from a specific JSON file
+func TestRunSim(t *testing.T) {
+	t.SkipNow() //Comment this line to stop skipping the test
+	filename := "out.json"
+	s := HierarchySpec{}
+	RunSimFromJSON(t, filename, s)
 }

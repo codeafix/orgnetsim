@@ -100,8 +100,6 @@ func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipM
 
 	_, err = f.Write(buffer.Bytes())
 	AssertSuccess(t, err)
-	err = f.Close()
-	AssertSuccess(t, err)
 }
 
 func TestRunSim(t *testing.T) {
@@ -129,7 +127,12 @@ func GenerateNetwork(t *testing.T) HierarchySpec {
 
 	json := n.Serialise()
 
-	ioutil.WriteFile("out.json", []byte(json), os.ModeAppend)
+	f, err := os.Create("out.json")
+	AssertSuccess(t, err)
+	defer f.Close()
+
+	_, err = f.Write([]byte(json))
+	AssertSuccess(t, err)
 
 	return s
 }

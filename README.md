@@ -26,20 +26,21 @@ for _, l := range n.Links() {
 ```
 
 ## Getting started
-An example run of a simulation is provided as a test in orgnetsim_test.go
+An example run of a simulation can be executed as a unit test with code like this
 ```
-func TestRunSim(t *testing.T) {
+func TestGenerateNetworkRunSim(t *testing.T) {
 
 	s := HierarchySpec{
-		4,                  //Levels
-		5,                  //TeamSize
-		3,                  //TeamLinkLevel
-		true,               //LinkTeamPeers
-		true,               //LinkTeams
-		[]Color{Grey, Red}, //InitColors
-		false,              //EvangelistAgents
-		false,              //LoneEvangelist
-		false,              //AgentsWithMemory
+		Levels:           4,
+		TeamSize:         5,
+		TeamLinkLevel:    3,
+		LinkTeamPeers:    true,
+		LinkTeams:        false,
+		InitColors:       []Color{Grey, Red},
+		MaxColors:        4,
+		EvangelistAgents: false,
+		LoneEvangelist:   false,
+		AgentsWithMemory: true,
 	}
 
 	n, err := GenerateHierarchy(s)
@@ -50,6 +51,8 @@ func TestRunSim(t *testing.T) {
 }
 ```
 This simulation uses the GenerateHierarchy function to generate a hierarchal network, and then passes that network into the RunSim function. The simulation is run for 500 iterations and then the slices returned from the simulation, the change count of each node, and the strength of each link are written into out.csv along with the list of parameters provided in the HierarchySpec struct used to generate the network. This is a convenient output for loading the results into a spreadsheet so that you can plot graphs of the number of Agents with each Color.
+
+There are test methods in orgnetsim_test.go that can be used to generate a JSON file containing a hierarchical network from a hierarchy spec, and that can run a simulation from a network saved in a JSON file.
 
 ## RelationshipMgr aka the Network
 In the examples networks with regular features have been generated automatically using the networkgenerator. However the Network struct (implements RelationshipMgr) has been designed so that it can be created from a JSON description of the network. Here is an example:

@@ -1,4 +1,4 @@
-# sim
+# sim [![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/codeafix/orgnetsim/sim) 
 This package contains all of the code for the simulator itself.
 
 ## Overview

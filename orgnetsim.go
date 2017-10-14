@@ -1,7 +1,15 @@
 package orgnetsim
 
+import (
+	"math/rand"
+	"time"
+)
+
 //RunSim runs the simulation
 func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
+	//Seed rand to make sure random behaviour is evenly distributed
+	rand.Seed(time.Now().UnixNano())
+
 	colors := make([][]int, iterations+1, iterations+1)
 	conversations := make([]int, iterations+1, iterations+1)
 
@@ -22,6 +30,8 @@ func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
 			agent := a
 			go func() {
 				<-hold
+				r := rand.Intn(10)
+				time.Sleep(time.Duration(r) * time.Nanosecond)
 				convCount <- agent.SendMail(n)
 			}()
 		}

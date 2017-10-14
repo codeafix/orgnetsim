@@ -33,7 +33,7 @@ func TestJsonSerialisationAgent(t *testing.T) {
 }
 
 func TestJsonSerialisationLink(t *testing.T) {
-	json := `{"links":[{"agent1Id":"id_1","agent2Id":"id_2","strength":4}],"nodes":null,"maxColors":0}`
+	json := `{"links":[{"source":"id_1","target":"id_2","strength":4}],"nodes":null,"maxColors":0}`
 	n := Network{}
 	n.Edges = append(n.Edges, &Link{"id_1", "id_2", 4})
 	serJSON := n.Serialise()
@@ -41,12 +41,12 @@ func TestJsonSerialisationLink(t *testing.T) {
 }
 
 func TestNewNetworkCreatesValidAgentMap(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"}]}`
 	CheckAgentMap(t, json)
 }
 
 func TestNewNetworkCreatesValidAgentMapIgnoresDuplicateAgents(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_1"},{"id":"id_2"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_1"},{"id":"id_2"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"}]}`
 	CheckAgentMap(t, json)
 }
 
@@ -63,12 +63,12 @@ func CheckAgentMap(t *testing.T, json string) {
 }
 
 func TestNewNetworkCreatesValidLinkMapHierarchy(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"}]}`
 	CheckLinkMapHierarchy(t, json)
 }
 
 func TestNewNetworkCreatesValidLinkMapHierarchyIgnoresDuplicateLinks(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_3","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_1","target":"id_2"},{"source":"id_3","target":"id_1"}]}`
 	CheckLinkMapHierarchy(t, json)
 }
 
@@ -99,12 +99,12 @@ func CheckLinkMapHierarchy(t *testing.T, json string) {
 }
 
 func TestNewNetworkCreatesValidLinkMapTwoParents(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_2","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_3"},{"source":"id_2","target":"id_3"}]}`
 	CheckLinkMapTwoParents(t, json)
 }
 
 func TestNewNetworkCreatesValidLinkMapTwoParentsIgnoresDuplicateLinks(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_2","agent2Id":"id_3"}, {"agent1Id":"id_1","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_3"},{"source":"id_2","target":"id_3"}, {"source":"id_1","target":"id_3"}]}`
 	CheckLinkMapTwoParents(t, json)
 }
 
@@ -135,24 +135,26 @@ func CheckLinkMapTwoParents(t *testing.T, json string) {
 }
 
 func TestNewNetworkFailsWhenInvalidIdAppearsInLinks1(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_5","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_5","target":"id_3"}]}`
 	_, err := NewNetwork(json)
 	IsFalse(t, err == nil, "Expecting error to be reported and it wasn't")
 	IsTrue(t, strings.Contains(err.Error(), "id_5"), fmt.Sprintf("Incorrect error reported: %s", err.Error()))
 }
 
 func TestNewNetworkFailsWhenInvalidIdAppearsInLinks2(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"agent1Id":"id_1","agent2Id":"id_7"},{"agent1Id":"id_1","agent2Id":"id_3"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"}],"links":[{"source":"id_1","target":"id_7"},{"source":"id_1","target":"id_3"}]}`
 	_, err := NewNetwork(json)
 	IsFalse(t, err == nil, "Expecting error to be reported and it wasn't")
 	IsTrue(t, strings.Contains(err.Error(), "id_7"), fmt.Sprintf("Incorrect error reported: %s", err.Error()))
 }
 
 func TestGetRelatedAgentsReturnsCorrectList(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
+	fmt.Printf("Test starting\n")
 	AssertSuccess(t, err)
 	relatedAgents := n.GetRelatedAgents(n.AgentsByID["id_1"])
+	fmt.Printf("%v\n", relatedAgents)
 	AreEqual(t, 4, len(relatedAgents), "Incorrect number of related Agents to Agent id_1")
 	checks := map[string]bool{
 		"id_2": false,
@@ -173,8 +175,26 @@ func TestGetRelatedAgentsReturnsCorrectList(t *testing.T) {
 	}
 }
 
+func TestGetRelatedAgentsReturnDistributedResults(t *testing.T) {
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
+	n, err := NewNetwork(json)
+	AssertSuccess(t, err)
+	agentCounts := make(map[string]int, 4)
+	iterations := 2000
+	for i := 0; i < iterations; i++ {
+		relatedAgents := n.GetRelatedAgents(n.AgentsByID["id_1"])
+		agentCounts[relatedAgents[0].Identifier()]++
+	}
+	avgCount := iterations / 4
+	maxCount := avgCount + avgCount/10
+	minCount := avgCount - avgCount/10
+	for id, count := range agentCounts {
+		IsTrue(t, count >= minCount && count <= maxCount, fmt.Sprintf("Repeated calls to GetRelatedAgents does not distribute agents evenly. ID '%s' should be around %d but was %d", id, avgCount, count))
+	}
+}
+
 func TestGetAgentByIDReturnsCorrectAgentWhenExists(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	agent := n.GetAgentByID("id_5")
@@ -182,7 +202,7 @@ func TestGetAgentByIDReturnsCorrectAgentWhenExists(t *testing.T) {
 }
 
 func TestGetAgentByIDReturnsNilWhenNotExists(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	agent := n.GetAgentByID("id_9")
@@ -190,7 +210,7 @@ func TestGetAgentByIDReturnsNilWhenNotExists(t *testing.T) {
 }
 
 func TestUpdateLinkStrength(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 	err = n.IncrementLinkStrength("id_5", "id_1")
@@ -204,7 +224,7 @@ func TestUpdateLinkStrength(t *testing.T) {
 }
 
 func TestUpdateLinkStrengthReportsErrorIfIdDoesntExist(t *testing.T) {
-	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"agent1Id":"id_1","agent2Id":"id_2"},{"agent1Id":"id_1","agent2Id":"id_3"},{"agent1Id":"id_4","agent2Id":"id_1"},{"agent1Id":"id_5","agent2Id":"id_1"}]}`
+	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
 	AssertSuccess(t, err)
 

@@ -132,12 +132,12 @@ func (n *Network) PopulateMaps() error {
 	for _, link := range n.Edges {
 		agent1, exists := n.AgentsByID[link.Agent1ID]
 		if !exists {
-			err = fmt.Sprintf("%sAgent1ID %s not found in list of Agents\n", err, link.Agent1ID)
+			err = fmt.Sprintf("%sAgent1ID '%s' not found in list of Agents\n", err, link.Agent1ID)
 			continue
 		}
 		agent2, exists := n.AgentsByID[link.Agent2ID]
 		if !exists {
-			err = fmt.Sprintf("%sAgent2ID %s not found in list of Agents\n", err, link.Agent2ID)
+			err = fmt.Sprintf("%sAgent2ID '%s' not found in list of Agents\n", err, link.Agent2ID)
 			continue
 		}
 		agent1Map, exists := n.AgentLinkMap[link.Agent1ID]

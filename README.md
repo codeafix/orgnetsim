@@ -72,16 +72,17 @@ The number of possible competing ideas in a simulation is controlled by the MaxC
 A networkgenerator can be used to generate hierarchical networks with different structures. The generator is controlled by the fields on a HierarchySpec.
 ```
 s := HierarchySpec{
-    4,                  //Levels
-    5,                  //TeamSize
-    3,                  //TeamLinkLevel
-    true,               //LinkTeamPeers
-    true,               //LinkTeams
-    []Color{Grey, Red}, //InitColors
-    false,              //EvangelistAgents
-    false,              //LoneEvangelist
-    false,              //AgentsWithMemory
-}
+		Levels:           4,
+		TeamSize:         5,
+		TeamLinkLevel:    3,
+		LinkTeamPeers:    true,
+		LinkTeams:        false,
+		InitColors:       []Color{Grey, Red},
+		MaxColors:        4,
+		EvangelistAgents: false,
+		LoneEvangelist:   false,
+		AgentsWithMemory: true,
+	}
 ```
 The Network generated will always be Hierarchical with a single parent Agent. The number of Levels are the number of layers in the Hierarchy including the parent Agent. The TeamSize controls how many Agents are in each team. So in this example the parent Agent is the first layer, five Agents will be linked to the parent in the second layer, there will be five Agents linked to each agent in the second layer in the third layer, and in the fourth and final layer, five Agents will be linked to each Agent in the third layer. In total there will be `1 + 5 + 5*5 + 5*5*5` = 156 Agents.
 

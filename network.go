@@ -76,7 +76,7 @@ func (n *Network) Serialise() string {
 	return string(jsonBody)
 }
 
-//UnmarshalJSON implements unmarshalling of Agents into Communicator
+//UnmarshalJSON implements unmarshalling of Agents of different types
 func (n *Network) UnmarshalJSON(b []byte) error {
 	var network map[string]json.RawMessage
 	err := json.Unmarshal(b, &network)

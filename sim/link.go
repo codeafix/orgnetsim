@@ -1,4 +1,4 @@
-package orgnetsim
+package sim
 
 //A Link between Agents in the Network
 type Link struct {

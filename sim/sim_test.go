@@ -1,4 +1,4 @@
-package orgnetsim
+package sim
 
 import (
 	"bytes"

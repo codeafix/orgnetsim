@@ -6,7 +6,7 @@ go:
 before_install:
 
 script:
-  - go test -coverprofile=coverage.txt -covermode=atomic
+  - go test ./sim -coverprofile=coverage.txt -covermode=atomic
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"

@@ -1,4 +1,4 @@
-package orgnetsim
+package sim
 
 import (
 	"fmt"
@@ -151,10 +151,8 @@ func TestNewNetworkFailsWhenInvalidIdAppearsInLinks2(t *testing.T) {
 func TestGetRelatedAgentsReturnsCorrectList(t *testing.T) {
 	json := `{"nodes":[{"id":"id_1"},{"id":"id_2"},{"id":"id_3"},{"id":"id_4"},{"id":"id_5"}],"links":[{"source":"id_1","target":"id_2"},{"source":"id_1","target":"id_3"},{"source":"id_4","target":"id_1"},{"source":"id_5","target":"id_1"}]}`
 	n, err := NewNetwork(json)
-	fmt.Printf("Test starting\n")
 	AssertSuccess(t, err)
 	relatedAgents := n.GetRelatedAgents(n.AgentsByID["id_1"])
-	fmt.Printf("%v\n", relatedAgents)
 	AreEqual(t, 4, len(relatedAgents), "Incorrect number of related Agents to Agent id_1")
 	checks := map[string]bool{
 		"id_2": false,

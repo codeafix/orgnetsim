@@ -142,6 +142,15 @@ func RunSimFromJSON(t *testing.T, filename string, s HierarchySpec) {
 	colors, conversations := RunSim(n, 2000)
 	outfile := strings.Replace(filename, ".json", ".csv", 1)
 	WriteOutput(t, outfile, s, n, colors, conversations)
+
+	outfile2 := strings.Replace(filename, ".json", ".out.json", 1)
+	jsonout := n.Serialise()
+	f, err := os.Create(outfile2)
+	AssertSuccess(t, err)
+	defer f.Close()
+
+	_, err = f.Write([]byte(jsonout))
+	AssertSuccess(t, err)
 }
 
 func TestGenerateAndRunSim(t *testing.T) {

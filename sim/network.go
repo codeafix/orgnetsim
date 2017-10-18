@@ -38,11 +38,17 @@ type RelationshipMgr interface {
 	Agents() []Agent
 	Links() []*Link
 	MaxColors() int
+	SetMaxColors(c int)
 }
 
 //MaxColors returns the maximum number of color states that the agents are permitted on this network
 func (n *Network) MaxColors() int {
 	return n.MaxColorCount
+}
+
+//SetMaxColors sets the maximum number of color states that the agents are permitted on this network
+func (n *Network) SetMaxColors(c int) {
+	n.MaxColorCount = c
 }
 
 //Agents returns a list of the Agents Communicating on the Network
@@ -63,9 +69,8 @@ func (n *Network) AddAgent(a Agent) {
 //AddLink adds a new Link between the two passed agents
 func (n *Network) AddLink(a1 Agent, a2 Agent) {
 	l := Link{
-		a1.Identifier(),
-		a2.Identifier(),
-		0,
+		Agent1ID: a1.Identifier(),
+		Agent2ID: a2.Identifier(),
 	}
 	n.Edges = append(n.Edges, &l)
 }
@@ -182,8 +187,7 @@ func (n *Network) GetRelatedAgents(a Agent) []Agent {
 
 // GetAgentByID returns a reference to the Agent with the given ID or nil if it doesn't exist
 func (n *Network) GetAgentByID(id string) Agent {
-	a := n.AgentsByID[id]
-	return a
+	return n.AgentsByID[id]
 }
 
 // IncrementLinkStrength updates the strength field of the link connecting Agents id1 and id2.

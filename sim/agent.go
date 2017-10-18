@@ -12,6 +12,8 @@ type AgentState struct {
 	Mail           chan string `json:"-"`
 	ChangeCount    int         `json:"change"`
 	Type           string      `json:"type"`
+	X              float64     `json:"x,omitempty"`
+	Y              float64     `json:"y,omitempty"`
 }
 
 //Agent is an interface that allows interaction with an Agent

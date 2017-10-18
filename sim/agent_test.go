@@ -27,6 +27,9 @@ func (tn *testNetwork) MaxColors() int {
 	return 4
 }
 
+func (tn *testNetwork) SetMaxColors(c int) {
+}
+
 func (tn *testNetwork) Agents() []Agent {
 	return nil
 }

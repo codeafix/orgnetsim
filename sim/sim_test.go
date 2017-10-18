@@ -109,11 +109,11 @@ func GenerateNetwork(t *testing.T, filename string) HierarchySpec {
 		TeamSize:         5,
 		TeamLinkLevel:    3,
 		LinkTeamPeers:    true,
-		LinkTeams:        false,
+		LinkTeams:        true,
 		InitColors:       []Color{Grey, Red},
 		MaxColors:        4,
-		EvangelistAgents: false,
-		LoneEvangelist:   false,
+		EvangelistAgents: true,
+		LoneEvangelist:   true,
 		AgentsWithMemory: true,
 	}
 

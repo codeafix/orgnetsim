@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-//HierarchySpec provides parameters to the GenerateHierarchy functioning specifying the features of the
+//HierarchySpec provides parameters to the GenerateHierarchy function specifying the features of the
 //Hierarchical network to generate
 type HierarchySpec struct {
 	Levels           int     `json:"levels"`
@@ -34,33 +34,43 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 	leafTeams := make([][]Agent, 0, leafTeamCount)
 
 	generateChildren(n, a, &leafTeams, nodeCount, 0, s)
+	err := n.PopulateMaps()
+	if err != nil {
+		return n, err
+	}
+
+	o := NetworkOptions{
+		LinkTeamPeers:    s.LinkTeamPeers,
+		InitColors:       s.InitColors,
+		MaxColors:        s.MaxColors,
+		AgentsWithMemory: s.AgentsWithMemory,
+	}
 
 	if s.LinkTeams {
 		for i := 0; i < leafTeamCount; i++ {
-			for j := i + 1; j < leafTeamCount; j++ {
-				n.AddLink(leafTeams[i][0], leafTeams[j][0])
-			}
+			o.LinkedTeamList = append(o.LinkedTeamList, leafTeams[i][0].Identifier())
 		}
 	}
 
 	if s.EvangelistAgents {
 		for i := 0; i < leafTeamCount; i++ {
-			leafTeams[i][3].State().Susceptability = 5.0
-			leafTeams[i][3].State().Color = Blue
+			o.EvangelistList = append(o.EvangelistList, leafTeams[i][3].Identifier())
 		}
 	}
 
 	if s.LoneEvangelist {
-		doa := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
-		doa.State().Susceptability = 5.0
-		doa.State().Color = Blue
-		n.AddAgent(doa)
+		o.LoneEvangelist = append(o.LoneEvangelist, generateID(nodeCount))
 		for i := 0; i < leafTeamCount; i++ {
-			n.AddLink(doa, leafTeams[i][2])
+			o.LoneEvangelist = append(o.LoneEvangelist, leafTeams[i][2].Identifier())
 		}
 	}
 
-	err := n.PopulateMaps()
+	err = ModifyNetwork(n, o)
+	if err != nil {
+		return n, err
+	}
+
+	err = n.PopulateMaps()
 	return n, err
 }
 
@@ -77,15 +87,6 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 		n.AddAgent(a)
 		n.AddLink(parent, a)
 		generateChildren(n, a, leafTeams, nodeCount, level, s)
-	}
-
-	//Add peer links
-	if s.LinkTeamPeers {
-		for i := 0; i < s.TeamSize; i++ {
-			for j := i + 1; j < s.TeamSize; j++ {
-				n.AddLink(peers[i], peers[j])
-			}
-		}
 	}
 
 	if level == s.TeamLinkLevel {
@@ -109,7 +110,7 @@ func GenerateRandomAgent(id string, initColors []Color, withMemory bool) Agent {
 		Contrariness:   rand.NormFloat64()*0.15 + 0.7,
 		Mail:           nil,
 		ChangeCount:    0,
-		Type:           "AgentWithMemory",
+		Type:           "Agent",
 	}
 	if len(initColors) > 0 {
 		as.Color = initColors[rand.Intn(len(initColors))]
@@ -121,6 +122,7 @@ func GenerateRandomAgent(id string, initColors []Color, withMemory bool) Agent {
 			ShortMemory:    nil,
 			MaxColors:      0,
 		}
+		a.Type = "AgentWithMemory"
 		return &a
 	}
 

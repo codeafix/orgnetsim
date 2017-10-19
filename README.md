@@ -7,6 +7,10 @@ The simulator is created from a Network of Agents. The Network itself can be any
 
 [sim](sim/README.md) The organisation network simulator
 
+## Command line utility
+
+[orgnetsim](orgnetsim/README.md) A command line utility for parsing lists and creating networks
+
 ## TODOs
 - [ ] Integrate into a web service
 - [ ] Create a network visualiser using D3

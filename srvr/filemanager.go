@@ -13,6 +13,14 @@ type FileManager interface {
 	Get(path string) FileUpdater
 }
 
+//NewFileManager returns a new instance of FileManager
+func NewFileManager() FileManager {
+	ur := UpdaterRepo{
+		Repo: make(map[string]FileUpdater, 0),
+	}
+	return &ur
+}
+
 //Get a FileUpdater for the specifed path
 func (ur *UpdaterRepo) Get(path string) FileUpdater {
 	ur.Lock.Lock()

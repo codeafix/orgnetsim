@@ -8,5 +8,5 @@ import (
 type SimStep struct {
 	TimestampHolder
 	sim.Network
-	Iterations int `json:"iterations"`
+	sim.Results
 }

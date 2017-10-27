@@ -5,20 +5,29 @@ import (
 	"time"
 )
 
+//Results contains the results from a Sim run over a number of iterations
+type Results struct {
+	Iterations    int     `json:"iterations"`
+	Colors        [][]int `json:"colors"`
+	Conversations []int   `json:"conversations"`
+}
+
 //RunSim runs the simulation
-func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
+func RunSim(n RelationshipMgr, iterations int) Results {
+	results := Results{
+		Iterations:    iterations,
+		Colors:        make([][]int, iterations+1, iterations+1),
+		Conversations: make([]int, iterations+1, iterations+1),
+	}
 	//Seed rand to make sure random behaviour is evenly distributed
 	rand.Seed(time.Now().UnixNano())
-
-	colors := make([][]int, iterations+1, iterations+1)
-	conversations := make([]int, iterations+1, iterations+1)
 
 	colorCounts := make([]int, n.MaxColors(), n.MaxColors())
 	agents := n.Agents()
 	for _, a := range agents {
 		colorCounts[a.GetColor()]++
 	}
-	colors[0] = colorCounts
+	results.Colors[0] = colorCounts
 
 	for i := 1; i <= iterations; i++ {
 		hold := make(chan bool)
@@ -48,9 +57,9 @@ func RunSim(n RelationshipMgr, iterations int) ([][]int, []int) {
 			color := a.ReadMail(n)
 			colorCounts[color]++
 		}
-		colors[i] = colorCounts
-		conversations[i] = convTotal
+		results.Colors[i] = colorCounts
+		results.Conversations[i] = convTotal
 	}
 
-	return colors, conversations
+	return results
 }

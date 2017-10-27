@@ -40,7 +40,7 @@ func AssertSuccess(t *testing.T, err error) {
 }
 
 //Convenience method to dump the colors and conversations arrays into a csv file
-func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipMgr, colors [][]int, conversations []int) {
+func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipMgr, results Results) {
 	f, err := os.Create(filename)
 	AssertSuccess(t, err)
 	defer f.Close()
@@ -55,10 +55,9 @@ func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipM
 
 	agents := n.Agents()
 	links := n.Links()
-	iterations := len(conversations)
 	agentCount := len(agents)
 	linkCount := len(links)
-	totalLines := iterations
+	totalLines := results.Iterations
 	if agentCount > totalLines {
 		totalLines = agentCount
 	}
@@ -67,11 +66,11 @@ func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipM
 	}
 
 	for i := 0; i < totalLines; i++ {
-		if i < iterations {
+		if i < results.Iterations {
 			for j := 0; j < n.MaxColors(); j++ {
-				buffer.WriteString(fmt.Sprintf("%d,", colors[i][j]))
+				buffer.WriteString(fmt.Sprintf("%d,", results.Colors[i][j]))
 			}
-			buffer.WriteString(fmt.Sprintf("%d", conversations[i]))
+			buffer.WriteString(fmt.Sprintf("%d", results.Conversations[i]))
 		} else {
 			for j := 0; j < n.MaxColors(); j++ {
 				buffer.WriteString(",")
@@ -139,9 +138,9 @@ func RunSimFromJSON(t *testing.T, filename string, s HierarchySpec) {
 	n, err := NewNetwork(string(json))
 	AssertSuccess(t, err)
 
-	colors, conversations := RunSim(n, 2000)
+	results := RunSim(n, 2000)
 	outfile := strings.Replace(filename, ".json", ".csv", 1)
-	WriteOutput(t, outfile, s, n, colors, conversations)
+	WriteOutput(t, outfile, s, n, results)
 
 	outfile2 := strings.Replace(filename, ".json", ".out.json", 1)
 	jsonout := n.Serialise()

@@ -13,6 +13,20 @@ import (
 var tmpFileCount int
 var randVal int64
 
+//Used to ensure tests run sequentially
+//This is needed because many of the tests are creating temporary files in a directory
+//and running them concurrently can result in false failures if one test is creating
+//or removing a file at the same time another test.
+var wait = make(chan bool, 1)
+
+func WaitForTurn() {
+	wait <- true
+}
+
+func Next() {
+	<-wait
+}
+
 type TestPersistable struct {
 	TimestampHolder
 	Data string `json:"data"`
@@ -31,6 +45,7 @@ func LockfileName(filename string) string {
 }
 
 func TestDelete(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -47,9 +62,11 @@ func TestDelete(t *testing.T) {
 	err = fd.Delete()
 	AssertSuccess(t, err)
 	FileDoesNotExist(t, filename)
+	Next()
 }
 
 func TestUpdateFileFailsWhenLkFileExists(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -71,9 +88,11 @@ func TestUpdateFileFailsWhenLkFileExists(t *testing.T) {
 	}
 	err = fd.Update(tpr)
 	IsTrue(t, err != nil, "Update should fail since lk file exists")
+	Next()
 }
 
 func TestUpdateFileFailsWhenFileDoesNotExists(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tpr := &TestPersistable{
 		Data: "Some new data here",
@@ -83,9 +102,11 @@ func TestUpdateFileFailsWhenFileDoesNotExists(t *testing.T) {
 	}
 	err := fd.Update(tpr)
 	IsTrue(t, err != nil, "Update should fail since target file does not exist")
+	Next()
 }
 
 func TestUpdateFileFailsWhenPersistableOutOfDate(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -104,9 +125,11 @@ func TestUpdateFileFailsWhenPersistableOutOfDate(t *testing.T) {
 	}
 	err = fd.Update(tpr)
 	IsTrue(t, err != nil, "Update should fail since timestamp is out of date")
+	Next()
 }
 
 func TestUpdateFileSucceeds(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -131,9 +154,11 @@ func TestUpdateFileSucceeds(t *testing.T) {
 	err = fd.Update(tpr)
 	AssertSuccess(t, err)
 	IsTrue(t, tpr.Stamp != stamp, "Update should have changed the timestamp")
+	Next()
 }
 
 func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -197,9 +222,11 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 	IsTrue(t, updateCount > 0, "Expected at least 1 update to succeed")
 	IsTrue(t, staleCount > 0, "Expected at least 1 update to be see stale data")
 	close(result)
+	Next()
 }
 
 func TestConcurrentReadFromFileSucceeds(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -234,9 +261,11 @@ func TestConcurrentReadFromFileSucceeds(t *testing.T) {
 		IsTrue(t, <-success, fmt.Sprintf("%d read failed", i))
 	}
 	close(success)
+	Next()
 }
 
 func TestReadFromFileSucceeds(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -256,9 +285,11 @@ func TestReadFromFileSucceeds(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, "Some information here", tpr.Data, "Data was not read correctly from file")
 	AreEqual(t, st.ModTime(), tpr.Timestamp(), "Timestamp value not updated during read")
+	Next()
 }
 
 func TestReadFromFileFailsWhenLkFileExists(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -279,9 +310,11 @@ func TestReadFromFileFailsWhenLkFileExists(t *testing.T) {
 	err = fd.Read(tpr)
 	IsTrue(t, err != nil, "Read should fail since lk file exists")
 	AreEqual(t, "", tpr.Data, "Data should not be read from file")
+	Next()
 }
 
 func TestReadDoesNotReadFileIfSameTimestamp(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	tp := &TestPersistable{
 		Data: "Some information here",
@@ -301,18 +334,22 @@ func TestReadDoesNotReadFileIfSameTimestamp(t *testing.T) {
 	err = fd.Read(tpr)
 	AssertSuccess(t, err)
 	AreEqual(t, "", tpr.Data, "Data should not be read from file because Timestamps are same")
+	Next()
 }
 
 func TestCreate(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	obj := &TimestampHolder{}
 	fu, err := CreateNewFile(filename, obj)
 	defer os.Remove(filename)
 	AssertSuccess(t, err)
 	FileExists(t, fu)
+	Next()
 }
 
 func TestCreateUpdatesTimeStamp(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	obj := &TimestampHolder{}
 	fu, err := CreateNewFile(filename, obj)
@@ -321,9 +358,11 @@ func TestCreateUpdatesTimeStamp(t *testing.T) {
 	FileExists(t, fu)
 	st, err := os.Stat(filename)
 	AreEqual(t, st.ModTime(), obj.Stamp, "Timestamp has not been updated")
+	Next()
 }
 
 func TestCreateReturnsErrorWhenFileExists(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	obj := &TimestampHolder{}
 	fu, err := CreateNewFile(filename, obj)
@@ -333,9 +372,11 @@ func TestCreateReturnsErrorWhenFileExists(t *testing.T) {
 	fu, err = CreateNewFile(filename, obj)
 	IsTrue(t, fu == nil, "CreateNewFile returns a FileUpdater but should have returned nil when file existed")
 	IsTrue(t, err != nil, "CreateNewFile should return error when File exists")
+	Next()
 }
 
 func TestCreateReturnsErrorWhenLKFileExists(t *testing.T) {
+	WaitForTurn()
 	filename := GenerateFileName(t)
 	obj := &TimestampHolder{}
 	lk, _ := os.OpenFile(LockfileName(filename), os.O_CREATE|os.O_EXCL, 0644)
@@ -345,6 +386,7 @@ func TestCreateReturnsErrorWhenLKFileExists(t *testing.T) {
 	IsTrue(t, fu == nil, "CreateNewFile returns a FileUpdater but should have returned nil when lock file exists")
 	IsTrue(t, err != nil, "CreateNewFile should return error when lock file exists")
 	FileDoesNotExist(t, filename)
+	Next()
 }
 
 func TestCreateReturnsErrorInvalidFilename(t *testing.T) {

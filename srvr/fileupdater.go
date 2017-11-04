@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
 //FileDetails contains information about a file that will be managed by the FileUpdater
 type FileDetails struct {
+	Rootpath string
 	Filepath string
 	Lock     sync.RWMutex
 }
@@ -23,31 +25,29 @@ type FileDetails struct {
 //error, and the Update method will attempt to re-read the contents of the file into
 //the object supplied.
 type FileUpdater interface {
+	Create(obj Persistable) error
 	Read(obj Persistable) error
 	Update(obj Persistable) error
 	Delete() error
 	Path() string
 }
 
-//CreateNewFile creates a file and saves the supplied object into the file identified by path
+//Create creates a file and saves the supplied object into the file identified by path
 //It returns the FileUpdater that should be used to access the file
-func CreateNewFile(path string, obj Persistable) (FileUpdater, error) {
-	fd := FileDetails{
-		Filepath: path,
-	}
+func (fd *FileDetails) Create(obj Persistable) error {
 	lkPath, err := fd.createLockFile()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer os.Remove(lkPath)
-	exists, err := fd.fileExists(fd.Filepath)
+	exists, err := fd.fileExists(fd.Path())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if exists {
-		return nil, fmt.Errorf("File exists")
+		return fmt.Errorf("File exists")
 	}
-	return &fd, fd.writeFile(obj, true)
+	return fd.writeFile(obj, true)
 }
 
 //Read the file and unmarshal it into the supplied object. If the file hasn't changed
@@ -60,14 +60,14 @@ func (fd *FileDetails) Read(obj Persistable) error {
 	if err != nil || exists {
 		return fmt.Errorf("File is locked by another process")
 	}
-	s, err := os.Stat(fd.Filepath)
+	s, err := os.Stat(fd.Path())
 	if err != nil {
 		return err
 	}
 	if obj.Timestamp() == s.ModTime() {
 		return nil
 	}
-	b, err := ioutil.ReadFile(fd.Filepath)
+	b, err := ioutil.ReadFile(fd.Path())
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (fd *FileDetails) Update(obj Persistable) error {
 		return err
 	}
 	defer os.Remove(lkPath)
-	s, err := os.Stat(fd.Filepath)
+	s, err := os.Stat(fd.Path())
 	if err != nil {
 		return err
 	}
@@ -97,12 +97,12 @@ func (fd *FileDetails) Update(obj Persistable) error {
 
 //Delete the file on the file system
 func (fd *FileDetails) Delete() error {
-	return os.Remove(fd.Filepath)
+	return os.Remove(fd.Path())
 }
 
 //Path to the file on the file system
 func (fd *FileDetails) Path() string {
-	return fd.Filepath
+	return filepath.Join(fd.Rootpath, fd.Filepath)
 }
 
 //Actually writes data into a file
@@ -110,9 +110,9 @@ func (fd *FileDetails) writeFile(obj Persistable, create bool) error {
 	var fo *os.File
 	var err error
 	if create {
-		fo, err = os.OpenFile(fd.Filepath, os.O_CREATE|os.O_EXCL, 0644)
+		fo, err = os.OpenFile(fd.Path(), os.O_CREATE|os.O_EXCL, 0644)
 	} else {
-		fo, err = os.OpenFile(fd.Filepath, os.O_TRUNC|os.O_WRONLY, 0644)
+		fo, err = os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
 	}
 	defer func() {
 		s, err := os.Stat(fd.Path())
@@ -139,7 +139,7 @@ func (fd *FileDetails) createLockFile() (string, error) {
 	lk, err := os.OpenFile(lkPath, os.O_CREATE|os.O_EXCL, 0644)
 	err2 := lk.Close()
 	if err != nil || err2 != nil {
-		return lkPath, fmt.Errorf("Unable to lock file '%s'", fd.Filepath)
+		return lkPath, fmt.Errorf("Unable to lock file '%s'", fd.Path())
 	}
 	return lkPath, nil
 }
@@ -155,5 +155,5 @@ func (fd *FileDetails) fileExists(path string) (bool, error) {
 
 //Returns the path to the lock file for this file
 func (fd *FileDetails) lockpath() string {
-	return fd.Filepath + ".lk"
+	return fd.Path() + ".lk"
 }

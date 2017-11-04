@@ -4,8 +4,9 @@ import "sync"
 
 //UpdaterRepo contains all FileUpdaters in use in this instance
 type UpdaterRepo struct {
-	Repo map[string]FileUpdater
-	Lock sync.Mutex
+	Rootpath string
+	Repo     map[string]FileUpdater
+	Lock     sync.Mutex
 }
 
 //FileManager is a repository for all instances of FileUpdater
@@ -14,9 +15,10 @@ type FileManager interface {
 }
 
 //NewFileManager returns a new instance of FileManager
-func NewFileManager() FileManager {
+func NewFileManager(rootpath string) FileManager {
 	ur := UpdaterRepo{
-		Repo: make(map[string]FileUpdater, 0),
+		Rootpath: rootpath,
+		Repo:     make(map[string]FileUpdater, 0),
 	}
 	return &ur
 }
@@ -30,6 +32,7 @@ func (ur *UpdaterRepo) Get(path string) FileUpdater {
 		return fu
 	}
 	fu = &FileDetails{
+		Rootpath: ur.Rootpath,
 		Filepath: path,
 	}
 	ur.Repo[path] = fu

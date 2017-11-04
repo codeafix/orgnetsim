@@ -3,40 +3,47 @@ package srvr
 import (
 	"fmt"
 	"math/rand"
+	"path/filepath"
 	"testing"
 	"time"
 )
 
 func TestGetsFileUpdaterForWindowsPath(t *testing.T) {
-	fm := NewFileManager()
-	path := "c:\\go_work\\src\\github.com\\randomtask\\orgnetsim\\srvr\\somefile.json"
-	fu := fm.Get(path)
+	root := "c:\\go_work\\src\\github.com\\randomtask\\orgnetsim\\srvr\\"
+	fm := NewFileManager(root)
+	file := "dir\\somefile.json"
+	path := filepath.Join(root, file)
+	fu := fm.Get(file)
 	AreEqual(t, path, fu.Path(), "Paths do not match")
-	fu2 := fm.Get(path)
+	fu2 := fm.Get(file)
 	AreEqual(t, fu, fu2, "FileUpdaters do not match")
 }
 
 func TestGetsFileUpdaterForNixPath(t *testing.T) {
-	fm := NewFileManager()
-	path := "/home/user/go_work/src/github.com/randomtask/orgnetsim/srvr/somefile.json"
-	fu := fm.Get(path)
+	root := "/home/user/go_work/src/github.com/randomtask/orgnetsim/srvr"
+	fm := NewFileManager(root)
+	file := "dir/somefile.json"
+	path := filepath.Join(root, file)
+	fu := fm.Get(file)
 	AreEqual(t, path, fu.Path(), "Paths do not match")
-	fu2 := fm.Get(path)
+	fu2 := fm.Get(file)
 	AreEqual(t, fu, fu2, "FileUpdaters do not match")
 }
 
 func TestGetsFileUpdaterForUriPath(t *testing.T) {
-	fm := NewFileManager()
-	path := "file:///home/user/go_work/src/github.com/randomtask/orgnetsim/srvr/somefile.json"
-	fu := fm.Get(path)
+	root := "file:///home/user/go_work/src/github.com/randomtask/orgnetsim/srvr/"
+	fm := NewFileManager(root)
+	file := "dir/somefile.json"
+	path := filepath.Join(root, file)
+	fu := fm.Get(file)
 	AreEqual(t, path, fu.Path(), "Paths do not match")
-	fu2 := fm.Get(path)
+	fu2 := fm.Get(file)
 	AreEqual(t, fu, fu2, "FileUpdaters do not match")
 }
 
 func TestConcurrentGetFromFileManager(t *testing.T) {
-	fm := NewFileManager()
-	rootpath := "file:///home/user/go_work/src/github.com/randomtask/orgnetsim/srvr/"
+	root := "file:///home/user/go_work/src/github.com/randomtask/orgnetsim/srvr/"
+	fm := NewFileManager(root)
 
 	hold := make(chan bool)
 	g1success := make(chan bool)
@@ -45,9 +52,10 @@ func TestConcurrentGetFromFileManager(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			<-hold
-			path := fmt.Sprintf("%sfile%d.json", rootpath, i)
-			fu := fm.Get(path)
-			fu2 := fm.Get(path)
+			file := fmt.Sprintf("dir/file%d.json", i)
+			path := filepath.Join(root, file)
+			fu := fm.Get(file)
+			fu2 := fm.Get(file)
 			g1success <- fu.Path() == path && fu == fu2
 		}()
 	}
@@ -55,11 +63,12 @@ func TestConcurrentGetFromFileManager(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			<-hold
-			path := fmt.Sprintf("%sfile%d.json", rootpath, i)
+			file := fmt.Sprintf("dir/file%d.json", i)
+			path := filepath.Join(root, file)
 			r := rand.Intn(10)
 			time.Sleep(time.Duration(r) * time.Nanosecond)
-			fu := fm.Get(path)
-			fu2 := fm.Get(path)
+			fu := fm.Get(file)
+			fu2 := fm.Get(file)
 			g2success <- fu.Path() == path && fu == fu2
 		}()
 	}

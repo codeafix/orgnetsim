@@ -22,4 +22,5 @@ func (ts *TimestampHolder) UpdateTimestamp(t time.Time) {
 type Persistable interface {
 	Timestamp() time.Time
 	UpdateTimestamp(t time.Time)
+	Filepath() string
 }

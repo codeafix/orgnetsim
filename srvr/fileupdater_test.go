@@ -134,7 +134,7 @@ func TestUpdateFileSucceeds(t *testing.T) {
 	}
 	err = fd.Update(tpr)
 	AssertSuccess(t, err)
-	NotEqual(t, stamp, tpr.Stamp, "Update should have changed the timestamp")
+	NotEqual(t, stamp, tpr.Timestamp(), "Update should have changed the timestamp")
 }
 
 func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T) {

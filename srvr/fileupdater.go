@@ -14,6 +14,7 @@ type FileDetails struct {
 	Rootpath string
 	Filepath string
 	Lock     sync.RWMutex
+	DirLock  *sync.RWMutex
 }
 
 //FileUpdater manages a file and provides Read and Update methods that allow the rest of
@@ -39,7 +40,7 @@ func (fd *FileDetails) Create(obj Persistable) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(lkPath)
+	defer fd.remove(lkPath)
 	exists, err := fd.fileExists(fd.Path())
 	if err != nil {
 		return err
@@ -60,7 +61,7 @@ func (fd *FileDetails) Read(obj Persistable) error {
 	if err != nil || exists {
 		return fmt.Errorf("File is locked by another process")
 	}
-	s, err := os.Stat(fd.Path())
+	s, err := fd.stat(fd.Path())
 	if err != nil {
 		return err
 	}
@@ -84,8 +85,8 @@ func (fd *FileDetails) Update(obj Persistable) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(lkPath)
-	s, err := os.Stat(fd.Path())
+	defer fd.remove(lkPath)
+	s, err := fd.stat(fd.Path())
 	if err != nil {
 		return err
 	}
@@ -97,7 +98,7 @@ func (fd *FileDetails) Update(obj Persistable) error {
 
 //Delete the file on the file system
 func (fd *FileDetails) Delete() error {
-	return os.Remove(fd.Path())
+	return fd.remove(fd.Path())
 }
 
 //Path to the file on the file system
@@ -110,12 +111,12 @@ func (fd *FileDetails) writeFile(obj Persistable, create bool) error {
 	var fo *os.File
 	var err error
 	if create {
-		fo, err = os.OpenFile(fd.Path(), os.O_CREATE|os.O_EXCL, 0644)
+		fo, err = fd.createFile(fd.Path())
 	} else {
 		fo, err = os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
 	}
 	defer func() {
-		s, err := os.Stat(fd.Path())
+		s, err := fd.stat(fd.Path())
 		if err != nil {
 			return
 		}
@@ -136,7 +137,7 @@ func (fd *FileDetails) writeFile(obj Persistable, create bool) error {
 //Creates a lock file to avoid multiple instances clobbering each other
 func (fd *FileDetails) createLockFile() (string, error) {
 	lkPath := fd.lockpath()
-	lk, err := os.OpenFile(lkPath, os.O_CREATE|os.O_EXCL, 0644)
+	lk, err := fd.createFile(lkPath)
 	err2 := lk.Close()
 	if err != nil || err2 != nil {
 		return lkPath, fmt.Errorf("Unable to lock file '%s'", fd.Path())
@@ -146,7 +147,7 @@ func (fd *FileDetails) createLockFile() (string, error) {
 
 //Returns a true if the file currently exists
 func (fd *FileDetails) fileExists(path string) (bool, error) {
-	_, err := os.Stat(path)
+	_, err := fd.stat(path)
 	if os.IsNotExist(err) {
 		return false, nil
 	}
@@ -156,4 +157,25 @@ func (fd *FileDetails) fileExists(path string) (bool, error) {
 //Returns the path to the lock file for this file
 func (fd *FileDetails) lockpath() string {
 	return fd.Path() + ".lk"
+}
+
+//Removes the specified file
+func (fd *FileDetails) remove(path string) error {
+	fd.DirLock.Lock()
+	defer fd.DirLock.Unlock()
+	return os.Remove(path)
+}
+
+//stat the given file path
+func (fd *FileDetails) stat(path string) (os.FileInfo, error) {
+	fd.DirLock.RLock()
+	defer fd.DirLock.RUnlock()
+	return os.Stat(path)
+}
+
+//createFile the given file path
+func (fd *FileDetails) createFile(path string) (*os.File, error) {
+	fd.DirLock.Lock()
+	defer fd.DirLock.Unlock()
+	return os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0644)
 }

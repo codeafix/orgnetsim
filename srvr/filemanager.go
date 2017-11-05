@@ -7,6 +7,7 @@ type UpdaterRepo struct {
 	Rootpath string
 	Repo     map[string]FileUpdater
 	Lock     sync.Mutex
+	DirLock  sync.RWMutex
 }
 
 //FileManager is a repository for all instances of FileUpdater
@@ -34,6 +35,7 @@ func (ur *UpdaterRepo) Get(path string) FileUpdater {
 	fu = &FileDetails{
 		Rootpath: ur.Rootpath,
 		Filepath: path,
+		DirLock:  &ur.DirLock,
 	}
 	ur.Repo[path] = fu
 	return fu

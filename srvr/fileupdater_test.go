@@ -18,7 +18,7 @@ var dirLock = &sync.RWMutex{}
 
 func GenerateFileName() string {
 	tmpFileCount++
-	return fmt.Sprintf("tmp_%d.json", tmpFileCount)
+	return fmt.Sprintf("tmp%d_%d.json", randVal, tmpFileCount)
 }
 
 type TestPersistable struct {
@@ -50,17 +50,15 @@ func NewTestPersistable() *TestPersistable {
 func TestDelete(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
+	create(filename, t)
+	write(filename, tp, t)
 	defer remove(filename)
 
 	fd := &FileDetails{
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	err = fd.Delete()
+	err := fd.Delete()
 	AssertSuccess(t, err)
 	FileDoesNotExist(t, filename)
 }
@@ -68,13 +66,10 @@ func TestDelete(t *testing.T) {
 func TestUpdateFileFailsWhenLkFileExists(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
+	create(filename, t)
+	write(filename, tp, t)
 	defer remove(filename)
-	lk, _ := create(LockfileName(filename))
-	lk.Close()
+	create(LockfileName(filename), t)
 	defer remove(LockfileName(filename))
 
 	tpr := &TestPersistable{
@@ -84,7 +79,7 @@ func TestUpdateFileFailsWhenLkFileExists(t *testing.T) {
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	err = fd.Update(tpr)
+	err := fd.Update(tpr)
 	IsTrue(t, err != nil, "Update should fail since lk file exists")
 }
 
@@ -102,10 +97,8 @@ func TestUpdateFileFailsWhenFileDoesNotExists(t *testing.T) {
 func TestUpdateFileFailsWhenPersistableOutOfDate(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
+	create(filename, t)
+	write(filename, tp, t)
 	defer remove(filename)
 
 	tpr := &TestPersistable{
@@ -115,18 +108,17 @@ func TestUpdateFileFailsWhenPersistableOutOfDate(t *testing.T) {
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	err = fd.Update(tpr)
+	err := fd.Update(tpr)
 	IsTrue(t, err != nil, "Update should fail since timestamp is out of date")
 }
 
 func TestUpdateFileSucceeds(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
-	st, _ := stat(filename)
+	create(filename, t)
+	write(filename, tp, t)
+	st, err := stat(filename)
+	AssertSuccess(t, err)
 	stamp := st.ModTime()
 	defer remove(filename)
 
@@ -148,10 +140,8 @@ func TestUpdateFileSucceeds(t *testing.T) {
 func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, _ := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
+	create(filename, t)
+	write(filename, tp, t)
 	defer remove(filename)
 
 	hold := make(chan bool)
@@ -213,11 +203,10 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 func TestConcurrentReadFromFileSucceeds(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, _ := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
-	st, _ := stat(filename)
+	create(filename, t)
+	write(filename, tp, t)
+	st, err := stat(filename)
+	AssertSuccess(t, err)
 	stamp := st.ModTime()
 	defer remove(filename)
 
@@ -249,11 +238,10 @@ func TestConcurrentReadFromFileSucceeds(t *testing.T) {
 func TestReadFromFileSucceeds(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
-	st, _ := stat(filename)
+	create(filename, t)
+	write(filename, tp, t)
+	st, err := stat(filename)
+	AssertSuccess(t, err)
 	defer remove(filename)
 
 	tpr := &TestPersistable{}
@@ -270,13 +258,10 @@ func TestReadFromFileSucceeds(t *testing.T) {
 func TestReadFromFileFailsWhenLkFileExists(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
+	create(filename, t)
+	write(filename, tp, t)
 	defer remove(filename)
-	lk, _ := create(LockfileName(filename))
-	lk.Close()
+	create(LockfileName(filename), t)
 	defer remove(LockfileName(filename))
 
 	tpr := &TestPersistable{}
@@ -284,7 +269,7 @@ func TestReadFromFileFailsWhenLkFileExists(t *testing.T) {
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	err = fd.Read(tpr)
+	err := fd.Read(tpr)
 	IsTrue(t, err != nil, "Read should fail since lk file exists")
 	AreEqual(t, "", tpr.Data, "Data should not be read from file")
 }
@@ -292,11 +277,10 @@ func TestReadFromFileFailsWhenLkFileExists(t *testing.T) {
 func TestReadDoesNotReadFileIfSameTimestamp(t *testing.T) {
 	tp := NewTestPersistable()
 	filename := tp.Filepath()
-	fl, _ := create(filename)
-	b, err := json.Marshal(tp)
-	fl.Write(b)
-	fl.Close()
-	st, _ := stat(filename)
+	create(filename, t)
+	write(filename, tp, t)
+	st, err := stat(filename)
+	AssertSuccess(t, err)
 	defer remove(filename)
 
 	tpr := &TestPersistable{}
@@ -335,6 +319,7 @@ func TestCreateUpdatesTimeStamp(t *testing.T) {
 	AssertSuccess(t, err)
 	FileExists(t, fd)
 	st, err := stat(filename)
+	AssertSuccess(t, err)
 	AreEqual(t, st.ModTime(), obj.Stamp, "Timestamp has not been updated")
 }
 
@@ -361,8 +346,7 @@ func TestCreateReturnsErrorWhenLKFileExists(t *testing.T) {
 		DirLock:  dirLock,
 	}
 
-	lk, _ := create(LockfileName(filename))
-	lk.Close()
+	create(LockfileName(filename), t)
 	defer remove(LockfileName(filename))
 	err := fd.Create(obj)
 	IsTrue(t, err != nil, "CreateNewFile should return error when lock file exists")
@@ -427,8 +411,34 @@ func remove(path string) error {
 	return os.Remove(path)
 }
 
-func create(path string) (*os.File, error) {
+func create(path string, t *testing.T) {
 	dirLock.Lock()
 	defer dirLock.Unlock()
-	return os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0644)
+	fl, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		t.Error(err)
+	}
+	err = fl.Close()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func write(path string, p Persistable, t *testing.T) {
+	fl, err := os.OpenFile(path, os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		t.Error(err)
+	}
+	b, err := json.Marshal(p)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = fl.Write(b)
+	if err != nil {
+		t.Error(err)
+	}
+	err = fl.Close()
+	if err != nil {
+		t.Error(err)
+	}
 }

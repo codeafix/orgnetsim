@@ -48,7 +48,11 @@ func (fd *FileDetails) Create(obj Persistable) error {
 	if exists {
 		return fmt.Errorf("File exists")
 	}
-	return fd.writeFile(obj, true)
+	err = fd.createFile(fd.Path())
+	if err != nil {
+		return err
+	}
+	return fd.writeFile(obj)
 }
 
 //Read the file and unmarshal it into the supplied object. If the file hasn't changed
@@ -93,7 +97,7 @@ func (fd *FileDetails) Update(obj Persistable) error {
 	if obj.Timestamp() != s.ModTime() {
 		return fmt.Errorf("Stale data")
 	}
-	return fd.writeFile(obj, false)
+	return fd.writeFile(obj)
 }
 
 //Delete the file on the file system
@@ -107,14 +111,9 @@ func (fd *FileDetails) Path() string {
 }
 
 //Actually writes data into a file
-func (fd *FileDetails) writeFile(obj Persistable, create bool) error {
+func (fd *FileDetails) writeFile(obj Persistable) error {
 	var fo *os.File
-	var err error
-	if create {
-		fo, err = fd.createFile(fd.Path())
-	} else {
-		fo, err = os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
-	}
+	fo, err := os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
 	defer func() {
 		s, err := fd.stat(fd.Path())
 		if err != nil {
@@ -137,9 +136,8 @@ func (fd *FileDetails) writeFile(obj Persistable, create bool) error {
 //Creates a lock file to avoid multiple instances clobbering each other
 func (fd *FileDetails) createLockFile() (string, error) {
 	lkPath := fd.lockpath()
-	lk, err := fd.createFile(lkPath)
-	err2 := lk.Close()
-	if err != nil || err2 != nil {
+	err := fd.createFile(lkPath)
+	if err != nil {
 		return lkPath, fmt.Errorf("Unable to lock file '%s'", fd.Path())
 	}
 	return lkPath, nil
@@ -174,8 +172,12 @@ func (fd *FileDetails) stat(path string) (os.FileInfo, error) {
 }
 
 //createFile the given file path
-func (fd *FileDetails) createFile(path string) (*os.File, error) {
+func (fd *FileDetails) createFile(path string) error {
 	fd.DirLock.Lock()
 	defer fd.DirLock.Unlock()
-	return os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0644)
+	fl, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return err
+	}
+	return fl.Close()
 }

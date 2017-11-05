@@ -1,6 +1,10 @@
 package srvr
 
-import "github.com/spaceweasel/mango"
+import (
+	"net/http"
+
+	"github.com/spaceweasel/mango"
+)
 
 //SimHandlerState holds state data for the SimHandler
 type SimHandlerState struct {
@@ -36,7 +40,7 @@ func NewSimHandler(fm FileManager) SimHandler {
 func (sh *SimHandlerState) Register(r *mango.Router) {
 	r.Get("/api/simulation/{sim_id}", sh.Get)
 	r.Put("/api/simulation/{sim_id}", sh.Put)
-	r.Get("/api/simulation/{sim_id}/step", sh.GetSteps)
+	r.Get("/api/simulation/{sim_id}/{step}", sh.GetSteps)
 	r.Get("/api/simulation/{sim_id}/results", sh.GetResults)
 	r.Post("/api/simulation/{sim_id}/run", sh.PostRun)
 	r.Post("/api/simulation/{sim_id}/generate", sh.GenerateNetwork)
@@ -59,6 +63,10 @@ func (sh *SimHandlerState) Put(c *mango.Context) {
 //GetSteps gets the list of steps in this simulation
 func (sh *SimHandlerState) GetSteps(c *mango.Context) {
 	siminfo := NewSimInfo(c.RouteParams["sim_id"])
+	if "step" != c.RouteParams["step"] {
+		c.Error("Not Found", http.StatusNotFound)
+		return
+	}
 	sh.GetList(siminfo, c, "step")
 }
 

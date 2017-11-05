@@ -31,7 +31,7 @@ func (lh *ListHandlerState) GetList(listHolder ListHolder, c *mango.Context, lis
 	if err != nil {
 		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	} else {
-		c.RespondWith(listUpdater).WithStatus(http.StatusOK)
+		c.RespondWith(listHolder).WithStatus(http.StatusOK)
 	}
 }
 
@@ -105,8 +105,12 @@ func (lh *ListHandlerState) DeleteItem(itemToDelete ListItem, listHolder ListHol
 			break
 		}
 	}
-	err2 := itemUpdater.Delete()
-	if err != nil || err2 != nil {
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+		return
+	}
+	err = itemUpdater.Delete()
+	if err != nil {
 		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	} else {
 		c.Respond().WithStatus(http.StatusOK)

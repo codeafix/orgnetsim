@@ -1,6 +1,7 @@
 package srvr
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -41,47 +42,79 @@ func AssertSuccess(t *testing.T, err error) {
 	}
 }
 
-func NewTestFileManager(tfu *TestFileUpdater) FileManager {
+func NewTestFileManager(tfu *TestFileUpdater) *TestFileManager {
 	return &TestFileManager{
-		tfu,
+		map[string]FileUpdater{
+			tfu.Path(): tfu,
+		},
+		nil,
 	}
 }
 
 type TestFileManager struct {
-	FileUpdater FileUpdater
+	FileUpdaters map[string]FileUpdater
+	Default      FileUpdater
 }
 
 func (fm *TestFileManager) Get(path string) FileUpdater {
-	return fm.FileUpdater
+	fu, exists := fm.FileUpdaters[path]
+	if !exists {
+		return fm.Default
+	}
+	return fu
+}
+
+func (fm *TestFileManager) Add(path string, tfu *TestFileUpdater) {
+	fm.FileUpdaters[path] = tfu
+}
+
+func (fm *TestFileManager) SetDefault(tfu *TestFileUpdater) {
+	fm.Default = tfu
 }
 
 type TestFileUpdater struct {
-	Obj       Persistable
-	ReadErr   error
-	UpdateErr error
-	CreateErr error
-	DeleteErr error
+	Obj          Persistable
+	ReadErr      error
+	UpdateErr    error
+	CreateErr    error
+	DeleteErr    error
+	Filepath     string
+	DeleteCalled bool
 }
 
 func (fu *TestFileUpdater) Create(obj Persistable) error {
+	if fu.CreateErr != nil {
+		return fu.CreateErr
+	}
 	fu.Obj = obj
-	return fu.CreateErr
+	return nil
 }
 
 func (fu *TestFileUpdater) Read(obj Persistable) error {
-	obj = fu.Obj
-	return fu.ReadErr
+	if fu.ReadErr != nil {
+		return fu.ReadErr
+	}
+	js, _ := json.Marshal(fu.Obj)
+	json.Unmarshal(js, obj)
+	return nil
 }
 
 func (fu *TestFileUpdater) Update(obj Persistable) error {
+	if fu.UpdateErr != nil {
+		return fu.UpdateErr
+	}
 	fu.Obj = obj
-	return fu.UpdateErr
+	return nil
 }
 
 func (fu *TestFileUpdater) Delete() error {
-	return fu.DeleteErr
+	fu.DeleteCalled = true
+	if fu.DeleteErr != nil {
+		return fu.DeleteErr
+	}
+	return nil
 }
 
 func (fu *TestFileUpdater) Path() string {
-	return ""
+	return fu.Filepath
 }

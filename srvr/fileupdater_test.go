@@ -18,8 +18,7 @@ var dirLock = &sync.RWMutex{}
 
 func GenerateFileName() string {
 	tmpFileCount++
-	randVal = time.Now().UnixNano()
-	return fmt.Sprintf("tmp%d_%d.json", randVal, tmpFileCount)
+	return fmt.Sprintf("tmp_%d.json", tmpFileCount)
 }
 
 type TestPersistable struct {

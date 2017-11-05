@@ -117,22 +117,18 @@ func TestUpdateFileSucceeds(t *testing.T) {
 	filename := tp.Filepath()
 	create(filename, t)
 	write(filename, tp, t)
-	st, err := stat(filename)
-	AssertSuccess(t, err)
-	stamp := st.ModTime()
 	defer remove(filename)
 
-	tpr := &TestPersistable{
-		TimestampHolder: TimestampHolder{
-			Stamp: stamp,
-		},
-		Data: "Some new data here",
-	}
+	tpr := &TestPersistable{}
 	fd := &FileDetails{
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	err = fd.Update(tpr)
+	fd.Read(tpr)
+	stamp := tpr.Timestamp()
+
+	tpr.Data = "Some new data here"
+	err := fd.Update(tpr)
 	AssertSuccess(t, err)
 	NotEqual(t, stamp, tpr.Timestamp(), "Update should have changed the timestamp")
 }

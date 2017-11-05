@@ -112,7 +112,6 @@ func (fd *FileDetails) Path() string {
 
 //Actually writes data into a file
 func (fd *FileDetails) writeFile(obj Persistable) error {
-	var fo *os.File
 	fo, err := os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		fo.Close()

@@ -126,6 +126,7 @@ func TestUpdateFileSucceeds(t *testing.T) {
 	}
 	fd.Read(tpr)
 	stamp := tpr.Timestamp()
+	time.Sleep(50 * time.Nanosecond)
 
 	tpr.Data = "Some new data here"
 	err := fd.Update(tpr)

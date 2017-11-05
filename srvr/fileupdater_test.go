@@ -134,7 +134,7 @@ func TestUpdateFileSucceeds(t *testing.T) {
 	}
 	err = fd.Update(tpr)
 	AssertSuccess(t, err)
-	IsTrue(t, tpr.Stamp != stamp, "Update should have changed the timestamp")
+	NotEqual(t, stamp, tpr.Stamp, "Update should have changed the timestamp")
 }
 
 func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T) {
@@ -389,12 +389,10 @@ func FileDoesNotExist(t *testing.T, path string) {
 	//Try twice because file system can return access denied on TestDelete
 	for i := 0; i < 10; i++ {
 		_, err = stat(path)
-		if "Access is denied" == err.Error() {
-			continue
-		}
 		if os.IsNotExist(err) {
 			return
 		}
+		time.Sleep(5 * time.Nanosecond)
 	}
 	t.Errorf("File should not exist: %v", err)
 }

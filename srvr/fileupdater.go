@@ -114,23 +114,30 @@ func (fd *FileDetails) Path() string {
 func (fd *FileDetails) writeFile(obj Persistable) error {
 	var fo *os.File
 	fo, err := os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
-	defer func() {
-		s, err := fd.stat(fd.Path())
-		if err != nil {
-			return
-		}
-		obj.UpdateTimestamp(s.ModTime())
-	}()
-	defer fo.Close()
 	if err != nil {
+		fo.Close()
 		return err
 	}
 	b, err := json.Marshal(obj)
 	if err != nil {
+		fo.Close()
 		return err
 	}
 	_, err = fo.Write(b)
-	return err
+	if err != nil {
+		fo.Close()
+		return err
+	}
+	err = fo.Close()
+	if err != nil {
+		return err
+	}
+	s, err := fd.stat(fd.Path())
+	if err != nil {
+		return err
+	}
+	obj.UpdateTimestamp(s.ModTime())
+	return nil
 }
 
 //Creates a lock file to avoid multiple instances clobbering each other

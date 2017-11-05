@@ -356,7 +356,7 @@ func TestCreateReturnsErrorWhenLKFileExists(t *testing.T) {
 func TestCreateReturnsErrorInvalidFilename(t *testing.T) {
 	obj := NewTestPersistable()
 	fd := &FileDetails{
-		Filepath: "TestCreate??\\.json",
+		Filepath: "TestCreate///.json",
 		DirLock:  dirLock,
 	}
 	err := fd.Create(obj)

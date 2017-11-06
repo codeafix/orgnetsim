@@ -124,12 +124,14 @@ func TestUpdateFileSucceeds(t *testing.T) {
 		Filepath: filename,
 		DirLock:  dirLock,
 	}
-	fd.Read(tpr)
+	err := fd.Read(tpr)
+	AssertSuccess(t, err)
 	stamp := tpr.Timestamp()
-	time.Sleep(50 * time.Nanosecond)
+
+	time.Sleep(500 * time.Millisecond)
 
 	tpr.Data = "Some new data here"
-	err := fd.Update(tpr)
+	err = fd.Update(tpr)
 	AssertSuccess(t, err)
 	NotEqual(t, stamp, tpr.Timestamp(), "Update should have changed the timestamp")
 }

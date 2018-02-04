@@ -138,9 +138,10 @@ func RunSimFromJSON(t *testing.T, filename string, s HierarchySpec) {
 	n, err := NewNetwork(string(json))
 	AssertSuccess(t, err)
 
-	results := RunSim(n, 2000)
+	runner := NewRunner(n, 2000)
+	results := runner.Run()
 	outfile := strings.Replace(filename, ".json", ".csv", 1)
-	WriteOutput(t, outfile, s, n, results)
+	WriteOutput(t, outfile, s, runner.GetRelationshipMgr(), results)
 
 	outfile2 := strings.Replace(filename, ".json", ".out.json", 1)
 	jsonout := n.Serialise()

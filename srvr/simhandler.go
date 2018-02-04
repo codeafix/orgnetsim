@@ -17,10 +17,11 @@ type SimHandler interface {
 	mango.Registerer
 	Get(c *mango.Context)
 	Put(c *mango.Context)
-	GetSteps(c *mango.Context)
-	PostRun(c *mango.Context)
-	GenerateNetwork(c *mango.Context)
-	GetResults(c *mango.Context)
+	GetStepsOrResults(c *mango.Context)
+	GetResults(siminfo *SimInfo, c *mango.Context)
+	RunOrGenerateNetwork(c *mango.Context)
+	PostRun(siminfo *SimInfo, c *mango.Context)
+	GenerateNetwork(siminfo *SimInfo, c *mango.Context)
 	DeleteStep(c *mango.Context)
 }
 
@@ -40,10 +41,8 @@ func NewSimHandler(fm FileManager) SimHandler {
 func (sh *SimHandlerState) Register(r *mango.Router) {
 	r.Get("/api/simulation/{sim_id}", sh.Get)
 	r.Put("/api/simulation/{sim_id}", sh.Put)
-	r.Get("/api/simulation/{sim_id}/{step}", sh.GetSteps)
-	r.Get("/api/simulation/{sim_id}/results", sh.GetResults)
-	r.Post("/api/simulation/{sim_id}/run", sh.PostRun)
-	r.Post("/api/simulation/{sim_id}/generate", sh.GenerateNetwork)
+	r.Get("/api/simulation/{sim_id}/{stepOrResults}", sh.GetStepsOrResults)
+	r.Post("/api/simulation/{sim_id}/{runOrGenerate}", sh.RunOrGenerateNetwork)
 	r.Delete("/api/simulation/{sim_id}/step/{step_id}", sh.DeleteStep)
 }
 
@@ -60,28 +59,52 @@ func (sh *SimHandlerState) Put(c *mango.Context) {
 	sh.UpdateObject(siminfo, savedsiminfo, c)
 }
 
-//GetSteps gets the list of steps in this simulation
-func (sh *SimHandlerState) GetSteps(c *mango.Context) {
+//GetStepsOrResults gets the list of steps in this simulation
+func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 	siminfo := NewSimInfo(c.RouteParams["sim_id"])
-	if "step" != c.RouteParams["step"] {
-		c.Error("Not Found", http.StatusNotFound)
+
+	switch c.RouteParams["stepOrResults"] {
+	case "step":
+		sh.GetList(siminfo, c, "step")
 		return
+	case "results":
+		sh.GetResults(siminfo, c)
+		return
+	default:
+		c.Error("Not Found", http.StatusNotFound)
 	}
-	sh.GetList(siminfo, c, "step")
+	return
+}
+
+//GetResults gets a concatenated set of results from all the steps in this simulation
+func (sh *SimHandlerState) GetResults(siminfo *SimInfo, c *mango.Context) {
+
+}
+
+//RunOrGenerateNetwork gets the list of steps in this simulation
+func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
+	siminfo := NewSimInfo(c.RouteParams["sim_id"])
+
+	switch c.RouteParams["runOrGenerate"] {
+	case "run":
+		sh.PostRun(siminfo, c)
+		return
+	case "generate":
+		sh.GenerateNetwork(siminfo, c)
+		return
+	default:
+		c.Error("Not Found", http.StatusNotFound)
+	}
+	return
 }
 
 //PostRun adds a new step to the list of simulations
-func (sh *SimHandlerState) PostRun(c *mango.Context) {
+func (sh *SimHandlerState) PostRun(siminfo *SimInfo, c *mango.Context) {
 
 }
 
 //GenerateNetwork adds a new step to the list of simulations
-func (sh *SimHandlerState) GenerateNetwork(c *mango.Context) {
-
-}
-
-//GetResults gets a concatenated set of results from all the steps in this simulation
-func (sh *SimHandlerState) GetResults(c *mango.Context) {
+func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
 
 }
 

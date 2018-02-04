@@ -9,10 +9,10 @@ import (
 //SimStep holds the results of each simulation step
 type SimStep struct {
 	TimestampHolder
-	Network  sim.Network `json:"network"`
-	Results  sim.Results `json:"results"`
-	ID       string      `json:"id"`
-	ParentID string      `json:"parent"`
+	Network  sim.RelationshipMgr `json:"network"`
+	Results  sim.Results         `json:"results"`
+	ID       string              `json:"id"`
+	ParentID string              `json:"parent"`
 }
 
 //NewSimStep returns a SimStep object for the passed ID that will be persisted in directory root

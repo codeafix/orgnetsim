@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
+	"github.com/codeafix/orgnetsim/sim"
 	"github.com/google/uuid"
 	"github.com/spaceweasel/mango"
 )
 
-func CreateSimHandlerBrowser(deleteItemIndex int) (*mango.Browser, *TestFileUpdater, *TestFileUpdater, []string, string) {
+func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *TestFileUpdater, *TestFileUpdater, []string, string) {
 	r := mango.NewRouter()
 
 	simid := uuid.New().String()
@@ -52,7 +54,7 @@ func CreateSimHandlerBrowser(deleteItemIndex int) (*mango.Browser, *TestFileUpda
 }
 
 func TestGetSimSuccess(t *testing.T) {
-	br, simfu, _, _, simid := CreateSimHandlerBrowser(0)
+	br, simfu, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s", simid), hdrs)
@@ -67,7 +69,7 @@ func TestGetSimSuccess(t *testing.T) {
 }
 
 func TestGetSimInvalidCommand(t *testing.T) {
-	br, _, _, _, simid := CreateSimHandlerBrowser(0)
+	br, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/somename", simid), hdrs)
@@ -76,7 +78,7 @@ func TestGetSimInvalidCommand(t *testing.T) {
 }
 
 func TestGetSimStepsSuccess(t *testing.T) {
-	br, _, _, steps, simid := CreateSimHandlerBrowser(0)
+	br, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/step", simid), hdrs)
@@ -93,7 +95,7 @@ func TestGetSimStepsSuccess(t *testing.T) {
 }
 
 func TestUpdateSimSuccess(t *testing.T) {
-	br, _, _, steps, simid := CreateSimHandlerBrowser(0)
+	br, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
@@ -114,7 +116,7 @@ func TestUpdateSimSuccess(t *testing.T) {
 }
 
 func TestDeleteSimSuccess(t *testing.T) {
-	br, simfu, ssfu, steps, _ := CreateSimHandlerBrowser(0)
+	br, simfu, ssfu, steps, _ := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
@@ -126,4 +128,79 @@ func TestDeleteSimSuccess(t *testing.T) {
 	AreEqual(t, steps[1], simfu.Obj.(*SimInfo).Steps[0], "Wrong path in position 0 of step list")
 	AreEqual(t, steps[2], simfu.Obj.(*SimInfo).Steps[1], "Wrong path in position 1 of step list")
 	IsTrue(t, ssfu.DeleteCalled, "Delete was not called on the correct fileupdater")
+}
+
+func TestGenerateNetworkFailsIfStepsExist(t *testing.T) {
+	br, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+
+	hs := sim.HierarchySpec{
+		Levels:     2,
+		TeamSize:   2,
+		InitColors: []sim.Color{sim.Blue},
+		MaxColors:  4,
+	}
+	hss, err := json.Marshal(hs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/generate", simid), string(hss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad Request")
+	AreEqual(t, "Simulation must have no steps when generating a new network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, string) {
+	r := mango.NewRouter()
+
+	simid := uuid.New().String()
+	sim := NewSimInfo(simid)
+	sim.Name = "mySavedSim"
+	sim.Description = "A description of mySavedSim"
+	sim.Steps = []string{}
+	simfu := &TestFileUpdater{
+		Obj:      sim,
+		Filepath: sim.Filepath(),
+	}
+	tfm := NewTestFileManager(simfu)
+	ssfu := &TestFileUpdater{}
+	tfm.SetDefault(ssfu)
+
+	r.RegisterModules([]mango.Registerer{
+		NewSimHandler(tfm),
+	})
+	br := mango.NewBrowser(r)
+
+	return br, simfu, ssfu, simid
+}
+
+func TestGenerateNetworkSucceeds(t *testing.T) {
+	br, simfu, ssfu, simid := CreateSimHandlerBrowser()
+
+	hs := sim.HierarchySpec{
+		Levels:     2,
+		TeamSize:   2,
+		InitColors: []sim.Color{sim.Green},
+		MaxColors:  4,
+	}
+	hss, err := json.Marshal(hs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/generate", simid), string(hss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	IsFalse(t, simstep == nil, "SimStep not created")
+	AreEqual(t, 4, simstep.Network.MaxColors(), "Wrong MaxColors on network")
+	AreEqual(t, 3, len(simstep.Network.Agents()), "Wrong number of agents on network")
+	AreEqual(t, 4, len(simstep.Results.Colors[0]), "Wrong number of Colors in Color results array")
+	AreEqual(t, 3, simstep.Results.Colors[0][3], "Wrong Green Color count in results array")
+	sim, ok := simfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	AreEqual(t, 1, len(sim.Options.InitColors), "Wrong InitColors on sim options")
+	AreEqual(t, hs.InitColors[0], sim.Options.InitColors[0], "Wrong InitColors on sim options")
+	AreEqual(t, hs.MaxColors, sim.Options.MaxColors, "Wrong MaxColors on sim options")
 }

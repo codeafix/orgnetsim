@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/codeafix/orgnetsim/sim"
+	"github.com/google/uuid"
 )
 
 //SimStep holds the results of each simulation step
@@ -13,6 +14,14 @@ type SimStep struct {
 	Results  sim.Results         `json:"results"`
 	ID       string              `json:"id"`
 	ParentID string              `json:"parent"`
+}
+
+//CreateSimStep creates a new SimStep object with a new ID
+func CreateSimStep(parentID string) *SimStep {
+	return &SimStep{
+		ID:       uuid.New().String(),
+		ParentID: parentID,
+	}
 }
 
 //NewSimStep returns a SimStep object for the passed ID that will be persisted in directory root

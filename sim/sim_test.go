@@ -116,7 +116,7 @@ func GenerateNetwork(t *testing.T, filename string) HierarchySpec {
 		AgentsWithMemory: true,
 	}
 
-	n, err := GenerateHierarchy(s)
+	n, _, err := GenerateHierarchy(s)
 	AssertSuccess(t, err)
 
 	json := n.Serialise()

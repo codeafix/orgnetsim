@@ -15,8 +15,8 @@ import (
 
 //OptionsFile is the format of the optional file to configure the parse and construction of a network
 type OptionsFile struct {
-	Network sim.NetworkOptions `json:"network"`
-	Parse   sim.ParseOptions   `json:"parse"`
+	Network *sim.NetworkOptions `json:"network"`
+	Parse   *sim.ParseOptions   `json:"parse"`
 }
 
 //Parse provides the functionality for the orgnetsim parse command utility
@@ -37,10 +37,10 @@ func Parse() {
 
 	rand.Seed(int64(seed))
 
-	rm, err := sim.ParseDelim(data, of.Parse)
+	rm, err := of.Parse.ParseDelim(data)
 	check(err)
 
-	crm, err := sim.CloneModify(rm, of.Network)
+	crm, err := of.Network.CloneModify(rm)
 	check(err)
 
 	n := crm.(*sim.Network)

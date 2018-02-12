@@ -18,7 +18,7 @@ func TestParseDelimAgents(t *testing.T) {
 		Identifier: 1,
 		Parent:     -1,
 	}
-	rm, err := ParseDelim(data, po)
+	rm, err := po.ParseDelim(data)
 	AssertSuccess(t, err)
 
 	agents := rm.Agents()
@@ -50,7 +50,7 @@ func TestParseDelimLinks(t *testing.T) {
 		Identifier: 1,
 		Parent:     3,
 	}
-	rm, err := ParseDelim(data, po)
+	rm, err := po.ParseDelim(data)
 	AssertSuccess(t, err)
 
 	links := rm.Links()
@@ -85,7 +85,7 @@ func TestParseDelimLinksThrowsErrorWhenLinkTargetDoesntExist(t *testing.T) {
 		Identifier: 1,
 		Parent:     3,
 	}
-	_, err := ParseDelim(data, po)
+	_, err := po.ParseDelim(data)
 	IsFalse(t, err == nil, "Expecting an error to be thrown")
 }
 
@@ -102,7 +102,7 @@ func TestParseDelimCsv(t *testing.T) {
 		Identifier: 1,
 		Parent:     3,
 	}
-	rm, err := ParseDelim(data, po)
+	rm, err := po.ParseDelim(data)
 	AssertSuccess(t, err)
 
 	agents := rm.Agents()
@@ -123,7 +123,7 @@ func TestParseDelimTsv(t *testing.T) {
 		Identifier: 1,
 		Parent:     3,
 	}
-	rm, err := ParseDelim(data, po)
+	rm, err := po.ParseDelim(data)
 	AssertSuccess(t, err)
 
 	agents := rm.Agents()
@@ -147,7 +147,7 @@ func TestParseDelimOnlyIncludesRowsWithOtherMatchingColumn(t *testing.T) {
 			"3": `\S+`,
 		},
 	}
-	rm, err := ParseDelim(data, po)
+	rm, err := po.ParseDelim(data)
 	AssertSuccess(t, err)
 
 	agents := rm.Agents()

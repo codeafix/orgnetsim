@@ -73,7 +73,7 @@ func whitespace() *regexp.Regexp {
 //returns a RelationshipMgr containing all the Agents with links to parent Agents as described in the input
 //data. If the same Id is listed in multiple rows as specified after any regular expressions is applied the
 //first row is used and subsequent rows are ignored.
-func ParseDelim(data []string, po ParseOptions) (RelationshipMgr, error) {
+func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 	ws := whitespace()
 	idre := po.IdentifierRegex()
 	pre := po.ParentRegex()

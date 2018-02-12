@@ -22,7 +22,7 @@ type HierarchySpec struct {
 }
 
 //GenerateHierarchy generates a hierarchical network
-func GenerateHierarchy(s HierarchySpec) (*Network, error) {
+func GenerateHierarchy(s HierarchySpec) (*Network, *NetworkOptions, error) {
 	n := new(Network)
 	n.MaxColorCount = s.MaxColors
 	nodeCount := new(int)
@@ -35,15 +35,10 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 
 	generateChildren(n, a, &leafTeams, nodeCount, 0, s)
 	err := n.PopulateMaps()
-	if err != nil {
-		return n, err
-	}
+	o := CreateNetworkOptions(s)
 
-	o := NetworkOptions{
-		LinkTeamPeers:    s.LinkTeamPeers,
-		InitColors:       s.InitColors,
-		MaxColors:        s.MaxColors,
-		AgentsWithMemory: s.AgentsWithMemory,
+	if err != nil {
+		return n, o, err
 	}
 
 	if s.LinkTeams {
@@ -65,13 +60,13 @@ func GenerateHierarchy(s HierarchySpec) (*Network, error) {
 		}
 	}
 
-	err = ModifyNetwork(n, o)
+	err = o.ModifyNetwork(n)
 	if err != nil {
-		return n, err
+		return n, o, err
 	}
 
 	err = n.PopulateMaps()
-	return n, err
+	return n, o, err
 }
 
 func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount *int, level int, s HierarchySpec) {

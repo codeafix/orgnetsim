@@ -13,9 +13,19 @@ type NetworkOptions struct {
 	AgentsWithMemory bool     `json:"agentsWithMemory"`
 }
 
-//LinkTeamPeers links all Agents related to the same parent node to each other.
+//CreateNetworkOptions creates a new network modifier from the passed HierarchySpec
+func CreateNetworkOptions(s HierarchySpec) *NetworkOptions {
+	return &NetworkOptions{
+		LinkTeamPeers:    s.LinkTeamPeers,
+		InitColors:       s.InitColors,
+		MaxColors:        s.MaxColors,
+		AgentsWithMemory: s.AgentsWithMemory,
+	}
+}
+
+//AddTeamPeerLinks links all Agents related to the same parent node to each other.
 //Turns a strictly hierarchical network in to a more realistic communication network.
-func LinkTeamPeers(rm RelationshipMgr) error {
+func (o *NetworkOptions) AddTeamPeerLinks(rm RelationshipMgr) error {
 	teams := map[string][]string{}
 
 	for _, link := range rm.Links() {
@@ -43,7 +53,7 @@ func LinkTeamPeers(rm RelationshipMgr) error {
 
 //AddEvangelists sets a list of individuals to Blue and increases their susceptibility
 //so that they cannot be influenced by another Agent
-func AddEvangelists(rm RelationshipMgr, o NetworkOptions) error {
+func (o *NetworkOptions) AddEvangelists(rm RelationshipMgr) error {
 	eTeamSize := len(o.EvangelistList)
 	if eTeamSize > 0 {
 		for i := 0; i < eTeamSize; i++ {
@@ -61,7 +71,7 @@ func AddEvangelists(rm RelationshipMgr, o NetworkOptions) error {
 }
 
 //LinkTeams creates links between a specified set of individuals from across teams in the network
-func LinkTeams(rm RelationshipMgr, o NetworkOptions) error {
+func (o *NetworkOptions) LinkTeams(rm RelationshipMgr) error {
 	lTeamSize := len(o.LinkedTeamList)
 	var err error
 	if lTeamSize > 0 {
@@ -83,7 +93,7 @@ func LinkTeams(rm RelationshipMgr, o NetworkOptions) error {
 //The first agent in the LoneEvangelist list is the Evangelist and all subsequent Agents
 //are connected to her. If the Lone Evangelist Id does not exist in the network she is
 //created.
-func AddLoneEvangelist(rm RelationshipMgr, o NetworkOptions) error {
+func (o *NetworkOptions) AddLoneEvangelist(rm RelationshipMgr) error {
 	leTeamSize := len(o.LoneEvangelist)
 	var err error
 	if leTeamSize > 0 {
@@ -122,12 +132,12 @@ func addLink(rm RelationshipMgr, id1 string, id2 string) error {
 //CloneModify clones the agents and links in the passed RelationshipMgr into a new
 //RelationshipMgr changing the Agent type and initial colors of all Agents on the Network,
 //then it modifies the links as specified in the passed Options struct.
-func CloneModify(rm RelationshipMgr, o NetworkOptions) (RelationshipMgr, error) {
-	ret, err := cloneNetwork(rm, o)
+func (o *NetworkOptions) CloneModify(rm RelationshipMgr) (RelationshipMgr, error) {
+	ret, err := o.cloneNetwork(rm)
 	if err != nil {
 		return ret, err
 	}
-	err = ModifyNetwork(ret, o)
+	err = o.ModifyNetwork(ret)
 	if err != nil {
 		return ret, err
 	}
@@ -139,30 +149,30 @@ func CloneModify(rm RelationshipMgr, o NetworkOptions) (RelationshipMgr, error) 
 //struct. Note this method will ignore the InitColors and AgentsWithMemory options because
 //a new set of Agents require to be generated in order to set these options. To do that use
 //the CloneModify function instead.
-func ModifyNetwork(rm RelationshipMgr, o NetworkOptions) error {
+func (o *NetworkOptions) ModifyNetwork(rm RelationshipMgr) error {
 	rm.SetMaxColors(o.MaxColors)
 	var err error
 	if o.LinkTeamPeers {
-		err = LinkTeamPeers(rm)
+		err = o.AddTeamPeerLinks(rm)
 		if err != nil {
 			return err
 		}
 	}
-	err = AddEvangelists(rm, o)
+	err = o.AddEvangelists(rm)
 	if err != nil {
 		return err
 	}
-	err = LinkTeams(rm, o)
+	err = o.LinkTeams(rm)
 	if err != nil {
 		return err
 	}
-	err = AddLoneEvangelist(rm, o)
+	err = o.AddLoneEvangelist(rm)
 	return err
 }
 
 //cloneNetwork creates a new network and creates copies of the nodes and links in it from the passed network
 //The new Agents will be generated according to the settings in the passed Options struct
-func cloneNetwork(rm RelationshipMgr, o NetworkOptions) (*Network, error) {
+func (o *NetworkOptions) cloneNetwork(rm RelationshipMgr) (*Network, error) {
 	ret := &Network{}
 	for _, agent := range rm.Agents() {
 		clone := GenerateRandomAgent(agent.Identifier(), o.InitColors, o.AgentsWithMemory)

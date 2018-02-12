@@ -25,7 +25,10 @@ Updates details about the specified simulation.
 Deletes the specified simulation
 
 ### `POST /api/simulation/{sim_id}/generate`
-Generates a hierarchical network to be simulated.
+Generates a hierarchical network to be simulated in an existing simulation.
+There should be no existing steps within the simulation otherwise this request will fail.
+Returns the created first step that contains the generated network and the initial color
+results for the generated network.
 
 ### `POST /api/simulation/{sim_id}/run`
 Runs the simulation for a specified number of steps, each step runs a specified number of 

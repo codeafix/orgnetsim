@@ -3,6 +3,7 @@ package srvr
 import (
 	"net/http"
 
+	"github.com/codeafix/orgnetsim/sim"
 	"github.com/spaceweasel/mango"
 )
 
@@ -41,8 +42,8 @@ func NewSimHandler(fm FileManager) SimHandler {
 func (sh *SimHandlerState) Register(r *mango.Router) {
 	r.Get("/api/simulation/{sim_id}", sh.Get)
 	r.Put("/api/simulation/{sim_id}", sh.Put)
-	r.Get("/api/simulation/{sim_id}/{stepOrResults}", sh.GetStepsOrResults)
-	r.Post("/api/simulation/{sim_id}/{runOrGenerate}", sh.RunOrGenerateNetwork)
+	r.Get("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.GetStepsOrResults)
+	r.Post("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.RunOrGenerateNetwork)
 	r.Delete("/api/simulation/{sim_id}/step/{step_id}", sh.DeleteStep)
 }
 
@@ -63,7 +64,7 @@ func (sh *SimHandlerState) Put(c *mango.Context) {
 func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 	siminfo := NewSimInfo(c.RouteParams["sim_id"])
 
-	switch c.RouteParams["stepOrResults"] {
+	switch c.RouteParams["stepResultsRunGenerate"] {
 	case "step":
 		sh.GetList(siminfo, c, "step")
 		return
@@ -84,8 +85,13 @@ func (sh *SimHandlerState) GetResults(siminfo *SimInfo, c *mango.Context) {
 //RunOrGenerateNetwork gets the list of steps in this simulation
 func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
 	siminfo := NewSimInfo(c.RouteParams["sim_id"])
-
-	switch c.RouteParams["runOrGenerate"] {
+	objUpdater := sh.ListHandlerState.FileManager.Get(siminfo.Filepath())
+	err := objUpdater.Read(siminfo)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	switch c.RouteParams["stepResultsRunGenerate"] {
 	case "run":
 		sh.PostRun(siminfo, c)
 		return
@@ -103,9 +109,63 @@ func (sh *SimHandlerState) PostRun(siminfo *SimInfo, c *mango.Context) {
 
 }
 
-//GenerateNetwork adds a new step to the list of simulations
+//GenerateNetwork generates a hierarchical network to be simulated.
 func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
+	hs := sim.HierarchySpec{}
+	err := c.Bind(&hs)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(siminfo.Steps) > 0 {
+		c.Error("Simulation must have no steps when generating a new network", http.StatusBadRequest)
+		return
+	}
+	rm, no, err := sim.GenerateHierarchy(hs)
+	if err != nil {
+		c.Error(err.Error(), http.StatusBadRequest)
+		return
+	}
+	step := CreateSimStep(siminfo.ID)
+	step.Network = rm
+	step.Results = sim.Results{
+		Iterations:    0,
+		Colors:        make([][]int, 1, 1),
+		Conversations: make([]int, 1, 1),
+	}
+	agents := rm.Agents()
+	colorCounts := make([]int, rm.MaxColors(), rm.MaxColors())
+	for _, a := range agents {
+		colorCounts[a.GetColor()]++
+	}
+	step.Results.Colors[0] = colorCounts
 
+	itemUpdater := sh.ListHandlerState.FileManager.Get(step.Filepath())
+	err = itemUpdater.Create(step)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	listUpdater := sh.ListHandlerState.FileManager.Get(siminfo.Filepath())
+
+	//Retry if there is a failure
+	for i := 0; i < 2; i++ {
+		err = listUpdater.Read(siminfo)
+		if err != nil {
+			continue
+		}
+		siminfo.Options = *no
+		siminfo.Steps = append(siminfo.Steps, step.RelPath())
+		err = listUpdater.Update(siminfo)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+	} else {
+		c.RespondWith(step).WithStatus(http.StatusCreated)
+	}
 }
 
 //DeleteStep removes a simulation from the list of simulations

@@ -2,6 +2,7 @@ package srvr
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/codeafix/orgnetsim/sim"
 	"github.com/google/uuid"
@@ -18,17 +19,36 @@ type SimStep struct {
 
 //CreateSimStep creates a new SimStep object with a new ID
 func CreateSimStep(parentID string) *SimStep {
+	rm, _ := sim.NewNetwork("")
 	return &SimStep{
 		ID:       uuid.New().String(),
 		ParentID: parentID,
+		Network:  rm,
+		Results:  sim.Results{},
 	}
 }
 
 //NewSimStep returns a SimStep object for the passed ID that will be persisted in directory root
 func NewSimStep(id string, parentID string) *SimStep {
+	rm, _ := sim.NewNetwork("")
 	return &SimStep{
 		ID:       id,
 		ParentID: parentID,
+		Network:  rm,
+		Results:  sim.Results{},
+	}
+}
+
+//NewSimStepFromRelPath returns a SimStep object extracting IDs from the relative path in the
+//passed string
+func NewSimStepFromRelPath(relPath string) *SimStep {
+	elems := strings.Split(relPath, "/")
+	rm, _ := sim.NewNetwork("")
+	return &SimStep{
+		ID:       elems[len(elems)-1],
+		ParentID: elems[len(elems)-3],
+		Network:  rm,
+		Results:  sim.Results{},
 	}
 }
 
@@ -46,7 +66,7 @@ func (ss *SimStep) CopyValues(obj Persistable) error {
 
 //Filepath returns the Filepath used by this item
 func (ss *SimStep) Filepath() string {
-	return fmt.Sprintf("sim_%s.json", ss.ID)
+	return fmt.Sprintf("step_%s.json", ss.ID)
 }
 
 //RelPath returns the relative API path for this item

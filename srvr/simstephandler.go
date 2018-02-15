@@ -39,5 +39,5 @@ func (sh *StepHandlerState) Get(c *mango.Context) {
 func (sh *StepHandlerState) Put(c *mango.Context) {
 	step := NewSimStep(c.RouteParams["step_id"], c.RouteParams["sim_id"])
 	savedstep := NewSimStep(c.RouteParams["step_id"], c.RouteParams["sim_id"])
-	sh.UpdateObject(step, savedstep, c)
+	sh.UpdateObjectWithContextBind(step, savedstep, c)
 }

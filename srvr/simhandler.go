@@ -19,7 +19,7 @@ type SimHandler interface {
 	Get(c *mango.Context)
 	Put(c *mango.Context)
 	GetStepsOrResults(c *mango.Context)
-	GetResults(siminfo *SimInfo, c *mango.Context)
+	GetResults(c *mango.Context)
 	RunOrGenerateNetwork(c *mango.Context)
 	PostRun(siminfo *SimInfo, c *mango.Context)
 	GenerateNetwork(siminfo *SimInfo, c *mango.Context)
@@ -57,19 +57,18 @@ func (sh *SimHandlerState) Get(c *mango.Context) {
 func (sh *SimHandlerState) Put(c *mango.Context) {
 	siminfo := NewSimInfo(c.RouteParams["sim_id"])
 	savedsiminfo := NewSimInfo(c.RouteParams["sim_id"])
-	sh.UpdateObject(siminfo, savedsiminfo, c)
+	sh.UpdateObjectWithContextBind(siminfo, savedsiminfo, c)
 }
 
 //GetStepsOrResults gets the list of steps in this simulation
 func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
-	siminfo := NewSimInfo(c.RouteParams["sim_id"])
-
 	switch c.RouteParams["stepResultsRunGenerate"] {
 	case "step":
+		siminfo := NewSimInfo(c.RouteParams["sim_id"])
 		sh.GetList(siminfo, c, "step")
 		return
 	case "results":
-		sh.GetResults(siminfo, c)
+		sh.GetResults(c)
 		return
 	default:
 		c.Error("Not Found", http.StatusNotFound)
@@ -78,17 +77,14 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 }
 
 //GetResults gets a concatenated set of results from all the steps in this simulation
-func (sh *SimHandlerState) GetResults(siminfo *SimInfo, c *mango.Context) {
+func (sh *SimHandlerState) GetResults(c *mango.Context) {
 
 }
 
 //RunOrGenerateNetwork gets the list of steps in this simulation
 func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
-	siminfo := NewSimInfo(c.RouteParams["sim_id"])
-	objUpdater := sh.ListHandlerState.FileManager.Get(siminfo.Filepath())
-	err := objUpdater.Read(siminfo)
-	if err != nil {
-		c.Error(err.Error(), http.StatusInternalServerError)
+	siminfo := sh.readSiminfo(c)
+	if siminfo == nil {
 		return
 	}
 	switch c.RouteParams["stepResultsRunGenerate"] {
@@ -104,9 +100,49 @@ func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
 	return
 }
 
+//RunSpec specifies the number of simulation steps to run, and the number of
+//iterations that should be performed within each step
+type RunSpec struct {
+	Steps      int `json:"steps"`
+	Iterations int `json:"iterations"`
+}
+
 //PostRun adds a new step to the list of simulations
 func (sh *SimHandlerState) PostRun(siminfo *SimInfo, c *mango.Context) {
-
+	rs := RunSpec{}
+	err := c.Bind(&rs)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(siminfo.Steps) == 0 {
+		c.Error("The simulation cannot be run without an initial step containing a network", http.StatusBadRequest)
+		return
+	}
+	if rs.Steps <= 0 || rs.Iterations <= 0 {
+		c.Error("Steps and Iterations cannot be zero", http.StatusBadRequest)
+		return
+	}
+	ls := NewSimStepFromRelPath(siminfo.Steps[len(siminfo.Steps)-1])
+	objUpdater := sh.ListHandlerState.FileManager.Get(ls.Filepath())
+	err = objUpdater.Read(ls)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	r := sim.NewRunner(ls.Network, rs.Iterations)
+	var ns *SimStep
+	for i := 0; i < rs.Steps; i++ {
+		ns = CreateSimStep(siminfo.ID)
+		ns.Results = r.Run()
+		ns.Network = r.GetRelationshipMgr()
+		err = sh.AddItem(ns, siminfo, c, "step")
+		if err != nil {
+			c.Error(err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	c.RespondWith(ns).WithStatus(http.StatusCreated)
 }
 
 //GenerateNetwork generates a hierarchical network to be simulated.
@@ -126,7 +162,14 @@ func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
 		c.Error(err.Error(), http.StatusBadRequest)
 		return
 	}
-	step := CreateSimStep(siminfo.ID)
+	siminfo.Options = *no
+	savedsiminfo := NewSimInfo(c.RouteParams["sim_id"])
+	err = sh.UpdateObject(siminfo, savedsiminfo, c)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	step := CreateSimStep(savedsiminfo.ID)
 	step.Network = rm
 	step.Results = sim.Results{
 		Iterations:    0,
@@ -139,33 +182,25 @@ func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
 		colorCounts[a.GetColor()]++
 	}
 	step.Results.Colors[0] = colorCounts
-
-	itemUpdater := sh.ListHandlerState.FileManager.Get(step.Filepath())
-	err = itemUpdater.Create(step)
+	err = sh.AddItem(step, savedsiminfo, c, "step")
 	if err != nil {
 		c.Error(err.Error(), http.StatusInternalServerError)
-		return
-	}
-	listUpdater := sh.ListHandlerState.FileManager.Get(siminfo.Filepath())
-
-	//Retry if there is a failure
-	for i := 0; i < 2; i++ {
-		err = listUpdater.Read(siminfo)
-		if err != nil {
-			continue
-		}
-		siminfo.Options = *no
-		siminfo.Steps = append(siminfo.Steps, step.RelPath())
-		err = listUpdater.Update(siminfo)
-		if err == nil {
-			break
-		}
-	}
-	if err != nil {
-		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	} else {
 		c.RespondWith(step).WithStatus(http.StatusCreated)
 	}
+}
+
+//readSiminfo reads the SimInfo object specifed by the Id in the route
+//parameter into a SimInfo struct and returns the pointer to it
+func (sh *SimHandlerState) readSiminfo(c *mango.Context) *SimInfo {
+	siminfo := NewSimInfo(c.RouteParams["sim_id"])
+	objUpdater := sh.ListHandlerState.FileManager.Get(siminfo.Filepath())
+	err := objUpdater.Read(siminfo)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return nil
+	}
+	return siminfo
 }
 
 //DeleteStep removes a simulation from the list of simulations

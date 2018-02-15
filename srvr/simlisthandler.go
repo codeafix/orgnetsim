@@ -47,14 +47,14 @@ func (sh *SimListHandlerState) GetSimulations(c *mango.Context) {
 func (sh *SimListHandlerState) AddSimulation(c *mango.Context) {
 	simlist := NewSimList()
 	sim := CreateSimInfo()
-	sh.AddItem(sim, simlist, c, "sim")
+	sh.AddItemWithContextBind(sim, simlist, c, "sim")
 }
 
 //UpdateNotes updates the notes on the sim list
 func (sh *SimListHandlerState) UpdateNotes(c *mango.Context) {
 	simlist := NewSimList()
 	savedsimlist := NewSimList()
-	sh.UpdateObject(simlist, savedsimlist, c)
+	sh.UpdateObjectWithContextBind(simlist, savedsimlist, c)
 }
 
 //DeleteSimulation removes a simulation from the list of simulations

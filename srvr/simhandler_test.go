@@ -12,7 +12,22 @@ import (
 	"github.com/spaceweasel/mango"
 )
 
-func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *TestFileUpdater, *TestFileUpdater, []string, string) {
+func CreateNetwork() sim.RelationshipMgr {
+	rm := &sim.Network{}
+	agent1 := sim.GenerateRandomAgent("Agent_1", []sim.Color{sim.Blue}, false)
+	rm.AddAgent(agent1)
+	agent2 := sim.GenerateRandomAgent("Agent_2", []sim.Color{sim.Blue}, false)
+	rm.AddAgent(agent2)
+	agent3 := sim.GenerateRandomAgent("Agent_3", []sim.Color{sim.Blue}, false)
+	rm.AddAgent(agent3)
+	rm.AddLink(agent1, agent2)
+	rm.AddLink(agent1, agent3)
+	rm.SetMaxColors(4)
+	rm.PopulateMaps()
+	return rm
+}
+
+func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *TestFileUpdater, *TestFileUpdater, *TestFileUpdater, []string, string) {
 	r := mango.NewRouter()
 
 	simid := uuid.New().String()
@@ -38,23 +53,26 @@ func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *Tes
 	ss := &SimStep{
 		ID:       ids[deleteItemIndex],
 		ParentID: simid,
+		Network:  CreateNetwork(),
 	}
 	ssfu := &TestFileUpdater{
 		Obj:      ss,
 		Filepath: ss.Filepath(),
 	}
 	tfm.Add(ss.Filepath(), ssfu)
+	dfu := &TestFileUpdater{}
+	tfm.Default = dfu
 
 	r.RegisterModules([]mango.Registerer{
 		NewSimHandler(tfm),
 	})
 	br := mango.NewBrowser(r)
 
-	return br, simfu, ssfu, steps, simid
+	return br, simfu, ssfu, dfu, steps, simid
 }
 
 func TestGetSimSuccess(t *testing.T) {
-	br, simfu, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+	br, simfu, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s", simid), hdrs)
@@ -69,7 +87,7 @@ func TestGetSimSuccess(t *testing.T) {
 }
 
 func TestGetSimInvalidCommand(t *testing.T) {
-	br, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/somename", simid), hdrs)
@@ -78,7 +96,7 @@ func TestGetSimInvalidCommand(t *testing.T) {
 }
 
 func TestGetSimStepsSuccess(t *testing.T) {
-	br, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
+	br, _, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/step", simid), hdrs)
@@ -95,7 +113,7 @@ func TestGetSimStepsSuccess(t *testing.T) {
 }
 
 func TestUpdateSimSuccess(t *testing.T) {
-	br, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
+	br, _, _, _, steps, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
@@ -116,7 +134,7 @@ func TestUpdateSimSuccess(t *testing.T) {
 }
 
 func TestDeleteSimSuccess(t *testing.T) {
-	br, simfu, ssfu, steps, _ := CreateSimHandlerBrowserWithSteps(0)
+	br, simfu, ssfu, _, steps, _ := CreateSimHandlerBrowserWithSteps(0)
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
@@ -131,7 +149,7 @@ func TestDeleteSimSuccess(t *testing.T) {
 }
 
 func TestGenerateNetworkFailsIfStepsExist(t *testing.T) {
-	br, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	hs := sim.HierarchySpec{
 		Levels:     2,
@@ -203,4 +221,81 @@ func TestGenerateNetworkSucceeds(t *testing.T) {
 	AreEqual(t, 1, len(sim.Options.InitColors), "Wrong InitColors on sim options")
 	AreEqual(t, hs.InitColors[0], sim.Options.InitColors[0], "Wrong InitColors on sim options")
 	AreEqual(t, hs.MaxColors, sim.Options.MaxColors, "Wrong MaxColors on sim options")
+}
+
+func TestPostRunFailsIfNoStepsExist(t *testing.T) {
+	br, _, _, simid := CreateSimHandlerBrowser()
+
+	rs := RunSpec{
+		Iterations: 5,
+		Steps:      5,
+	}
+	rss, err := json.Marshal(rs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/run", simid), string(rss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "The simulation cannot be run without an initial step containing a network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestPostRunFailsWithZeroIterations(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	rs := RunSpec{
+		Iterations: 0,
+		Steps:      5,
+	}
+	rss, err := json.Marshal(rs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/run", simid), string(rss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "Steps and Iterations cannot be zero", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestPostRunFailsWithZeroStepCount(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	rs := RunSpec{
+		Iterations: 0,
+		Steps:      5,
+	}
+	rss, err := json.Marshal(rs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/run", simid), string(rss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "Steps and Iterations cannot be zero", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestPostRunSucceedsWithOneStep(t *testing.T) {
+	br, _, _, dfu, _, simid := CreateSimHandlerBrowserWithSteps(2)
+	rs := RunSpec{
+		Iterations: 5,
+		Steps:      1,
+	}
+	rss, err := json.Marshal(rs)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/run", simid), string(rss), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not created")
+	ns := dfu.Obj.(*SimStep)
+	NotEqual(t, nil, ns, "New step is nil")
+	AreEqual(t, 4, ns.Network.MaxColors(), "MaxColors not correct on new network")
+	//There are 6 items in the results array after running 5 iterations because the sim runner records
+	//the intial state of the network in the first element of the results array
+	AreEqual(t, 6, len(ns.Results.Colors), "Wrong number of items in the Colors array")
+	AreEqual(t, 6, len(ns.Results.Conversations), "Wrong number of items in the Conversations array")
 }

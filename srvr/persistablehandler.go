@@ -28,14 +28,25 @@ func (ph *PersistableHandlerState) GetObject(obj Persistable, c *mango.Context) 
 	}
 }
 
-//UpdateObject updates the saved copy of the passed object
-func (ph *PersistableHandlerState) UpdateObject(obj Persistable, savedObj Updateable, c *mango.Context) {
+//UpdateObjectWithContextBind updates the saved copy of the passed object
+func (ph *PersistableHandlerState) UpdateObjectWithContextBind(obj Persistable, savedObj Updateable, c *mango.Context) {
 	err := c.Bind(obj)
 	if err != nil {
 		c.Error(err.Error(), http.StatusBadRequest)
 		return
 	}
+	err = ph.UpdateObject(obj, savedObj, c)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+	} else {
+		c.RespondWith(savedObj).WithStatus(http.StatusOK)
+	}
+}
+
+//UpdateObject updates the saved copy of the passed object
+func (ph *PersistableHandlerState) UpdateObject(obj Persistable, savedObj Updateable, c *mango.Context) error {
 	objUpdater := ph.FileManager.Get(obj.Filepath())
+	var err error
 
 	//Retry if there is a failure
 	for i := 0; i < 2; i++ {
@@ -52,9 +63,5 @@ func (ph *PersistableHandlerState) UpdateObject(obj Persistable, savedObj Update
 			break
 		}
 	}
-	if err != nil {
-		c.Error(err.Error(), http.StatusInternalServerError)
-	} else {
-		c.RespondWith(savedObj).WithStatus(http.StatusOK)
-	}
+	return err
 }

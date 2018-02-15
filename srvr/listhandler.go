@@ -35,18 +35,28 @@ func (lh *ListHandlerState) GetList(listHolder ListHolder, c *mango.Context, lis
 	}
 }
 
-//AddItem adds the passed item to the specified list on the passed listholder
-func (lh *ListHandlerState) AddItem(itemToAdd ListItem, listHolder ListHolder, c *mango.Context, listname string) {
+//AddItemWithContextBind binds the itemToAdd to the object passed in the mango context and
+//adds it to the specified list on the passed listholder
+func (lh *ListHandlerState) AddItemWithContextBind(itemToAdd ListItem, listHolder ListHolder, c *mango.Context, listname string) {
 	err := c.Bind(itemToAdd)
 	if err != nil {
 		c.Error(err.Error(), http.StatusBadRequest)
 		return
 	}
-	itemUpdater := lh.FileManager.Get(itemToAdd.Filepath())
-	err = itemUpdater.Create(itemToAdd)
+	err = lh.AddItem(itemToAdd, listHolder, c, listname)
 	if err != nil {
-		c.Error(err.Error(), http.StatusInternalServerError)
-		return
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+	} else {
+		c.RespondWith(itemToAdd).WithStatus(http.StatusCreated)
+	}
+}
+
+//AddItem adds the passed item to the specified list on the passed listholder
+func (lh *ListHandlerState) AddItem(itemToAdd ListItem, listHolder ListHolder, c *mango.Context, listname string) error {
+	itemUpdater := lh.FileManager.Get(itemToAdd.Filepath())
+	err := itemUpdater.Create(itemToAdd)
+	if err != nil {
+		return err
 	}
 	listUpdater := lh.FileManager.Get(listHolder.Filepath())
 
@@ -63,11 +73,7 @@ func (lh *ListHandlerState) AddItem(itemToAdd ListItem, listHolder ListHolder, c
 			break
 		}
 	}
-	if err != nil {
-		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
-	} else {
-		c.RespondWith(itemToAdd).WithStatus(http.StatusCreated)
-	}
+	return err
 }
 
 //DeleteItem removes an item from the specified list on the passed listholder

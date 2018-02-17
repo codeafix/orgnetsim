@@ -41,22 +41,16 @@ func (ri *RunnerInfo) GetRelationshipMgr() RelationshipMgr {
 func (ri *RunnerInfo) Run() Results {
 	results := Results{
 		Iterations:    ri.Iterations,
-		Colors:        make([][]int, ri.Iterations+1, ri.Iterations+1),
-		Conversations: make([]int, ri.Iterations+1, ri.Iterations+1),
+		Colors:        make([][]int, ri.Iterations, ri.Iterations),
+		Conversations: make([]int, ri.Iterations, ri.Iterations),
 	}
 	//Seed rand to make sure random behaviour is evenly distributed
 	rand.Seed(time.Now().UnixNano())
 
 	n := ri.RelationshipMgr
-
-	colorCounts := make([]int, n.MaxColors(), n.MaxColors())
 	agents := n.Agents()
-	for _, a := range agents {
-		colorCounts[a.GetColor()]++
-	}
-	results.Colors[0] = colorCounts
 
-	for i := 1; i <= ri.Iterations; i++ {
+	for i := 0; i < ri.Iterations; i++ {
 		hold := make(chan bool)
 		convCount := make(chan int)
 

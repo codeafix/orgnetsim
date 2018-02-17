@@ -78,7 +78,28 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 
 //GetResults gets a concatenated set of results from all the steps in this simulation
 func (sh *SimHandlerState) GetResults(c *mango.Context) {
-
+	siminfo := sh.readSiminfo(c)
+	if siminfo == nil {
+		return
+	}
+	results := sim.Results{
+		Iterations:    0,
+		Colors:        [][]int{},
+		Conversations: []int{},
+	}
+	for _, spath := range siminfo.Steps {
+		step := NewSimStepFromRelPath(spath)
+		objUpdater := sh.ListHandlerState.FileManager.Get(step.Filepath())
+		err := objUpdater.Read(step)
+		if err != nil {
+			c.Error(err.Error(), http.StatusInternalServerError)
+			return
+		}
+		results.Iterations += step.Results.Iterations
+		results.Colors = append(results.Colors, step.Results.Colors...)
+		results.Conversations = append(results.Conversations, step.Results.Conversations...)
+	}
+	c.RespondWith(results).WithStatus(http.StatusOK)
 }
 
 //RunOrGenerateNetwork gets the list of steps in this simulation

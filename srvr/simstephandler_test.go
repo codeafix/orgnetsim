@@ -11,17 +11,13 @@ import (
 )
 
 func CreateStepHandlerTestRouter(tfu *TestFileUpdater) *mango.Browser {
-	r := mango.NewRouter()
+	r := CreateRouter(NewTestFileManager(tfu))
 	// r.RequestLogger = func(l *mango.RequestLog) {
 	// 	fmt.Println(l.CombinedFormat())
 	// }
 	// r.ErrorLogger = func(err error) {
 	// 	fmt.Println(err.Error())
 	// }
-
-	r.RegisterModules([]mango.Registerer{
-		NewStepHandler(NewTestFileManager(tfu)),
-	})
 
 	br := mango.NewBrowser(r)
 

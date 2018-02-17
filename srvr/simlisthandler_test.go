@@ -11,8 +11,6 @@ import (
 )
 
 func CreateSimListHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, *TestFileManager) {
-	r := mango.NewRouter()
-
 	sl := NewSimList()
 	sl.Items = []string{
 		"/api/simulation/{someIdHere}",
@@ -26,10 +24,9 @@ func CreateSimListHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileU
 	dfu := &TestFileUpdater{}
 	tfm.SetDefault(dfu)
 
-	r.RegisterModules([]mango.Registerer{
-		NewSimListHandler(tfm),
-	})
+	r := CreateRouter(tfm)
 	br := mango.NewBrowser(r)
+
 	return br, slfu, dfu, tfm
 }
 

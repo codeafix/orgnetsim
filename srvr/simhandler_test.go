@@ -28,8 +28,6 @@ func CreateNetwork() sim.RelationshipMgr {
 }
 
 func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *TestFileUpdater, *TestFileUpdater, *TestFileUpdater, []string, string) {
-	r := mango.NewRouter()
-
 	simid := uuid.New().String()
 	sim := NewSimInfo(simid)
 	sim.Name = "mySavedSim"
@@ -63,9 +61,7 @@ func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *Tes
 	dfu := &TestFileUpdater{}
 	tfm.Default = dfu
 
-	r.RegisterModules([]mango.Registerer{
-		NewSimHandler(tfm),
-	})
+	r := CreateRouter(tfm)
 	br := mango.NewBrowser(r)
 
 	return br, simfu, ssfu, dfu, steps, simid
@@ -169,8 +165,6 @@ func TestGenerateNetworkFailsIfStepsExist(t *testing.T) {
 }
 
 func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, string) {
-	r := mango.NewRouter()
-
 	simid := uuid.New().String()
 	sim := NewSimInfo(simid)
 	sim.Name = "mySavedSim"
@@ -184,9 +178,7 @@ func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdat
 	ssfu := &TestFileUpdater{}
 	tfm.SetDefault(ssfu)
 
-	r.RegisterModules([]mango.Registerer{
-		NewSimHandler(tfm),
-	})
+	r := CreateRouter(tfm)
 	br := mango.NewBrowser(r)
 
 	return br, simfu, ssfu, simid
@@ -294,8 +286,84 @@ func TestPostRunSucceedsWithOneStep(t *testing.T) {
 	ns := dfu.Obj.(*SimStep)
 	NotEqual(t, nil, ns, "New step is nil")
 	AreEqual(t, 4, ns.Network.MaxColors(), "MaxColors not correct on new network")
-	//There are 6 items in the results array after running 5 iterations because the sim runner records
-	//the intial state of the network in the first element of the results array
-	AreEqual(t, 6, len(ns.Results.Colors), "Wrong number of items in the Colors array")
-	AreEqual(t, 6, len(ns.Results.Conversations), "Wrong number of items in the Conversations array")
+	//Check there are 5 items in the results arrays, one for each iteration
+	AreEqual(t, 5, len(ns.Results.Colors), "Wrong number of items in the Colors array")
+	AreEqual(t, 5, len(ns.Results.Conversations), "Wrong number of items in the Conversations array")
+}
+
+func CreateResults(iterations, maxColors int) sim.Results {
+	results := sim.Results{
+		Iterations:    iterations,
+		Colors:        make([][]int, iterations),
+		Conversations: make([]int, iterations),
+	}
+	for i := 0; i < iterations; i++ {
+		results.Conversations[i] = i + 1
+		colorCounts := make([]int, maxColors, maxColors)
+		for j := 0; j < maxColors; j++ {
+			colorCounts[j] = i + j
+		}
+		results.Colors[i] = colorCounts
+	}
+	return results
+}
+
+func CreateSimHandlerBrowserWithStepsAndResults() (*mango.Browser, string) {
+	simid := uuid.New().String()
+	sim := NewSimInfo(simid)
+	sim.Name = "mySavedSim"
+	sim.Description = "A description of mySavedSim"
+	ids := []string{
+		uuid.New().String(),
+		uuid.New().String(),
+		uuid.New().String(),
+	}
+	simfu := &TestFileUpdater{
+		Obj:      sim,
+		Filepath: sim.Filepath(),
+	}
+	tfm := NewTestFileManager(simfu)
+	steps := make([]string, len(ids))
+	for i, id := range ids {
+		steps[i] = fmt.Sprintf("/api/simulation/%s/step/%s", simid, id)
+		ss := &SimStep{
+			ID:       id,
+			ParentID: simid,
+			Results:  CreateResults(i+1, 4),
+		}
+		ssfu := &TestFileUpdater{
+			Obj:      ss,
+			Filepath: ss.Filepath(),
+		}
+		tfm.Add(ss.Filepath(), ssfu)
+	}
+	sim.Steps = steps
+	r := CreateRouter(tfm)
+	br := mango.NewBrowser(r)
+
+	return br, simid
+}
+
+func TestGetResultsSucceeds(t *testing.T) {
+	br, simid := CreateSimHandlerBrowserWithStepsAndResults()
+
+	hdrs := http.Header{}
+	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/results", simid), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
+	rs := &sim.Results{}
+	json.Unmarshal([]byte(resp.Body.String()), rs)
+	AreEqual(t, 6, rs.Iterations, "Wrong number of iterations")
+	AreEqual(t, 1, rs.Conversations[0], "Wrong conversation count")
+	AreEqual(t, 1, rs.Conversations[1], "Wrong conversation count")
+	AreEqual(t, 2, rs.Conversations[2], "Wrong conversation count")
+	AreEqual(t, 1, rs.Conversations[3], "Wrong conversation count")
+	AreEqual(t, 2, rs.Conversations[4], "Wrong conversation count")
+	AreEqual(t, 3, rs.Conversations[5], "Wrong conversation count")
+	AreEqual(t, 3, rs.Colors[0][3], "Wrong color count")
+	AreEqual(t, 3, rs.Colors[1][3], "Wrong color count")
+	AreEqual(t, 4, rs.Colors[2][3], "Wrong color count")
+	AreEqual(t, 3, rs.Colors[3][3], "Wrong color count")
+	AreEqual(t, 4, rs.Colors[4][3], "Wrong color count")
+	AreEqual(t, 5, rs.Colors[5][3], "Wrong color count")
 }

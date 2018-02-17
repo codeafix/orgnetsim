@@ -1,4 +1,4 @@
-# sim [![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/codeafix/orgnetsim/srvr) 
+# srvr [![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/codeafix/orgnetsim/srvr) 
 This package contains all of the code for the web server that wraps the simulator
 
 ## Routes

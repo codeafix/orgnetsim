@@ -10,6 +10,11 @@ Commands:
 ```
 
 Reads in a csv or tsv and converts into an orgnetsim network saved in json format.
+```
+    serve <rootpath> [-p <port>]
+```
+
+Starts an orgnetsim server that persists simulations in the folder specified by <rootpath>.
 
 `-help`
 Prints this message.
@@ -86,6 +91,23 @@ which they are applied to (specified by the integer column index) then row will 
         }
       }
 ```
+
+`-help`
+Prints this message.
+
+## orgnetsim serve
+Usage:
+```
+      orgnetsim serve <rootpath> [-p <port>]
+      orgnetsim serve -help
+```
+
+`<rootpath>`
+is a folder where the server will store all resources that are created and updated by the
+orgnetsim routes
+
+`-p`
+Specifies the port that the server will listen on. The default is 8080.
 
 `-help`
 Prints this message.

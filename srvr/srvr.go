@@ -1,6 +1,7 @@
 package srvr
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/spaceweasel/mango"
@@ -12,6 +13,12 @@ import (
 func ListenAndServe(rootpath string, port string) {
 	fm := NewFileManager(rootpath)
 	r := CreateRouter(fm)
+	r.RequestLogger = func(l *mango.RequestLog) {
+		fmt.Println(l.CombinedFormat())
+	}
+	r.ErrorLogger = func(err error) {
+		fmt.Println(err.Error())
+	}
 	http.ListenAndServe(":"+port, r)
 }
 

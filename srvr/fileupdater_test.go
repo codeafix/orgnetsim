@@ -151,7 +151,7 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 	result := make(chan int)
 
 	for i := 0; i < 100; i++ {
-		go func() {
+		go func(count int) {
 			<-hold
 			r := rand.Intn(10)
 			time.Sleep(time.Duration(r) * time.Nanosecond)
@@ -159,7 +159,7 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 			tpr := &TestPersistable{}
 			fd.Read(tpr)
 			rs := tpr.Timestamp()
-			tpr.Data = fmt.Sprintf("Data %d", i)
+			tpr.Data = fmt.Sprintf("Data %d", count)
 			err := fd.Update(tpr)
 			chk := &TestPersistable{}
 			e := fd.Read(chk)
@@ -176,7 +176,7 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 			default:
 				result <- 0
 			}
-		}()
+		}(i)
 	}
 	close(hold)
 	updateCount := 0

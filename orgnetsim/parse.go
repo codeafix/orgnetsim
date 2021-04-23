@@ -61,11 +61,19 @@ func Parse() {
 	check(err)
 }
 
-func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed int64) {
+func newOptionsFile() (of OptionsFile) {
 	of = OptionsFile{}
+	of.Parse = &sim.ParseOptions{}
 	of.Parse.Delimiter = ","
 	of.Parse.Identifier = 0
 	of.Parse.Parent = 1
+	of.Network = &sim.NetworkOptions{}
+	return of
+}
+
+func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed int64) {
+	of = newOptionsFile()
+
 	success = true
 	//list of options used to change the output filename
 	opt = ""

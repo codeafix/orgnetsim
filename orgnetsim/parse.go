@@ -29,7 +29,7 @@ func Parse() {
 	infile := os.Args[2]
 	data := readFileIntoArray(infile)
 
-	suffix := infile[strings.LastIndex(infile, "."):len(infile)]
+	suffix := infile[strings.LastIndex(infile, "."):]
 	of.Parse.Delimiter = ","
 	if suffix == ".txt" {
 		of.Parse.Delimiter = "\t"

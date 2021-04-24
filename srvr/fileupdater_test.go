@@ -158,7 +158,6 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 
 			tpr := &TestPersistable{}
 			fd.Read(tpr)
-			rs := tpr.Timestamp()
 			tpr.Data = fmt.Sprintf("Data %d", count)
 			err := fd.Update(tpr)
 			chk := &TestPersistable{}
@@ -167,7 +166,7 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 				fd.Read(chk)
 			}
 			switch {
-			case err == nil && tpr.Timestamp() != rs && tpr.Data == chk.Data:
+			case err == nil && tpr.Data == chk.Data:
 				result <- 1
 			case err != nil && strings.Contains(err.Error(), "Unable to lock file"):
 				result <- 2

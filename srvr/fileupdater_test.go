@@ -168,9 +168,9 @@ func TestConcurrentUpdateToFileSucceedsOrFailsWithLockOrStaleErrors(t *testing.T
 			switch {
 			case err == nil && tpr.Data == chk.Data:
 				result <- 1
-			case err != nil && strings.Contains(err.Error(), "Unable to lock file"):
+			case err != nil && strings.Contains(err.Error(), "unable to lock file"):
 				result <- 2
-			case err != nil && strings.Contains(err.Error(), "Stale data"):
+			case err != nil && strings.Contains(err.Error(), "stale data"):
 				result <- 3
 			default:
 				result <- 0

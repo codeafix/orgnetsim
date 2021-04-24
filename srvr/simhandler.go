@@ -73,7 +73,6 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 	default:
 		c.Error("Not Found", http.StatusNotFound)
 	}
-	return
 }
 
 //GetResults gets a concatenated set of results from all the steps in this simulation
@@ -118,7 +117,6 @@ func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
 	default:
 		c.Error("Not Found", http.StatusNotFound)
 	}
-	return
 }
 
 //RunSpec specifies the number of simulation steps to run, and the number of
@@ -194,11 +192,11 @@ func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
 	step.Network = rm
 	step.Results = sim.Results{
 		Iterations:    0,
-		Colors:        make([][]int, 1, 1),
-		Conversations: make([]int, 1, 1),
+		Colors:        make([][]int, 1),
+		Conversations: make([]int, 1),
 	}
 	agents := rm.Agents()
-	colorCounts := make([]int, rm.MaxColors(), rm.MaxColors())
+	colorCounts := make([]int, rm.MaxColors())
 	for _, a := range agents {
 		colorCounts[a.GetColor()]++
 	}

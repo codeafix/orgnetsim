@@ -19,7 +19,7 @@ type FileManager interface {
 func NewFileManager(rootpath string) FileManager {
 	ur := UpdaterRepo{
 		Rootpath: rootpath,
-		Repo:     make(map[string]FileUpdater, 0),
+		Repo:     make(map[string]FileUpdater),
 	}
 	return &ur
 }

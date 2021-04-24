@@ -19,7 +19,7 @@ func NewSimList() *SimList {
 func (sl *SimList) CopyValues(obj Persistable) error {
 	slToCopy, ok := obj.(*SimList)
 	if !ok {
-		return fmt.Errorf("Failed to copy values")
+		return fmt.Errorf("failed to copy values")
 	}
 	sl.Notes = slToCopy.Notes
 	return nil
@@ -37,5 +37,5 @@ func (sl *SimList) UpdateItems(listname string, items []string) {
 
 //Filepath returns the Filepath used by this item
 func (sl *SimList) Filepath() string {
-	return fmt.Sprintf("sims.json")
+	return "sims.json"
 }

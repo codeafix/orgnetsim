@@ -36,7 +36,7 @@ func NewSimInfo(id string) *SimInfo {
 func (si *SimInfo) CopyValues(obj Persistable) error {
 	siToCopy, ok := obj.(*SimInfo)
 	if !ok {
-		return fmt.Errorf("Failed to copy values")
+		return fmt.Errorf("failed to copy values")
 	}
 	si.Name = siToCopy.Name
 	si.Description = siToCopy.Description

@@ -76,7 +76,7 @@ func TestGetSimSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, simfu.Obj.(*SimInfo).Name, rsim.Name, "Wrong name in returned SimInfo")
 	AreEqual(t, simfu.Obj.(*SimInfo).Description, rsim.Description, "Wrong description in returned SimInfo")
@@ -100,7 +100,7 @@ func TestGetSimStepsSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, 3, len(rsim.Steps), "Wrong number of Steps in returned SimInfo")
 	AreEqual(t, steps[0], rsim.Steps[0], "Wrong Step 0 in returned SimInfo")
@@ -119,7 +119,7 @@ func TestUpdateSimSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, "myUpdatedSim", rsim.Name, "Wrong name in returned SimInfo")
 	AreEqual(t, "A description of mySavedSim", rsim.Description, "Wrong description in returned SimInfo")
@@ -203,7 +203,6 @@ func TestGenerateNetworkSucceeds(t *testing.T) {
 	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
 	simstep, ok := ssfu.Obj.(*SimStep)
 	IsTrue(t, ok, "Saved object would not cast to *SimStep")
-	IsFalse(t, simstep == nil, "SimStep not created")
 	AreEqual(t, 4, simstep.Network.MaxColors(), "Wrong MaxColors on network")
 	AreEqual(t, 3, len(simstep.Network.Agents()), "Wrong number of agents on network")
 	AreEqual(t, 4, len(simstep.Results.Colors[0]), "Wrong number of Colors in Color results array")
@@ -299,7 +298,7 @@ func CreateResults(iterations, maxColors int) sim.Results {
 	}
 	for i := 0; i < iterations; i++ {
 		results.Conversations[i] = i + 1
-		colorCounts := make([]int, maxColors, maxColors)
+		colorCounts := make([]int, maxColors)
 		for j := 0; j < maxColors; j++ {
 			colorCounts[j] = i + j
 		}
@@ -352,7 +351,7 @@ func TestGetResultsSucceeds(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 	rs := &sim.Results{}
-	json.Unmarshal([]byte(resp.Body.String()), rs)
+	json.Unmarshal(resp.Body.Bytes(), rs)
 	AreEqual(t, 6, rs.Iterations, "Wrong number of iterations")
 	AreEqual(t, 1, rs.Conversations[0], "Wrong conversation count")
 	AreEqual(t, 1, rs.Conversations[1], "Wrong conversation count")

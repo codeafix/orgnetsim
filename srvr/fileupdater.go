@@ -46,7 +46,7 @@ func (fd *FileDetails) Create(obj Persistable) error {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("File exists")
+		return fmt.Errorf("file exists")
 	}
 	err = fd.createFile(fd.Path())
 	if err != nil {
@@ -63,7 +63,7 @@ func (fd *FileDetails) Read(obj Persistable) error {
 	defer fd.Lock.RUnlock()
 	exists, err := fd.fileExists(fd.lockpath())
 	if err != nil || exists {
-		return fmt.Errorf("File is locked by another process")
+		return fmt.Errorf("file is locked by another process")
 	}
 	s, err := fd.stat(fd.Path())
 	if err != nil {
@@ -95,7 +95,7 @@ func (fd *FileDetails) Update(obj Persistable) error {
 		return err
 	}
 	if obj.Timestamp() != s.ModTime() {
-		return fmt.Errorf("Stale data")
+		return fmt.Errorf("stale data")
 	}
 	return fd.writeFile(obj)
 }
@@ -144,7 +144,7 @@ func (fd *FileDetails) createLockFile() (string, error) {
 	lkPath := fd.lockpath()
 	err := fd.createFile(lkPath)
 	if err != nil {
-		return lkPath, fmt.Errorf("Unable to lock file '%s'", fd.Path())
+		return lkPath, fmt.Errorf("unable to lock file '%s'", fd.Path())
 	}
 	return lkPath, nil
 }

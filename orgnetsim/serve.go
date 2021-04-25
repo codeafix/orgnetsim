@@ -20,7 +20,7 @@ func Serve() {
 		return
 	}
 
-	srvr.ListenAndServe(os.Args[2], so.Port)
+	srvr.ListenAndServe(os.Args[2], os.Args[3], so.Port)
 }
 
 func serveCommandLineOptions() (success bool, so ServeOptions) {
@@ -28,7 +28,7 @@ func serveCommandLineOptions() (success bool, so ServeOptions) {
 	so.Port = "8080"
 	success = true
 
-	if len(os.Args) <= 2 || os.Args[2] == "-help" {
+	if len(os.Args) <= 3 || os.Args[2] == "-help" {
 		servePrintUsage()
 		return false, so
 	}
@@ -37,7 +37,7 @@ func serveCommandLineOptions() (success bool, so ServeOptions) {
 	uc := []string{}
 
 	skipnext := false
-	for i, arg := range os.Args[3:len(os.Args)] {
+	for i, arg := range os.Args[4:len(os.Args)] {
 		if skipnext {
 			skipnext = false
 			continue
@@ -63,15 +63,18 @@ func serveCommandLineOptions() (success bool, so ServeOptions) {
 }
 
 func servePrintUsage() {
-	fmt.Println("Starts an orgnetsim server that persists simulations in the folder specified by <rootpath>.")
+	fmt.Println("Starts an orgnetsim server that persists simulations in the folder specified by <rootpath>")
+	fmt.Println("and serves the website in the folder specified by <webpath>.")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Println("      orgnetsim serve <rootpath> [-p <port>]")
+	fmt.Println("      orgnetsim serve <rootpath> <webpath> [-p <port>]")
 	fmt.Println("      orgnetsim serve -help")
 	fmt.Println()
 	fmt.Println("<rootpath>")
 	fmt.Println("      is a folder where the server will store all resources that are created and updated by the")
 	fmt.Println("      orgnetsim routes")
+	fmt.Println("<webpath>")
+	fmt.Println("      is a folder containing the static website that is served by the server")
 	fmt.Println("-p")
 	fmt.Println("      Specifies the port that the server will listen on. The default is 8080.")
 	fmt.Println("-help")

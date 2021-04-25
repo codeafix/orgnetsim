@@ -9,10 +9,12 @@ import (
 
 //ListenAndServe launches the web server
 //rootpath is the root directory where data served by this server is persisted
+//webpath is the root directory of the static website served by this server
 //port is the port to listen on
-func ListenAndServe(rootpath string, port string) {
+func ListenAndServe(rootpath string, webpath string, port string) {
 	fm := NewFileManager(rootpath)
 	r := CreateRouter(fm)
+	r.StaticDir(webpath)
 	r.RequestLogger = func(l *mango.RequestLog) {
 		fmt.Println(l.CombinedFormat())
 	}

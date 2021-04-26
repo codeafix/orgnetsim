@@ -126,7 +126,7 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 						id1entry[id] = struct{}{}
 					}
 				} else {
-					links[idParent] = map[string]struct{}{id: struct{}{}}
+					links[idParent] = map[string]struct{}{id: {}}
 				}
 			}
 		}

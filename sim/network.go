@@ -17,11 +17,6 @@ type Network struct {
 	MaxColorCount int                             `json:"maxColors"`
 }
 
-type networkJSON struct {
-	Links []json.RawMessage
-	Nodes []json.RawMessage
-}
-
 //AgentLink holds both the Link and the Agent in the AgentLinkMap
 type AgentLink struct {
 	Agent Agent
@@ -158,10 +153,10 @@ func (n *Network) PopulateMaps() error {
 		}
 		agent2Map[agent1.Identifier()] = AgentLink{agent1, link}
 	}
-	if "" != err {
-		return errors.New(err)
+	if len(err) == 0 {
+		return nil
 	}
-	return nil
+	return errors.New(err)
 }
 
 //GetRelatedAgents returns a slice of Agents adjacent in the Network to the passed Agent
@@ -195,11 +190,11 @@ func (n *Network) GetAgentByID(id string) Agent {
 func (n *Network) IncrementLinkStrength(id1 string, id2 string) error {
 	lnkdMap, exists := n.AgentLinkMap[id1]
 	if !exists {
-		return fmt.Errorf("Invalid Link id1=%s id2=%s", id1, id2)
+		return fmt.Errorf("invalid Link id1=%s id2=%s", id1, id2)
 	}
 	agentLink, exists := lnkdMap[id2]
 	if !exists {
-		return fmt.Errorf("Invalid Link id1=%s id2=%s", id1, id2)
+		return fmt.Errorf("invalid Link id1=%s id2=%s", id1, id2)
 	}
 	agentLink.Link.Strength++
 	return nil

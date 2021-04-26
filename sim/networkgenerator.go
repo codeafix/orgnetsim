@@ -75,7 +75,7 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 		return
 	}
 
-	peers := make([]Agent, s.TeamSize, s.TeamSize)
+	peers := make([]Agent, s.TeamSize)
 	for i := 0; i < s.TeamSize; i++ {
 		a := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
 		peers[i] = a

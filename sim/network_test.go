@@ -89,13 +89,13 @@ func CheckLinkMapHierarchy(t *testing.T, sJSON string) {
 	IsTrue(t, exists, "Agent id_2 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent2links), "Incorrect number of related nodes to Agent id_2")
 	agent2Link, exists := agent2links["id_1"]
-	IsTrue(t, exists && "id_1" == agent2Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_1 %v", agent2links))
+	IsTrue(t, exists && agent2Link.Agent.Identifier() == "id_1", fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_1 %v", agent2links))
 
 	agent3links, exists := n.AgentLinkMap["id_3"]
 	IsTrue(t, exists, "Agent id_3 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent3links), "Incorrect number of related nodes to Agent id_3")
 	agent3Link, exists := agent3links["id_1"]
-	IsTrue(t, exists && "id_1" == agent3Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_3 expected id_1 %v", agent3links))
+	IsTrue(t, exists && agent3Link.Agent.Identifier() == "id_1", fmt.Sprintf("Unexpected agent related to Agent id_3 expected id_1 %v", agent3links))
 }
 
 func TestNewNetworkCreatesValidLinkMapTwoParents(t *testing.T) {
@@ -117,13 +117,13 @@ func CheckLinkMapTwoParents(t *testing.T, sJSON string) {
 	IsTrue(t, exists, "Agent id_1 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent1links), "Incorrect number of related nodes to Agent id_1")
 	agent1Link, exists := agent1links["id_3"]
-	IsTrue(t, exists && "id_3" == agent1Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_1 expected id_3 %v", agent1links))
+	IsTrue(t, exists && agent1Link.Agent.Identifier() == "id_3", fmt.Sprintf("Unexpected agent related to Agent id_1 expected id_3 %v", agent1links))
 
 	agent2links, exists := n.AgentLinkMap["id_2"]
 	IsTrue(t, exists, "Agent id_2 missing from AgentLinkMap")
 	AreEqual(t, 1, len(agent2links), "Incorrect number of related nodes to Agent id_2")
 	agent2Link, exists := agent2links["id_3"]
-	IsTrue(t, exists && "id_3" == agent2Link.Agent.Identifier(), fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_3 %v", agent1links))
+	IsTrue(t, exists && agent2Link.Agent.Identifier() == "id_3", fmt.Sprintf("Unexpected agent related to Agent id_2 expected id_3 %v", agent1links))
 
 	agent3links, exists := n.AgentLinkMap["id_3"]
 	IsTrue(t, exists, "Agent id_3 missing from AgentLinkMap")

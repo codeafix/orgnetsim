@@ -59,10 +59,14 @@ func TestGetSimList(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
-	rsl := NewSimList()
+	rsl := &SimListExt{
+		TimestampHolder: TimestampHolder{},
+		Items:           []*SimInfo{},
+		Notes:           "",
+	}
 	json.Unmarshal(resp.Body.Bytes(), rsl)
 	AreEqual(t, 1, len(rsl.Items), "Wrong number of items in returned list")
-	AreEqual(t, "/api/simulation/{someIdHere}", rsl.Items[0], "Wrong item in list")
+	AreEqual(t, "{someIdHere}", rsl.Items[0].ID, "Wrong item in list")
 	AreEqual(t, "Some notes", rsl.Notes, "Wrong notes")
 }
 
@@ -74,7 +78,7 @@ func TestGetSimListReturnErrorWhenReadFails(t *testing.T) {
 	resp, err := br.Get("/api/simulation", hdrs)
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusInternalServerError, resp.Code, "Not Error")
-	AreEqual(t, "Access denied", resp.Body.String(), "Wrong notes")
+	AreEqual(t, "Access denied", resp.Body.String(), "Incorrect error message")
 }
 
 func TestAddSimToSimListSuccess(t *testing.T) {

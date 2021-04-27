@@ -6,30 +6,37 @@ class Home extends Component {
     constructor(props){
         super(props);
         this.state = {
-            simulations: [],
+            simlist: API.emptySimList,
         };
     }
 
     componentDidMount(){
-        this.setState({
-            simulations: API.sims(),
-        });
+        API.sims()
+            .then(response => {
+                this.setState({
+                    simlist: response,
+                });
+                API.simCount = response.simulations.length
+            })
     }
 
     addSimulation(){
-        const sim = API.add();
-        const sims = this.state.simulations.concat(sim);
-        this.setState({
-            simulations: sims,
+        API.add().then(response => {
+            const simlist = this.state.simlist;
+            simlist.simulations = simlist.simulations.concat(response);
+            this.setState({
+                simlist: simlist,
+            });
         });
     }
 
     render(){
-        const sims = this.state.simulations
+        const sims = this.state.simlist.simulations
+        const notes = this.state.simlist.notes
         return(
             <div>
                 <h1>Simulation Set</h1>
-                <p>{API.notes}</p>
+                <p>{notes}</p>
                 <h2>List of Simulations</h2>
                 <SimList sims={sims}/>
                 <button onClick={() => this.addSimulation()}>Add</button>

@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../api';
 import {Link} from 'react-router-dom';
 
 const Simulation = (props) => {
-    const sim = API.get(
-        parseInt(props.match.params.number, 10)
-    )
-    if (!sim) {
-        return <div>Sorry, but the simulation was not found</div>
-    }
+    const [sim, setSim] = useState({});
+    
+    useEffect(() => {
+        API.get(props.match.params.id).then(response => {
+            setSim(response);
+        })
+      });
+
     return (
         <div>
-            <h1>{sim.Name}</h1>
-            <p>{sim.Description}</p>
+            <h1>{sim.name}</h1>
+            <p>{sim.description}</p>
             <Link to='/'>Home</Link>
         </div>
     )

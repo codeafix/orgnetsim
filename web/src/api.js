@@ -1,22 +1,38 @@
 const API = {
-    simArray: [
-        {ID: 1, Name: "sim 1", Description: "The first sim"},
-        {ID: 2, Name: "sim 2", Description: "The second sim"},
-        {ID: 3, Name: "sim 3", Description: "The third sim"},
-        {ID: 4, Name: "sim 4", Description: "The fourth sim"},
-        {ID: 5, Name: "sim 5", Description: "The fifth sim"},
-    ],
-    notes: "Here are the notes describing what this simulation set is studying.",
-    sims: function() {return this.simArray.slice()},
-    get: function(id){
-        const isSim = p => p.ID === id
-        return this.simArray.find(isSim)
+    rootPath: "http://localhost:8080/api/",
+    simCount: 0,
+    emptySimList: {simulations:[],notes:""},
+    sims: async function() {
+        const response = await fetch(this.rootPath+"simulation", {
+        "method": "GET",
+        "headers": {}
+        })
+        .catch(err => { console.log(err); 
+        });
+        return response.json();
     },
-    add: function(){
-        var n = this.simArray.length+1
-        var sim = {ID:n, Name:"sim "+n,Description:"Simulation number "+n};
-        this.simArray.push(sim);
-        return sim;
+    get: async function(id){
+        const response = await fetch(this.rootPath+"simulation/"+id, {
+            "method": "GET",
+            "headers": {}
+            })
+            .catch(err => { console.log(err); 
+            });
+            return response.json();
+    },
+    add: async function(){
+        this.simCount = this.simCount+1
+        var sim = {name:"sim "+this.simCount,description:"Simulation number "+this.simCount};
+        const response = await fetch(this.rootPath+"simulation", {
+            "method": "POST",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(sim),
+            })
+            .catch(err => { console.log(err); 
+            });
+        return response.json();
     },
 }
 

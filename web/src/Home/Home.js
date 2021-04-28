@@ -1,48 +1,35 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../api';
 import SimList from './SimList';
 
-class Home extends Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            simlist: API.emptySimList,
-        };
-    }
-
-    componentDidMount(){
+const Home = () => {
+    const [simlist, setSimlist] = useState([]);
+    const [notes, setNotes] = useState("");
+    
+    useEffect(() => {
         API.sims()
             .then(response => {
-                this.setState({
-                    simlist: response,
-                });
-                API.simCount = response.simulations.length
+                setSimlist(response.simulations);
+                setNotes(response.notes)
+                API.simCount = response.simulations.length;
             })
-    }
+      },[]);
 
-    addSimulation(){
+    function addSimulation(){
         API.add().then(response => {
-            const simlist = this.state.simlist;
-            simlist.simulations = simlist.simulations.concat(response);
-            this.setState({
-                simlist: simlist,
-            });
+            setSimlist(simlist.concat(response));
         });
     }
-
-    render(){
-        const sims = this.state.simlist.simulations
-        const notes = this.state.simlist.notes
-        return(
-            <div>
-                <h1>Simulation Set</h1>
-                <p>{notes}</p>
-                <h2>List of Simulations</h2>
-                <SimList sims={sims}/>
-                <button onClick={() => this.addSimulation()}>Add</button>
-            </div>
-        )
-    }
+    
+    return(
+        <div>
+            <h1>Simulation Set</h1>
+            <p>{notes}</p>
+            <h2>List of Simulations</h2>
+            <SimList sims={simlist}/>
+            <button onClick={addSimulation}>Add</button>
+        </div>
+    )
 }
 
 export default Home

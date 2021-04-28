@@ -9,7 +9,7 @@ const Simulation = (props) => {
         API.get(props.match.params.id).then(response => {
             setSim(response);
         })
-      });
+      }, [props.match.params.id]);
 
     return (
         <div>

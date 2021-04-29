@@ -4,6 +4,7 @@ import SimList from './SimList';
 import Modal from 'react-bootstrap/Modal'
 import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
+import Button from 'react-bootstrap/Button'
 
 const Home = () => {
     const [simlist, setSimlist] = useState([]);
@@ -40,7 +41,7 @@ const Home = () => {
             <p>{notes}</p>
             <h2>List of Simulations</h2>
             <SimList sims={simlist}/>
-            <button onClick={handleShow}>Add</button>
+            <Button onClick={handleShow}>Add</Button>
             <Modal
                 show={showmodal}
                 onHide={handleClose}
@@ -70,8 +71,8 @@ const Home = () => {
                     </InputGroup>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button variant="primary" onClick={addSimulation}>Add</button>
-                    <button variant="secondary" onClick={handleClose}>Cancel</button>
+                    <Button variant="primary" onClick={addSimulation}>Add</Button>
+                    <Button variant="secondary" onClick={handleClose}>Cancel</Button>
                 </Modal.Footer>
             </Modal>
         </div>

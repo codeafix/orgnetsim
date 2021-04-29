@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal'
 import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Button from 'react-bootstrap/Button'
+import CardDeck from 'react-bootstrap/CardDeck';
 
 const Home = () => {
     const [simlist, setSimlist] = useState([]);
@@ -40,7 +41,10 @@ const Home = () => {
             <h1>Simulation Set</h1>
             <p>{notes}</p>
             <h2>List of Simulations</h2>
-            <SimList sims={simlist}/>
+            <CardDeck>
+                <SimList sims={simlist}/>
+            </CardDeck>
+            <br/>
             <Button onClick={handleShow}>Add</Button>
             <Modal
                 show={showmodal}

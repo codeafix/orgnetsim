@@ -1,6 +1,5 @@
 const API = {
     rootPath: "http://localhost:8080/api/",
-    simCount: 0,
     emptySimList: {simulations:[],notes:""},
     sims: async function() {
         const response = await fetch(this.rootPath+"simulation", {
@@ -20,9 +19,8 @@ const API = {
             });
             return response.json();
     },
-    add: async function(){
-        this.simCount = this.simCount+1
-        var sim = {name:"sim "+this.simCount,description:"Simulation number "+this.simCount};
+    add: async function(name, description){
+        var sim = {name:name,description:description};
         const response = await fetch(this.rootPath+"simulation", {
             "method": "POST",
             "headers": {

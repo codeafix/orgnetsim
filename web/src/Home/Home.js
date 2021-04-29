@@ -2,12 +2,21 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import SimList from './SimList';
 import Modal from 'react-bootstrap/Modal'
+import InputGroup from 'react-bootstrap/InputGroup'
+import FormControl from 'react-bootstrap/FormControl'
 
 const Home = () => {
     const [simlist, setSimlist] = useState([]);
     const [notes, setNotes] = useState("");
     const [showmodal, setShowmodal] = useState(false);
-    const handleClose = () => setShowmodal(false);
+    const [addsimname, setAddsimname] = useState("");
+    const [addsimdescription, setAddsimdescription] = useState("");
+
+    const handleClose = () => {
+        setShowmodal(false);
+        setAddsimname("");
+        setAddsimdescription("");
+    };
     const handleShow = () => setShowmodal(true);  
 
     useEffect(() => {
@@ -15,12 +24,11 @@ const Home = () => {
             .then(response => {
                 setSimlist(response.simulations);
                 setNotes(response.notes)
-                API.simCount = response.simulations.length;
             })
       },[]);
 
     const addSimulation = () => {
-        API.add().then(response => {
+        API.add(addsimname, addsimdescription).then(response => {
             setSimlist(simlist.concat(response));
         });
         handleClose();
@@ -43,11 +51,27 @@ const Home = () => {
                     <Modal.Title>Add Simulation</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Add a new simulation
+                    <InputGroup className="mb-3">
+                        <InputGroup.Prepend>
+                            <InputGroup.Text id="basic-addon1">Name</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
+                        placeholder="Simulation name"
+                        aria-label="Simulation name"
+                        aria-describedby="basic-addon1"
+                        onChange={e => setAddsimname(e.target.value)}
+                        />
+                    </InputGroup>
+                    <InputGroup>
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Description</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl as="textarea" aria-label="Description" onChange={e => setAddsimdescription(e.target.value)}/>
+                    </InputGroup>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button variant="secondary" onClick={handleClose}>Close</button>
                     <button variant="primary" onClick={addSimulation}>Add</button>
+                    <button variant="secondary" onClick={handleClose}>Cancel</button>
                 </Modal.Footer>
             </Modal>
         </div>

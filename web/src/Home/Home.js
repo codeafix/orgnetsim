@@ -10,16 +10,30 @@ import CardDeck from 'react-bootstrap/CardDeck';
 const Home = () => {
     const [simlist, setSimlist] = useState([]);
     const [notes, setNotes] = useState("");
-    const [showmodal, setShowmodal] = useState(false);
+    const [showaddmodal, setShowaddmodal] = useState(false);
+    const [showdelmodal, setShowdelmodal] = useState(false);
     const [addsimname, setAddsimname] = useState("");
     const [addsimdescription, setAddsimdescription] = useState("");
+    const [delsimid, setDelsimid] = useState("");
+    const [delsimname, setDelsimname] = useState("");
 
-    const handleClose = () => {
-        setShowmodal(false);
+    const handleAddClose = () => {
+        setShowaddmodal(false);
         setAddsimname("");
         setAddsimdescription("");
     };
-    const handleShow = () => setShowmodal(true);  
+    const handleAddShow = () => setShowaddmodal(true);
+
+    const handleDelClose = () => {
+        setShowdelmodal(false);
+        setDelsimid("");
+        setDelsimname("");
+    }
+    const handleDelShow = (id, simname) => {
+        setShowdelmodal(true);
+        setDelsimid(id);
+        setDelsimname(simname);
+    }
 
     useEffect(() => {
         API.sims()
@@ -33,26 +47,27 @@ const Home = () => {
         API.add(addsimname, addsimdescription).then(response => {
             setSimlist(simlist.concat(response));
         });
-        handleClose();
+        handleAddClose();
     }
     
     const deleteSimulation = (id) => {
         API.delete(id).then(() => {
             setSimlist(simlist.filter(item => item.id !== id));
         });
+        handleDelClose();
     }
 
     return(
-        <div>
+        <div className="container-fluid">
             <h1>Simulation Set</h1>
             <p>{notes}</p>
-            <h2>List of Simulations<button class="btn btn-primary float-right" onClick={handleShow}>Add</button></h2>
+            <h2>List of Simulations<Button className="btn btn-primary float-right" onClick={handleAddShow}>Add</Button></h2>
             <CardDeck>
-                <SimList sims={simlist} deleteFunc={deleteSimulation}/>
+                <SimList sims={simlist} deleteFunc={handleDelShow}/>
             </CardDeck>
             <Modal
-                show={showmodal}
-                onHide={handleClose}
+                show={showaddmodal}
+                onHide={handleAddClose}
                 backdrop="static"
                 keyboard={false}
             >
@@ -80,7 +95,24 @@ const Home = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="primary" onClick={addSimulation}>Add</Button>
-                    <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+                    <Button variant="secondary" onClick={handleAddClose}>Cancel</Button>
+                </Modal.Footer>
+            </Modal>
+            <Modal
+                show={showdelmodal}
+                onHide={handleDelClose}
+                backdrop="static"
+                keyboard={false}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title className="text-danger">Delete "{delsimname}"</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to permanently delete this simulation?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="warning" onClick={() => deleteSimulation(delsimid)}>Delete</Button>
+                    <Button variant="success" onClick={handleDelClose}>Cancel</Button>
                 </Modal.Footer>
             </Modal>
         </div>

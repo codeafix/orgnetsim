@@ -36,16 +36,20 @@ const Home = () => {
         handleClose();
     }
     
+    const deleteSimulation = (id) => {
+        API.delete(id).then(() => {
+            setSimlist(simlist.filter(item => item.id !== id));
+        });
+    }
+
     return(
         <div>
             <h1>Simulation Set</h1>
             <p>{notes}</p>
-            <h2>List of Simulations</h2>
+            <h2>List of Simulations<button class="btn btn-primary float-right" onClick={handleShow}>Add</button></h2>
             <CardDeck>
-                <SimList sims={simlist}/>
+                <SimList sims={simlist} deleteFunc={deleteSimulation}/>
             </CardDeck>
-            <br/>
-            <Button onClick={handleShow}>Add</Button>
             <Modal
                 show={showmodal}
                 onHide={handleClose}

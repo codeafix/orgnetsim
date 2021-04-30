@@ -32,6 +32,14 @@ const API = {
             });
         return response.json();
     },
+    delete: async function(id){
+        await fetch(this.rootPath+"simulation/"+id, {
+            "method": "DELETE",
+            "headers": {}
+            })
+            .catch(err => { console.log(err); 
+            });
+    },
 }
 
 export default API

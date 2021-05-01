@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
 import SimList from './SimList';
-import Modal from 'react-bootstrap/Modal'
-import InputGroup from 'react-bootstrap/InputGroup'
-import FormControl from 'react-bootstrap/FormControl'
-import Button from 'react-bootstrap/Button'
-import CardDeck from 'react-bootstrap/CardDeck';
+import {Modal} from 'react-bootstrap'
+import {InputGroup} from 'react-bootstrap'
+import {FormControl} from 'react-bootstrap'
+import {Button} from 'react-bootstrap'
+import {CardDeck} from 'react-bootstrap';
 
 const Home = () => {
     const [simlist, setSimlist] = useState([]);

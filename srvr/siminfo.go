@@ -20,7 +20,14 @@ type SimInfo struct {
 //CreateSimInfo creates a new SimInfo object with a new ID
 func CreateSimInfo() *SimInfo {
 	return &SimInfo{
-		ID: uuid.New().String(),
+		ID:    uuid.New().String(),
+		Steps: []string{},
+		Options: sim.NetworkOptions{
+			EvangelistList: []string{},
+			InitColors:     []sim.Color{sim.Grey},
+			LinkedTeamList: []string{},
+			MaxColors:      2,
+		},
 	}
 }
 

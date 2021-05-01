@@ -1,8 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import Card from 'react-bootstrap/Card';
-import { Trash } from 'react-bootstrap-icons';
-import API from '../api';
+import {Card} from 'react-bootstrap';
+import {Trash} from 'react-bootstrap-icons';
 
 const SimList = (props) => {
 

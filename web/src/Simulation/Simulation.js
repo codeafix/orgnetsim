@@ -10,10 +10,12 @@ import {Row} from 'react-bootstrap'
 import {Col} from 'react-bootstrap'
 import {Container} from 'react-bootstrap'
 import {Modal} from 'react-bootstrap'
+import EditNameDescModal from './EditNameDescModal'
 
 const Simulation = (props) => {
     const [sim, setSim] = useState({options:{}});
     const [showoptmodal, setShowoptmodal] = useState(false);
+    const [showsimeditmodal, setShowsimeditmodal] = useState(false);
 
     const [awm, setawm] = useState(false);
     const [el, setel] = useState([]);
@@ -31,7 +33,28 @@ const Simulation = (props) => {
         setltl(options['linkedTeamList'] || []);
         setle(options['loneEvangelist']);
         setmc(options['maxColors']);
-    }
+    };
+
+    const colorFromVal = (color) => {
+        switch(color) {
+            case 0:
+                return "Grey";
+            case 1:
+                return "Blue";
+            case 2:
+                return "Red";
+            case 3:
+                return "Green";
+            case 4:
+                return "Yellow";
+            case 5:
+                return "Orange";
+            case 6:
+                return "Purple";
+           default:
+              return "Invalid Color";
+          }
+    };
 
     useEffect(() => {
         API.get(props.match.params.id).then(response => {
@@ -40,16 +63,37 @@ const Simulation = (props) => {
         })
       }, [props.match.params.id]);
 
+    const handlesimeditshow = () => setShowsimeditmodal(true);
+    const handlesimeditclose = () => setShowsimeditmodal(false);
+
+    const updatesim = (simtosave) => {
+        API.update(simtosave).then(response => {
+            setSim(response);
+        })
+    };
+
     const handleoptshow = () => setShowoptmodal(true);
 
     const handleoptclose = () => {
         setShowoptmodal(false);
         setOptions(sim.options);
+    };
+
+    const handlesaveopt = () => {
+        setShowoptmodal(false);
+        sim.options['agentsWithMemory'] = awm;
+        sim.options['evangelistList'] = el;
+        sim.options['initColors'] = ic;
+        sim.options['linkTeamPeers'] = ltp;
+        sim.options['linkedTeamList'] = ltl;
+        sim.options['loneEvangelist'] = le;
+        sim.options['maxColors'] = mc;
+        API.update(sim);
     }
 
     return (
         <Container>
-            <h1 class="px-2 bg-light rounded"><Link className="btn btn-outline-secondary mr-3 mt-n2" to='/' role="button"><ArrowLeftCircle className="mt-n1" /></Link>{sim.name}</h1>
+            <h1 class="px-2 bg-light rounded"><Link className="btn btn-outline-secondary mr-3 mt-n2" to='/' role="button"><ArrowLeftCircle className="mt-n1" /></Link>{sim.name}<Button size="sm" className="btn btn-primary mt-2 float-right" onClick={handlesimeditshow}>Edit</Button></h1>
             <Container>
                 <Row>
                     <Col>
@@ -72,10 +116,10 @@ const Simulation = (props) => {
                                             <Form.Control size="sm" as="textarea" value={el.join("; ")}/>
                                         </span>
                                     </OverlayTrigger>
-                                    <OverlayTrigger overlay={<Tooltip>Select the colours that the agents will be randomly assigned to</Tooltip>}>
+                                    <OverlayTrigger overlay={<Tooltip>Select the colors that the agents will be randomly assigned to</Tooltip>}>
                                         <span>
-                                            <Form.Label className="pt-2">Initial colours</Form.Label>
-                                            <Form.Control size="sm" type="text" value={ic.join("; ")}/>
+                                            <Form.Label className="pt-2">Initial colors</Form.Label>
+                                            <Form.Control size="sm" type="text" value={ic.map(culr => colorFromVal(culr)).join("; ")}/>
                                         </span>
                                     </OverlayTrigger>
                                     <OverlayTrigger overlay={<Tooltip>Generate links between all members of a team</Tooltip>}>
@@ -95,9 +139,9 @@ const Simulation = (props) => {
                                             <Form.Control size="sm" type="text" value={le}/>
                                         </span>
                                     </OverlayTrigger>
-                                    <OverlayTrigger overlay={<Tooltip>Set the maximum number of colours representing competing ideas in the network</Tooltip>}>
+                                    <OverlayTrigger overlay={<Tooltip>Set the maximum number of colors representing competing ideas in the network</Tooltip>}>
                                         <span>
-                                            <Form.Label className="pt-2">Maximum colours</Form.Label>
+                                            <Form.Label className="pt-2">Maximum colors</Form.Label>
                                             <Form.Control size="sm" type="text" value={mc}/>
                                         </span>
                                     </OverlayTrigger>
@@ -115,7 +159,7 @@ const Simulation = (props) => {
                     </Col>
                 </Row>
             </Container>
-            
+            <EditNameDescModal sim={sim} show={showsimeditmodal} saveFunc={updatesim} closeFunc={handlesimeditclose}/>
             <Modal
                 show={showoptmodal}
                 onHide={handleoptclose}
@@ -127,43 +171,45 @@ const Simulation = (props) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="form-awm">
-                        <Form.Check type="checkbox" label="Use agents with memory" checked={awm} onChange={e => setawm(e.target.value)}/>
+                        <Form.Check type="checkbox" label="Use agents with memory" checked={awm} onChange={
+                            e => setawm(e.target.checked)
+                            }/>
                         <Form.Text className="text-muted">
                             Use agents that have memory in the network simulation
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-evangelist">
                         <Form.Label>Evangelist list</Form.Label>
-                        <Form.Control as="select" value={el} onChange={e => setel(e.target.value)} multiple/>
+                        <Form.Control as="select" value={el} onChange={e => setel(Array.from(e.target.selectedOptions).filter(sel => sel.value))} multiple/>
                         <Form.Text className="text-muted">
                             List the agents that are evangelists for a new idea
                         </Form.Text>
                     </Form.Group>
-                    <Form.Group controlId="form-initcolours">
-                        <Form.Label>Initialisation colours</Form.Label>
+                    <Form.Group controlId="form-initcolors">
+                        <Form.Label>Initialisation colors</Form.Label>
                         <Form.Control as="select" value={ic} onChange={e => setic(Array.from(e.target.selectedOptions).filter(sel => sel.value).map(sel => parseInt(sel.value)))} multiple>
                             <option></option>
-                            <option value={0}>Grey</option>
-                            <option value={1}>Blue</option>
-                            <option value={2}>Red</option>
-                            <option value={3}>Green</option>
-                            <option value={4}>Yellow</option>
-                            <option value={5}>Orange</option>
-                            <option value={6}>Purple</option>
+                            <option value={0}>{colorFromVal(0)}</option>
+                            <option value={1}>{colorFromVal(1)}</option>
+                            <option value={2}>{colorFromVal(2)}</option>
+                            <option value={3}>{colorFromVal(3)}</option>
+                            <option value={4}>{colorFromVal(4)}</option>
+                            <option value={5}>{colorFromVal(5)}</option>
+                            <option value={6}>{colorFromVal(6)}</option>
                         </Form.Control>
                         <Form.Text className="text-muted">
-                            Select the colours that the agents will be randomly assigned to
+                            Select the colors that the agents will be randomly assigned to
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-ltp">
-                        <Form.Check type="checkbox" label="Link team peers" checked={ltp} onChange={e => setltp(e.target.value)}/>
+                        <Form.Check type="checkbox" label="Link team peers" checked={ltp} onChange={e => setltp(e.target.checked)}/>
                         <Form.Text className="text-muted">
                             Generate links between all members of a team
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-linkedteam">
                         <Form.Label>Linked team list</Form.Label>
-                        <Form.Control as="select" value={ltl} onChange={e => setltl(e.target.value)} multiple/>
+                        <Form.Control as="select" value={ltl} onChange={e => setltl(Array.from(e.target.selectedOptions).filter(sel => sel.value))} multiple/>
                         <Form.Text className="text-muted">
                             Generate links between the specified teams
                         </Form.Text>
@@ -175,16 +221,16 @@ const Simulation = (props) => {
                             An agent that will act as an evangelist for a new idea
                         </Form.Text>
                     </Form.Group>
-                    <Form.Group controlId="form-maxcolours">
-                        <Form.Label>Maximum colours</Form.Label>
-                        <Form.Control type="number" value={mc} onChange={e => setmc(e.target.value)}/>
+                    <Form.Group controlId="form-maxcolors">
+                        <Form.Label>Maximum colors</Form.Label>
+                        <Form.Control type="number" value={mc} onChange={e => setmc(e.target.valueAsNumber)}/>
                         <Form.Text className="text-muted">
-                            Set the maximum number of colours representing competing ideas in the network
+                            Set the maximum number of colors representing competing ideas in the network
                         </Form.Text>
                     </Form.Group>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="success" >Save</Button>
+                    <Button variant="success" onClick={handlesaveopt}>Save</Button>
                     <Button variant="secondary" onClick={handleoptclose}>Cancel</Button>
                 </Modal.Footer>
             </Modal>

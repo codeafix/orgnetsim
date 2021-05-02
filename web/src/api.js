@@ -19,6 +19,18 @@ const API = {
             });
             return response.json();
     },
+    update: async function(sim){
+        const response = await fetch(this.rootPath+"simulation/"+sim.id, {
+            "method": "PUT",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(sim),
+            })
+            .catch(err => { console.log(err); 
+            });
+            return response.json();
+    },
     add: async function(name, description){
         var sim = {name:name,description:description};
         const response = await fetch(this.rootPath+"simulation", {

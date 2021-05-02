@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import SimList from './SimList';
 import {Modal} from 'react-bootstrap'
-import {InputGroup} from 'react-bootstrap'
-import {FormControl} from 'react-bootstrap'
+import EditNameDescModal from '../Simulation/EditNameDescModal'
 import {Button} from 'react-bootstrap'
 import {CardDeck} from 'react-bootstrap';
 
@@ -12,16 +11,10 @@ const Home = () => {
     const [notes, setNotes] = useState("");
     const [showaddmodal, setShowaddmodal] = useState(false);
     const [showdelmodal, setShowdelmodal] = useState(false);
-    const [addsimname, setAddsimname] = useState("");
-    const [addsimdescription, setAddsimdescription] = useState("");
     const [delsimid, setDelsimid] = useState("");
     const [delsimname, setDelsimname] = useState("");
 
-    const handleAddClose = () => {
-        setShowaddmodal(false);
-        setAddsimname("");
-        setAddsimdescription("");
-    };
+    const handleAddClose = () => setShowaddmodal(false);
     const handleAddShow = () => setShowaddmodal(true);
 
     const handleDelClose = () => {
@@ -43,19 +36,18 @@ const Home = () => {
             })
       },[]);
 
-    const addSimulation = () => {
-        API.add(addsimname, addsimdescription).then(response => {
+    const addSimulation = (sim) => {
+        API.add(sim.name, sim.description).then(response => {
             setSimlist(simlist.concat(response));
         });
-        handleAddClose();
-    }
+    };
     
     const deleteSimulation = (id) => {
         API.delete(id).then(() => {
             setSimlist(simlist.filter(item => item.id !== id));
         });
         handleDelClose();
-    }
+    };
 
     return(
         <div className="container-fluid">
@@ -65,39 +57,7 @@ const Home = () => {
             <CardDeck>
                 <SimList sims={simlist} deleteFunc={handleDelShow}/>
             </CardDeck>
-            <Modal
-                show={showaddmodal}
-                onHide={handleAddClose}
-                backdrop="static"
-                keyboard={false}
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>Add Simulation</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Prepend>
-                            <InputGroup.Text id="basic-addon1">Name</InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl
-                        placeholder="Simulation name"
-                        aria-label="Simulation name"
-                        aria-describedby="basic-addon1"
-                        onChange={e => setAddsimname(e.target.value)}
-                        />
-                    </InputGroup>
-                    <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Description</InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl as="textarea" aria-label="Description" onChange={e => setAddsimdescription(e.target.value)}/>
-                    </InputGroup>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="primary" onClick={addSimulation}>Add</Button>
-                    <Button variant="secondary" onClick={handleAddClose}>Cancel</Button>
-                </Modal.Footer>
-            </Modal>
+            <EditNameDescModal show={showaddmodal} saveFunc={addSimulation} closeFunc={handleAddClose}/>
             <Modal
                 show={showdelmodal}
                 onHide={handleDelClose}

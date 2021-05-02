@@ -9,27 +9,27 @@ const EditNameDescModal = (props) => {
     const [simname, setsimname] = useState("");
     const [simdescription, setsimdescription] = useState("");
 
+    const setfields = (ps) => {
+        const s = ps || {};
+        setsimname(s['name']);
+        setsimdescription(s['description']);
+    };
+    
     const handleClose = () => {
-        setsimname("");
-        setsimdescription("");
+        setfields(sim);
         props.closeFunc();
     };
 
     useEffect(() => {
-        if(!props.sim){
-            setsimname("");
-            setsimdescription("");
-        }else{
-            setsimname(props.sim.name);
-            setsimdescription(props.sim.description);
-        }
+        setsim(props.sim);
+        setfields(props.sim);
       },[props.sim]);
 
     const saveSimulation = () => {
-        var sim = props.sim || {}
-        sim.name = simname;
-        sim.description = simdescription;
-        props.saveFunc(sim);
+        var simtosave = sim || {}
+        simtosave.name = simname;
+        simtosave.description = simdescription;
+        props.saveFunc(simtosave);
         handleClose();
     }
 

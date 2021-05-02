@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import {Link} from 'react-router-dom';
 import {ArrowLeftCircle} from 'react-bootstrap-icons';
-import {Card, Form} from 'react-bootstrap'
-import {Button} from 'react-bootstrap'
-import {Row} from 'react-bootstrap'
-import {Col} from 'react-bootstrap'
-import {Container} from 'react-bootstrap'
+import {Card, Button, Row, Col, Container} from 'react-bootstrap'
 import EditNameDescModal from './EditNameDescModal'
 import NetworkOptionsCard from './NetworkOptionsCard'
+import NetworkCard from './NetworkCard'
+import StepsCard from './StepsCard'
 
 const Simulation = (props) => {
     const [sim, setSim] = useState({options:{}});
@@ -42,12 +40,8 @@ const Simulation = (props) => {
                         <NetworkOptionsCard sim={sim}/>
                     </Col>
                     <Col>
-                        <Card>
-                            <Card.Header><Card.Title>Network</Card.Title></Card.Header>
-                        </Card>
-                        <Card className="mt-3">
-                            <Card.Header><Card.Title>Steps</Card.Title></Card.Header>
-                        </Card>
+                        <NetworkCard sim={sim}/>
+                        <StepsCard sim={sim}/>
                     </Col>
                 </Row>
             </Container>

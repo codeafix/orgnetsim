@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
-import {Card, Form} from 'react-bootstrap'
-import {Button} from 'react-bootstrap'
-import {OverlayTrigger} from 'react-bootstrap'
-import {Tooltip} from 'react-bootstrap'
-import {Modal} from 'react-bootstrap'
+import {Card, Form, Button, OverlayTrigger, Tooltip, Modal} from 'react-bootstrap';
 
 const NetworkOptionsCard = (props) => {
     const [sim, setSim] = useState(props.sim);

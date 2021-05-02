@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Modal} from 'react-bootstrap'
-import {InputGroup} from 'react-bootstrap'
-import {FormControl} from 'react-bootstrap'
-import {Button} from 'react-bootstrap'
+import {Modal, InputGroup, FormControl, Button} from 'react-bootstrap'
 
 const EditNameDescModal = (props) => {
     const [sim, setsim] = useState(props.sim);

@@ -164,6 +164,40 @@ func TestGenerateNetworkFailsIfStepsExist(t *testing.T) {
 	AreEqual(t, "Simulation must have no steps when generating a new network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
 }
 
+func TestParseNetworkFailsIfStepsExist(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+
+	data := []string{
+		"Header row is always skipped ,check_this_is_not_an_Id,,",
+		"Should be ignored|||",
+		"",
+		"Strips ws around Id, my_id",
+		"Blank lines are ignored",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 1,
+			Parent:     3,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad Request")
+	AreEqual(t, "Simulation must have no steps when parsing a new network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
 func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, string) {
 	simid := uuid.New().String()
 	sim := NewSimInfo(simid)
@@ -182,6 +216,45 @@ func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdat
 	br := mango.NewBrowser(r)
 
 	return br, simfu, ssfu, simid
+}
+
+func TestParseNetworkSucceeds(t *testing.T) {
+	br, simfu, ssfu, simid := CreateSimHandlerBrowser()
+	savedsim, ok := simfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	savedsim.Options.MaxColors = 5
+
+	data := []string{
+		"Header row is always skipped ,check_this_is_not_an_Id,,",
+		"Should be ignored|||",
+		"",
+		"Strips ws around Id, my_id",
+		"Blank lines are ignored",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 1,
+			Parent:     3,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	AreEqual(t, 5, simstep.Network.MaxColors(), "Wrong MaxColors on network")
 }
 
 func TestGenerateNetworkSucceeds(t *testing.T) {

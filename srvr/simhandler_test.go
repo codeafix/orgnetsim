@@ -168,11 +168,11 @@ func TestParseNetworkFailsIfStepsExist(t *testing.T) {
 	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
 
 	data := []string{
-		"Header row is always skipped ,check_this_is_not_an_Id,,",
-		"Should be ignored|||",
-		"",
-		"Strips ws around Id, my_id",
-		"Blank lines are ignored",
+		"Header row is always skipped ,check_this_is_not_an_Id,,\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Strips ws around Id, my_id\n",
+		"Blank lines are ignored\n",
 	}
 	var payload = []byte{}
 	for _, s := range data {
@@ -200,13 +200,17 @@ func TestParseNetworkFailsIfStepsExist(t *testing.T) {
 
 func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, string) {
 	simid := uuid.New().String()
-	sim := NewSimInfo(simid)
-	sim.Name = "mySavedSim"
-	sim.Description = "A description of mySavedSim"
-	sim.Steps = []string{}
+	nsim := NewSimInfo(simid)
+	nsim.Name = "mySavedSim"
+	nsim.Description = "A description of mySavedSim"
+	nsim.Steps = []string{}
+	nsim.Options.LinkedTeamList = []string{}
+	nsim.Options.EvangelistList = []string{}
+	nsim.Options.LoneEvangelist = []string{}
+	nsim.Options.InitColors = []sim.Color{}
 	simfu := &TestFileUpdater{
-		Obj:      sim,
-		Filepath: sim.Filepath(),
+		Obj:      nsim,
+		Filepath: nsim.Filepath(),
 	}
 	tfm := NewTestFileManager(simfu)
 	ssfu := &TestFileUpdater{}
@@ -225,11 +229,13 @@ func TestParseNetworkSucceeds(t *testing.T) {
 	savedsim.Options.MaxColors = 5
 
 	data := []string{
-		"Header row is always skipped ,check_this_is_not_an_Id,,",
-		"Should be ignored|||",
-		"",
-		"Strips ws around Id, my_id",
-		"Blank lines are ignored",
+		"Header always skipped ,check_this_is_not_an_Id\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Strips ws around Id, my_id\n",
+		"Blank lines are ignored\n",
+		"First agent, agent_1, some text,,\n",
+		"Second agent, agent_2, more text, agent_1,\n",
 	}
 	var payload = []byte{}
 	for _, s := range data {
@@ -255,6 +261,10 @@ func TestParseNetworkSucceeds(t *testing.T) {
 	simstep, ok := ssfu.Obj.(*SimStep)
 	IsTrue(t, ok, "Saved object would not cast to *SimStep")
 	AreEqual(t, 5, simstep.Network.MaxColors(), "Wrong MaxColors on network")
+	IsTrue(t, simstep.Network.Links() != nil, "Links array is nil")
+	AreEqual(t, len(simstep.Network.Links()), 1, "Links should have a single item")
+	IsTrue(t, simstep.Network.Agents() != nil, "Agents array is nil")
+	AreEqual(t, len(simstep.Network.Agents()), 3, "Agents array should have 3 items")
 }
 
 func TestGenerateNetworkSucceeds(t *testing.T) {

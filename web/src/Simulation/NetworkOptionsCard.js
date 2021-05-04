@@ -25,7 +25,7 @@ const NetworkOptionsCard = (props) => {
         setic(options['initColors'] || []);
         setltp(options['linkTeamPeers'] === true);
         setltl(options['linkedTeamList'] || []);
-        setle(options['loneEvangelist']);
+        setle(options['loneEvangelist'] || []);
         setmc(options['maxColors']);
     };
 

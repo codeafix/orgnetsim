@@ -255,6 +255,11 @@ func (sh *SimHandlerState) ParseNetwork(siminfo *SimInfo, c *mango.Context) {
 	for s.Scan() {
 		r = append(r, s.Text())
 	}
+	err = s.Err()
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	seed := time.Now().UnixNano()
 	rand.Seed(int64(seed))

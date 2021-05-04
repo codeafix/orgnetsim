@@ -22,16 +22,12 @@ const NetworkCard = (props) => {
     };
     
     const handleimport = () => {
-        console.log(idcol);
-        console.log(pcol);
-        console.log(delim);
         const fr = new FileReader();
 
         fr.readAsText(filetoupload);
         fr.onload = function() {
             const buff = new Buffer(fr.result);
             const base64data = buff.toString('base64');
-            console.log(base64data);
         
             const pdata = {
                 "identifier": idcol,

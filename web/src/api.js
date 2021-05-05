@@ -1,8 +1,8 @@
 const API = {
-    rootPath: "http://localhost:8080/api/",
+    rootPath: "http://localhost:8080",
     emptySimList: {simulations:[],notes:""},
     sims: async function() {
-        const response = await fetch(this.rootPath+"simulation", {
+        const response = await fetch(this.rootPath+"/api/simulation", {
         "method": "GET",
         "headers": {}
         })
@@ -11,7 +11,16 @@ const API = {
         return response.json();
     },
     get: async function(id){
-        const response = await fetch(this.rootPath+"simulation/"+id, {
+        const response = await fetch(this.rootPath+"/api/simulation/"+id, {
+            "method": "GET",
+            "headers": {}
+            })
+            .catch(err => { console.log(err); 
+            });
+            return response.json();
+    },
+    getStep: async function(path){
+        const response = await fetch(this.rootPath+path, {
             "method": "GET",
             "headers": {}
             })
@@ -20,7 +29,7 @@ const API = {
             return response.json();
     },
     update: async function(sim){
-        const response = await fetch(this.rootPath+"simulation/"+sim.id, {
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id, {
             "method": "PUT",
             "headers": {
                 'Content-Type': 'application/json'
@@ -33,7 +42,7 @@ const API = {
     },
     add: async function(name, description){
         var sim = {name:name,description:description};
-        const response = await fetch(this.rootPath+"simulation", {
+        const response = await fetch(this.rootPath+"/api/simulation", {
             "method": "POST",
             "headers": {
                 'Content-Type': 'application/json'
@@ -45,7 +54,7 @@ const API = {
         return response.json();
     },
     delete: async function(id){
-        await fetch(this.rootPath+"simulation/"+id, {
+        await fetch(this.rootPath+"/api/simulation/"+id, {
             "method": "DELETE",
             "headers": {}
             })

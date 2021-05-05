@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../api';
+import Color from './Color';
 import {Card, Form, Button, OverlayTrigger, Tooltip, Modal} from 'react-bootstrap';
 
 const NetworkOptionsCard = (props) => {
@@ -13,10 +14,12 @@ const NetworkOptionsCard = (props) => {
     const [ltl, setltl] = useState([]);
     const [le, setle] = useState("");
     const [mc, setmc] = useState(2);
+    const [hasstep, sethasstep] = useState(false);
  
     useEffect(() => {
         setSim(props.sim);
         setOptions(props.sim.options);
+        sethasstep((props.sim.steps || []).length > 0)
       }, [props.sim]);
 
     const setOptions = (options) => {
@@ -27,27 +30,6 @@ const NetworkOptionsCard = (props) => {
         setltl(options['linkedTeamList'] || []);
         setle(options['loneEvangelist'] || []);
         setmc(options['maxColors']);
-    };
-
-    const colorFromVal = (color) => {
-        switch(color) {
-            case 0:
-                return "Grey";
-            case 1:
-                return "Blue";
-            case 2:
-                return "Red";
-            case 3:
-                return "Green";
-            case 4:
-                return "Yellow";
-            case 5:
-                return "Orange";
-            case 6:
-                return "Purple";
-           default:
-              return "Invalid Color";
-          }
     };
 
     const handleoptshow = () => setShowoptmodal(true);
@@ -67,11 +49,12 @@ const NetworkOptionsCard = (props) => {
         sim.options['loneEvangelist'] = le;
         sim.options['maxColors'] = mc;
         API.update(sim);
+        setSim(sim);
     }   
 
     return (
         <Card className="mb-2 mx-n2">
-            <Card.Header><Card.Title>Network Options<Button size="sm" className="btn btn-primary float-right" onClick={handleoptshow}>Edit</Button></Card.Title></Card.Header>
+            <Card.Header><Card.Title>Network Options<Button size="sm" className="btn btn-primary float-right" onClick={handleoptshow} disabled={hasstep}>Edit</Button></Card.Title></Card.Header>
             <Card.Body className="small">
                 <fieldset disabled>
                     <OverlayTrigger overlay={<Tooltip>Use agents that have memory in the network simulation</Tooltip>}>
@@ -88,7 +71,7 @@ const NetworkOptionsCard = (props) => {
                     <OverlayTrigger overlay={<Tooltip>Select the colors that the agents will be randomly assigned to</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Initial colors</Form.Label>
-                            <Form.Control size="sm" type="text" value={ic.map(culr => colorFromVal(culr)).join("; ")}/>
+                            <Form.Control size="sm" type="text" value={ic.map(culr => Color.colorFromVal(culr)).join("; ")}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip>Generate links between all members of a team</Tooltip>}>
@@ -145,13 +128,13 @@ const NetworkOptionsCard = (props) => {
                         <Form.Label>Initialisation colors</Form.Label>
                         <Form.Control as="select" value={ic} onChange={e => setic(Array.from(e.target.selectedOptions).filter(sel => sel.value).map(sel => parseInt(sel.value)))} multiple>
                             <option></option>
-                            <option value={0}>{colorFromVal(0)}</option>
-                            <option value={1}>{colorFromVal(1)}</option>
-                            <option value={2}>{colorFromVal(2)}</option>
-                            <option value={3}>{colorFromVal(3)}</option>
-                            <option value={4}>{colorFromVal(4)}</option>
-                            <option value={5}>{colorFromVal(5)}</option>
-                            <option value={6}>{colorFromVal(6)}</option>
+                            <option value={0}>{Color.colorFromVal(0)}</option>
+                            <option value={1}>{Color.colorFromVal(1)}</option>
+                            <option value={2}>{Color.colorFromVal(2)}</option>
+                            <option value={3}>{Color.colorFromVal(3)}</option>
+                            <option value={4}>{Color.colorFromVal(4)}</option>
+                            <option value={5}>{Color.colorFromVal(5)}</option>
+                            <option value={6}>{Color.colorFromVal(6)}</option>
                         </Form.Control>
                         <Form.Text className="text-muted">
                             Select the colors that the agents will be randomly assigned to

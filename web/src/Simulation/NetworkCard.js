@@ -8,9 +8,11 @@ const NetworkCard = (props) => {
     const [delim, setdelim] = useState(",");
     const [filetoupload, setfiletoupload] = useState();
     const [showimpmodal, setshowimpmodal] = useState(false);
+    const [hasstep, sethasstep] = useState(false);
 
     useEffect(() => {
         setsim(props.sim);
+        sethasstep((props.sim.steps || []).length > 0)
     },[props.sim]);
 
     const handleimpclose = () => {
@@ -55,7 +57,7 @@ const NetworkCard = (props) => {
     
     return(
         <Card className="mb-2 mx-n2">
-            <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)}>Import</Button></Card.Title></Card.Header>
+            <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)} disabled={hasstep}>Import</Button></Card.Title></Card.Header>
             <Modal
                 show={showimpmodal}
                 onHide={handleimpclose}

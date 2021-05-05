@@ -70,7 +70,7 @@ const NetworkOptionsCard = (props) => {
     }   
 
     return (
-        <Card className="mt-3">
+        <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Network Options<Button size="sm" className="btn btn-primary float-right" onClick={handleoptshow}>Edit</Button></Card.Title></Card.Header>
             <Card.Body className="small">
                 <fieldset disabled>

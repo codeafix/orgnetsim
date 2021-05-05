@@ -54,7 +54,7 @@ const NetworkCard = (props) => {
     };
     
     return(
-        <Card>
+        <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)}>Import</Button></Card.Title></Card.Header>
             <Modal
                 show={showimpmodal}

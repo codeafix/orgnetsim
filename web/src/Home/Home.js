@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import SimList from './SimList';
 import {Modal} from 'react-bootstrap'
-import EditNameDescModal from '../Simulation/EditNameDescModal'
+import EditNameDescModal from './EditNameDescModal'
 import {Button} from 'react-bootstrap'
 import {CardDeck} from 'react-bootstrap';
 

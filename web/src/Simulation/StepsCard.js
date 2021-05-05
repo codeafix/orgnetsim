@@ -9,7 +9,7 @@ const StepsCard = (props) => {
       },[props.sim]);
 
     return(
-        <Card className="mt-3">
+        <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Steps</Card.Title></Card.Header>
         </Card>
     )

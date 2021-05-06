@@ -40,6 +40,18 @@ const API = {
             });
             return response.json();
     },
+    runsim: async function(sim, spec){
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/run", {
+            "method": "POST",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(spec),
+            })
+            .catch(err => { console.log(err); 
+            });
+            return response.json();
+    },
     add: async function(name, description){
         var sim = {name:name,description:description};
         const response = await fetch(this.rootPath+"/api/simulation", {

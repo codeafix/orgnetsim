@@ -168,6 +168,11 @@ func (sh *SimHandlerState) PostRun(siminfo *SimInfo, c *mango.Context) {
 		c.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
+	err = ls.Network.PopulateMaps()
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
 	r := sim.NewRunner(ls.Network, rs.Iterations)
 	var ns *SimStep
 	for i := 0; i < rs.Steps; i++ {

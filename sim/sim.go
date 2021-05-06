@@ -68,7 +68,7 @@ func (ri *RunnerInfo) Run() Results {
 		close(hold)
 
 		convTotal := 0
-		for n := nc; n > 0; n-- {
+		for j := nc; j > 0; j-- {
 			convTotal = convTotal + <-convCount
 		}
 		close(convCount)

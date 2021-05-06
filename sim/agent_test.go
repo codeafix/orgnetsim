@@ -30,6 +30,10 @@ func (tn *testNetwork) MaxColors() int {
 func (tn *testNetwork) SetMaxColors(c int) {
 }
 
+func (tn *testNetwork) PopulateMaps() error {
+	return nil
+}
+
 func (tn *testNetwork) Agents() []Agent {
 	return nil
 }

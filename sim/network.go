@@ -34,6 +34,7 @@ type RelationshipMgr interface {
 	Links() []*Link
 	MaxColors() int
 	SetMaxColors(c int)
+	PopulateMaps() error
 }
 
 //MaxColors returns the maximum number of color states that the agents are permitted on this network

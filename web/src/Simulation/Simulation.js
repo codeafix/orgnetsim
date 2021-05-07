@@ -33,15 +33,15 @@ const Simulation = (props) => {
             <Container>
                 <Row>
                     <Col sm={8}>
-                        <NetworkCard sim={sim}/>
-                        <StepsCard sim={sim}/>
+                        <NetworkCard sim={sim} setsim={setSim}/>
+                        <StepsCard sim={sim} setsim={setSim}/>
                     </Col>
                     <Col sm={4}>
                         <Card className="mb-2 mx-n2">
                             <Card.Header><Card.Title>Description</Card.Title></Card.Header>
                             <Card.Body><Card.Text>{sim.description}</Card.Text></Card.Body>
                         </Card>
-                        <NetworkOptionsCard sim={sim}/>
+                        <NetworkOptionsCard sim={sim} setsim={setSim}/>
                     </Col>
                 </Row>
             </Container>

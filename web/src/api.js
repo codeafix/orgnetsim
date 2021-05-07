@@ -52,6 +52,17 @@ const API = {
             });
             return response.json();
     },
+    parse: async function(sim, pdata){
+        const response = await fetch("http://localhost:8080/api/simulation/"+sim.id+"/parse", {
+            "method": "POST",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(pdata),
+            }).catch(err => { console.log(err); 
+            });
+            return response.json();
+    },
     add: async function(name, description){
         var sim = {name:name,description:description};
         const response = await fetch(this.rootPath+"/api/simulation", {

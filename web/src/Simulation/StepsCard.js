@@ -4,7 +4,6 @@ import API from '../api';
 import Color from './Color';
 
 const StepsCard = (props) => {
-    const [sim, setsim] = useState({steps: [], options:{}});
     const [showrunmodal, setShowrunmodal] = useState(false);
     const [nostep, setnostep] = useState(false);
     
@@ -18,7 +17,9 @@ const StepsCard = (props) => {
     };
 
     useEffect(() => {
-        setsim(props.sim);
+        if (!props.sim) {
+            return
+        }
         setOptions();
         setnostep((props.sim.steps || []).length === 0)
         const culrs = [];
@@ -42,10 +43,11 @@ const StepsCard = (props) => {
             iterations: itcount,
             steps: stepcount
         };
-        API.runsim(sim, spec).then(response => {
-            setsim(response);
-        }
-        )
+        API.runsim(props.sim, spec).then(response => {
+            API.get(response.parent).then(sim => {
+                props.setsim(sim);
+            })
+        })
     }   
 
     return(
@@ -67,7 +69,7 @@ const StepsCard = (props) => {
                         </tr>
                     </thead>
                     <tbody>
-                        <StepsList steps={sim.steps}/>
+                        <StepsList steps={props.sim.steps}/>
                     </tbody>
                 </Table>
             </Card.Body>

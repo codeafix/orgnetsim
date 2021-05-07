@@ -4,7 +4,6 @@ import Color from './Color';
 import {Card, Form, Button, OverlayTrigger, Tooltip, Modal} from 'react-bootstrap';
 
 const NetworkOptionsCard = (props) => {
-    const [sim, setSim] = useState(props.sim);
     const [showoptmodal, setShowoptmodal] = useState(false);
     
     const [awm, setawm] = useState(false);
@@ -17,7 +16,6 @@ const NetworkOptionsCard = (props) => {
     const [hasstep, sethasstep] = useState(false);
  
     useEffect(() => {
-        setSim(props.sim);
         setOptions(props.sim.options);
         sethasstep((props.sim.steps || []).length > 0)
       }, [props.sim]);
@@ -36,20 +34,22 @@ const NetworkOptionsCard = (props) => {
 
     const handleoptclose = () => {
         setShowoptmodal(false);
-        setOptions(sim.options);
+        setOptions(props.sim.options);
     };
 
     const handlesaveopt = () => {
         setShowoptmodal(false);
-        sim.options['agentsWithMemory'] = awm;
-        sim.options['evangelistList'] = el;
-        sim.options['initColors'] = ic;
-        sim.options['linkTeamPeers'] = ltp;
-        sim.options['linkedTeamList'] = ltl;
-        sim.options['loneEvangelist'] = le;
-        sim.options['maxColors'] = mc;
-        API.update(sim);
-        setSim(sim);
+        const s = props.sim;
+        s.options['agentsWithMemory'] = awm;
+        s.options['evangelistList'] = el;
+        s.options['initColors'] = ic;
+        s.options['linkTeamPeers'] = ltp;
+        s.options['linkedTeamList'] = ltl;
+        s.options['loneEvangelist'] = le;
+        s.options['maxColors'] = mc;
+        API.update(s).then(response => {
+            props.setsim(response);
+        })
     }   
 
     return (

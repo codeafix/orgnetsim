@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {Card, Form, Modal, FormControl, Button} from 'react-bootstrap'
+import API from '../api';
 
 const NetworkCard = (props) => {
-    const [sim, setsim] = useState(props.sim);
     const [idcol, setidcol] = useState(0);
     const [pcol, setpcol] = useState(2);
     const [delim, setdelim] = useState(",");
@@ -11,7 +11,6 @@ const NetworkCard = (props) => {
     const [hasstep, sethasstep] = useState(false);
 
     useEffect(() => {
-        setsim(props.sim);
         sethasstep((props.sim.steps || []).length > 0)
     },[props.sim]);
 
@@ -42,15 +41,11 @@ const NetworkCard = (props) => {
                 "delimiter": delim,
                 "Payload": base64data
             };
-            fetch("http://localhost:8080/api/simulation/"+sim.id+"/parse", {
-                "method": "POST",
-                "headers": {
-                    'Content-Type': 'application/json'
-                },
-                "body": JSON.stringify(pdata),
+            API.parse(props.sim, pdata).then(response => {
+                API.get(response.parent).then(sim => {
+                    props.setsim(sim);
                 })
-                .catch(err => { console.log(err); 
-                });
+            })
         };
         handleimpclose();
     };

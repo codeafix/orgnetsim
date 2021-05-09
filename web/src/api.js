@@ -28,6 +28,27 @@ const API = {
             });
             return response.json();
     },
+    getResults: async function(sim){
+        var fn = "results.csv";
+        const data = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
+            "method": "GET",
+            "headers": {
+                "Content-Type": "text/csv"
+            }
+            }).then(response => {
+                const contentDisp = response.headers.get('Content-Disposition');
+                const regExpFilename = /filename="(?<filename>[^"]*)"/;
+                fn = regExpFilename.exec(contentDisp)?.groups?.filename ?? fn;
+                return response.blob();
+            }).then(blob => {
+                return {
+                    filename: fn,
+                    blob: blob,
+                };
+            }).catch(err => { console.log(err); 
+            });
+        return data;
+    },
     update: async function(sim){
         const response = await fetch(this.rootPath+"/api/simulation/"+sim.id, {
             "method": "PUT",

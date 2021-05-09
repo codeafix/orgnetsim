@@ -1,9 +1,11 @@
 package srvr
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -448,4 +450,59 @@ func TestGetResultsSucceeds(t *testing.T) {
 	AreEqual(t, 3, rs.Colors[3][3], "Wrong color count")
 	AreEqual(t, 4, rs.Colors[4][3], "Wrong color count")
 	AreEqual(t, 5, rs.Colors[5][3], "Wrong color count")
+}
+
+func TestGetResultsSucceedsAsCsv(t *testing.T) {
+	br, simid := CreateSimHandlerBrowserWithStepsAndResults()
+
+	hdrs := http.Header{
+		"Content-Type": []string{"text/csv"},
+	}
+	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/results", simid), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
+	csv := resp.Body.String()
+	scanner := bufio.NewScanner(strings.NewReader(csv))
+
+	//check the headers are correct
+	ct := false
+	for _, header := range resp.Header()[http.CanonicalHeaderKey("content-type")] {
+		if header == "text/csv" {
+			ct = true
+			break
+		}
+	}
+	IsTrue(t, ct, "content-type header incorrect or missing")
+	IsTrue(t, len(resp.Header()[http.CanonicalHeaderKey("content-disposition")]) > 0, "content-disposition missing")
+
+	//Read the header line
+	scanner.Scan()
+	endCol := len(strings.Split(scanner.Text(), ",")) - 1
+
+	//convert the csv into an array of int arrays
+	rs := [][]int{}
+	i := 0
+	for scanner.Scan() {
+		strs := strings.Split(scanner.Text(), ",")
+		vals := make([]int, endCol+1)
+		for j, val := range strs {
+			vals[j], _ = strconv.Atoi(val)
+		}
+		rs = append(rs, vals)
+		i++
+	}
+	//Check the results are correct
+	AreEqual(t, 6, len(rs), "Wrong number of iterations")
+	AreEqual(t, 1, rs[0][endCol], "Wrong conversation count")
+	AreEqual(t, 1, rs[1][endCol], "Wrong conversation count")
+	AreEqual(t, 2, rs[2][endCol], "Wrong conversation count")
+	AreEqual(t, 1, rs[3][endCol], "Wrong conversation count")
+	AreEqual(t, 2, rs[4][endCol], "Wrong conversation count")
+	AreEqual(t, 3, rs[5][endCol], "Wrong conversation count")
+	AreEqual(t, 3, rs[0][3], "Wrong color count")
+	AreEqual(t, 3, rs[1][3], "Wrong color count")
+	AreEqual(t, 4, rs[2][3], "Wrong color count")
+	AreEqual(t, 3, rs[3][3], "Wrong color count")
+	AreEqual(t, 4, rs[4][3], "Wrong color count")
+	AreEqual(t, 5, rs[5][3], "Wrong color count")
 }

@@ -3,6 +3,8 @@ package srvr
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -79,6 +81,12 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 		sh.GetList(siminfo, c, "step")
 		return
 	case "results":
+		for _, header := range c.Request.Header[http.CanonicalHeaderKey("content-type")] {
+			if header == "text/csv" {
+				sh.GetResultsCsv(c)
+				return
+			}
+		}
 		sh.GetResults(c)
 		return
 	default:
@@ -86,30 +94,70 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 	}
 }
 
-//GetResults gets a concatenated set of results from all the steps in this simulation
-func (sh *SimHandlerState) GetResults(c *mango.Context) {
-	siminfo := sh.readSiminfo(c)
-	if siminfo == nil {
-		return
+//GetResultsCsv returns a concatenated set of results from all the steps in this simulation in text/csv format
+func (sh *SimHandlerState) GetResultsCsv(c *mango.Context) {
+	results, name, err := sh.collectAllResults(c)
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	}
+	if results.Iterations == 0 {
+		c.RespondWith("this simulation has no iterations").WithStatus(http.StatusBadRequest)
+	}
+	var buffer bytes.Buffer
+
+	maxColors := len(results.Colors[0])
+	for c := 0; c < maxColors; c++ {
+		buffer.WriteString(fmt.Sprintf("%s,", sim.Color(c).String()))
+	}
+	buffer.WriteString("Conversations\n")
+
+	for i := 0; i < results.Iterations; i++ {
+		for j := 0; j < maxColors; j++ {
+			buffer.WriteString(fmt.Sprintf("%d,", results.Colors[i][j]))
+		}
+		buffer.WriteString(fmt.Sprintf("%d\n", results.Conversations[i]))
+	}
+
+	r := c.RespondWith(buffer.String())
+	r.WithContentType("text/csv")
+	r.WithHeader(http.CanonicalHeaderKey("Content-Disposition"), fmt.Sprintf("attachment; filename=\"%s.csv\"; filename*=\"%s.csv\"", name, name))
+	r.WithStatus(http.StatusOK)
+
+}
+
+//GetResults returns a concatenated set of results from all the steps in this simulation in JSON format
+func (sh *SimHandlerState) GetResults(c *mango.Context) {
+	results, _, err := sh.collectAllResults(c)
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+	}
+	c.RespondWith(results).WithStatus(http.StatusOK)
+}
+
+//collectAllResults gets a concatenated set of results from all the steps in this simulation
+func (sh *SimHandlerState) collectAllResults(c *mango.Context) (sim.Results, string, error) {
+	siminfo := sh.readSiminfo(c)
 	results := sim.Results{
 		Iterations:    0,
 		Colors:        [][]int{},
 		Conversations: []int{},
 	}
+	if siminfo == nil {
+		return results, "", errors.New("unable to read simulation")
+	}
+
 	for _, spath := range siminfo.Steps {
 		step := NewSimStepFromRelPath(spath)
 		objUpdater := sh.ListHandlerState.FileManager.Get(step.Filepath())
 		err := objUpdater.Read(step)
 		if err != nil {
-			c.Error(err.Error(), http.StatusInternalServerError)
-			return
+			return results, "", err
 		}
 		results.Iterations += step.Results.Iterations
 		results.Colors = append(results.Colors, step.Results.Colors...)
 		results.Conversations = append(results.Conversations, step.Results.Conversations...)
 	}
-	c.RespondWith(results).WithStatus(http.StatusOK)
+	return results, siminfo.Name, nil
 }
 
 //RunGenerateParseNetwork handles three possible routes:

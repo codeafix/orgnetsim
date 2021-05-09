@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {Card, Table, Button, Modal, Form} from 'react-bootstrap';
 import API from '../api';
 import Color from './Color';
@@ -10,6 +10,9 @@ const StepsCard = (props) => {
     const [itcount, setitcount] = useState(0);
     const [stepcount, setstepcount] = useState(0);
     const [colors, setcolors] = useState([]);
+    const [filename, setfilename] = useState("results.csv");
+
+    const hlink = useRef(null);
 
     const setOptions = () => {
         setitcount(100);
@@ -31,6 +34,17 @@ const StepsCard = (props) => {
 
  
     const handlerunshow = () => setShowrunmodal(true);
+
+    const getresults = () => {
+        API.getResults(props.sim).then(data => {
+            setfilename(data.filename);
+            const href = window.URL.createObjectURL(data.blob);
+            const a = hlink.current;
+            a.href = href;
+            a.click();
+            a.href = '';
+        }).catch(err => console.error(err));
+    }
 
     const handlerunclose = () => {
         setShowrunmodal(false);
@@ -54,7 +68,8 @@ const StepsCard = (props) => {
         <Card className="mb-2 mx-n2">
             <Card.Header>
                 <Card.Title>Steps
-                    <Button size="sm" className="btn btn-primary float-right">Export Results</Button>
+                    <Button size="sm" className="btn btn-primary float-right" onClick={getresults} disabled={nostep}>Export Results</Button>
+                    <a ref={hlink} download={filename}/>
                     <Button size="sm" className="btn btn-primary float-right mr-2" onClick={handlerunshow} disabled={nostep}>Run</Button>
                 </Card.Title></Card.Header>
             <Card.Body className="small">

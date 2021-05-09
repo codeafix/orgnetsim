@@ -9,11 +9,13 @@ The simulator is created from a Network of Agents. The Network itself can be any
 
 [srvr](srvr/README.md) The organisation network simulator web server
 
+[web](web.README.md) A REACT based front-end for the simulator
+
 ## Command line utility
 
 [orgnetsim](orgnetsim/README.md) A command line utility for parsing lists and creating networks
 
 ## TODOs
 - [X] Integrate into a web service
-- [ ] Add web UI for orgnetsim application
+- [X] Add web UI for orgnetsim application
 - [ ] Create a network visualiser using D3

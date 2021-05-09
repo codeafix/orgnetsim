@@ -11,10 +11,11 @@ Commands:
 
 Reads in a csv or tsv and converts into an orgnetsim network saved in json format.
 ```
-    serve <rootpath> [-p <port>]
+    serve <rootpath> <webdir> [-p <port>]
 ```
 
 Starts an orgnetsim server that persists simulations in the folder specified by <rootpath>.
+Serves static web files from the folder specified by <webdir>.
 
 `-help`
 Prints this message.
@@ -98,13 +99,16 @@ Prints this message.
 ## orgnetsim serve
 Usage:
 ```
-      orgnetsim serve <rootpath> [-p <port>]
+      orgnetsim serve <rootpath> <webdir> [-p <port>]
       orgnetsim serve -help
 ```
 
 `<rootpath>`
 is a folder where the server will store all resources that are created and updated by the
 orgnetsim routes
+
+`<webdir>`
+is a folder where the static files for a web front end are served from.
 
 `-p`
 Specifies the port that the server will listen on. The default is 8080.

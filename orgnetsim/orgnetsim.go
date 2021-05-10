@@ -1,9 +1,14 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 )
+
+//go:embed web/*
+var efs embed.FS
 
 func main() {
 	if len(os.Args) <= 1 || os.Args[1] == "-help" {
@@ -15,7 +20,9 @@ func main() {
 	case "parse":
 		Parse()
 	case "serve":
-		Serve()
+		webfs, err := fs.Sub(efs, "web")
+		check(err)
+		Serve(webfs)
 	default:
 		fmt.Printf("Unrecognised command line: %s\n\n", os.Args[1])
 		printUsage()

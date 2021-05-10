@@ -99,7 +99,7 @@ Prints this message.
 ## orgnetsim serve
 Usage:
 ```
-      orgnetsim serve <rootpath> <webdir> [-p <port>]
+      orgnetsim serve <rootpath> [-s <webdir>] [-p <port>]
       orgnetsim serve -help
 ```
 
@@ -107,10 +107,11 @@ Usage:
 is a folder where the server will store all resources that are created and updated by the
 orgnetsim routes
 
-`<webdir>`
-is a folder where the static files for a web front end are served from.
+`-s <webdir>`
+is a folder where the static files for a web front end are served from. This is an optional
+parameter. The default is to serve the embedded web site.
 
-`-p`
+`-p <port>`
 Specifies the port that the server will listen on. The default is 8080.
 
 `-help`

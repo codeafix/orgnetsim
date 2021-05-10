@@ -39,7 +39,8 @@ func TestServeReturnsFalseForHelp(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 	os.Args = []string{"orgnetsim", "serve", "-help"}
-	success, so := serveCommandLineOptions()
+	success, staticDir, so := serveCommandLineOptions()
 	IsFalse(t, success, "-help not returning false")
 	AreEqual(t, so.Port, "8080", "Incorrect default port")
+	AreEqual(t, staticDir, "", "Default staticDir should be empty")
 }

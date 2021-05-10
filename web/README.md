@@ -1,3 +1,10 @@
+This is the web front end for the orgnetsim utility. This website is embedded and automatically
+served by the orgnetsim application, but is basically a standard REACT application.
+
+There are several ways to run the front-end. You can use the orgnetsim server to serve the embedded
+version (default behaviour). You can override the default embedded version and specify a directory
+which contains the built project, or you can run using the standard run scripts as below.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts

@@ -11,7 +11,7 @@ Commands:
 
 Reads in a csv or tsv and converts into an orgnetsim network saved in json format.
 ```
-    serve <rootpath> <webdir> [-p <port>]
+    serve <rootpath> [-s <webdir>] [-p <port>]
 ```
 
 Starts an orgnetsim server that persists simulations in the folder specified by <rootpath>.

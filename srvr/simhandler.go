@@ -1,7 +1,13 @@
 package srvr
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
+	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/codeafix/orgnetsim/sim"
 	"github.com/spaceweasel/mango"
@@ -20,10 +26,17 @@ type SimHandler interface {
 	Put(c *mango.Context)
 	GetStepsOrResults(c *mango.Context)
 	GetResults(c *mango.Context)
-	RunOrGenerateNetwork(c *mango.Context)
+	RunGenerateParseNetwork(c *mango.Context)
 	PostRun(siminfo *SimInfo, c *mango.Context)
 	GenerateNetwork(siminfo *SimInfo, c *mango.Context)
 	DeleteStep(c *mango.Context)
+}
+
+//ParseBody is the payload struct for uploading a network in a text file to be parsed
+//together with the options that specify how to parse the text file
+type ParseBody struct {
+	sim.ParseOptions
+	Payload []byte
 }
 
 //NewSimHandler returns a new instance of SimHandler
@@ -43,7 +56,7 @@ func (sh *SimHandlerState) Register(r *mango.Router) {
 	r.Get("/api/simulation/{sim_id}", sh.Get)
 	r.Put("/api/simulation/{sim_id}", sh.Put)
 	r.Get("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.GetStepsOrResults)
-	r.Post("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.RunOrGenerateNetwork)
+	r.Post("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.RunGenerateParseNetwork)
 	r.Delete("/api/simulation/{sim_id}/step/{step_id}", sh.DeleteStep)
 }
 
@@ -68,42 +81,92 @@ func (sh *SimHandlerState) GetStepsOrResults(c *mango.Context) {
 		sh.GetList(siminfo, c, "step")
 		return
 	case "results":
+		for _, header := range c.Request.Header[http.CanonicalHeaderKey("content-type")] {
+			if header == "text/csv" {
+				sh.GetResultsCsv(c)
+				return
+			}
+		}
 		sh.GetResults(c)
 		return
 	default:
 		c.Error("Not Found", http.StatusNotFound)
 	}
-	return
 }
 
-//GetResults gets a concatenated set of results from all the steps in this simulation
-func (sh *SimHandlerState) GetResults(c *mango.Context) {
-	siminfo := sh.readSiminfo(c)
-	if siminfo == nil {
-		return
+//GetResultsCsv returns a concatenated set of results from all the steps in this simulation in text/csv format
+func (sh *SimHandlerState) GetResultsCsv(c *mango.Context) {
+	results, name, err := sh.collectAllResults(c)
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	}
+	if results.Iterations == 0 {
+		c.RespondWith("this simulation has no iterations").WithStatus(http.StatusBadRequest)
+	}
+	var buffer bytes.Buffer
+
+	maxColors := len(results.Colors[0])
+	for c := 0; c < maxColors; c++ {
+		buffer.WriteString(fmt.Sprintf("%s,", sim.Color(c).String()))
+	}
+	buffer.WriteString("Conversations\n")
+
+	for i := 0; i < results.Iterations; i++ {
+		for j := 0; j < maxColors; j++ {
+			buffer.WriteString(fmt.Sprintf("%d,", results.Colors[i][j]))
+		}
+		buffer.WriteString(fmt.Sprintf("%d\n", results.Conversations[i]))
+	}
+
+	r := c.RespondWith(buffer.String())
+	r.WithContentType("text/csv")
+	r.WithHeader(http.CanonicalHeaderKey("Content-Disposition"), fmt.Sprintf("attachment; filename=\"%s.csv\"; filename*=\"%s.csv\"", name, name))
+	r.WithStatus(http.StatusOK)
+
+}
+
+//GetResults returns a concatenated set of results from all the steps in this simulation in JSON format
+func (sh *SimHandlerState) GetResults(c *mango.Context) {
+	results, _, err := sh.collectAllResults(c)
+	if err != nil {
+		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+	}
+	c.RespondWith(results).WithStatus(http.StatusOK)
+}
+
+//collectAllResults gets a concatenated set of results from all the steps in this simulation
+func (sh *SimHandlerState) collectAllResults(c *mango.Context) (sim.Results, string, error) {
+	siminfo := sh.readSiminfo(c)
 	results := sim.Results{
 		Iterations:    0,
 		Colors:        [][]int{},
 		Conversations: []int{},
 	}
+	if siminfo == nil {
+		return results, "", errors.New("unable to read simulation")
+	}
+
 	for _, spath := range siminfo.Steps {
 		step := NewSimStepFromRelPath(spath)
 		objUpdater := sh.ListHandlerState.FileManager.Get(step.Filepath())
 		err := objUpdater.Read(step)
 		if err != nil {
-			c.Error(err.Error(), http.StatusInternalServerError)
-			return
+			return results, "", err
 		}
 		results.Iterations += step.Results.Iterations
 		results.Colors = append(results.Colors, step.Results.Colors...)
 		results.Conversations = append(results.Conversations, step.Results.Conversations...)
 	}
-	c.RespondWith(results).WithStatus(http.StatusOK)
+	return results, siminfo.Name, nil
 }
 
-//RunOrGenerateNetwork gets the list of steps in this simulation
-func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
+//RunGenerateParseNetwork handles three possible routes:
+// /simulation/{id}/run Runs the simulation for the specified number of steps and iterations.
+// /simulation/{id}/generate Generates a network to simulate, this will throw if the
+//simulation already has steps.
+// /simulation/{id}/parse Parses a network specified in a text file and sets it as the
+//network to simulate. This will throw if the simulation already has steps.
+func (sh *SimHandlerState) RunGenerateParseNetwork(c *mango.Context) {
 	siminfo := sh.readSiminfo(c)
 	if siminfo == nil {
 		return
@@ -115,10 +178,12 @@ func (sh *SimHandlerState) RunOrGenerateNetwork(c *mango.Context) {
 	case "generate":
 		sh.GenerateNetwork(siminfo, c)
 		return
+	case "parse":
+		sh.ParseNetwork(siminfo, c)
+		return
 	default:
 		c.Error("Not Found", http.StatusNotFound)
 	}
-	return
 }
 
 //RunSpec specifies the number of simulation steps to run, and the number of
@@ -147,6 +212,11 @@ func (sh *SimHandlerState) PostRun(siminfo *SimInfo, c *mango.Context) {
 	ls := NewSimStepFromRelPath(siminfo.Steps[len(siminfo.Steps)-1])
 	objUpdater := sh.ListHandlerState.FileManager.Get(ls.Filepath())
 	err = objUpdater.Read(ls)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = ls.Network.PopulateMaps()
 	if err != nil {
 		c.Error(err.Error(), http.StatusInternalServerError)
 		return
@@ -190,25 +260,76 @@ func (sh *SimHandlerState) GenerateNetwork(siminfo *SimInfo, c *mango.Context) {
 		c.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
-	step := CreateSimStep(savedsiminfo.ID)
+	sh.createFirstSimStep(savedsiminfo, rm, c)
+}
+
+//createFirstSimStep creates a first simulation step in the passed simulation
+//assigns the passed network to it and saves it all
+func (sh *SimHandlerState) createFirstSimStep(siminfo *SimInfo, rm sim.RelationshipMgr, c *mango.Context) {
+	step := CreateSimStep(siminfo.ID)
 	step.Network = rm
 	step.Results = sim.Results{
 		Iterations:    0,
-		Colors:        make([][]int, 1, 1),
-		Conversations: make([]int, 1, 1),
+		Colors:        make([][]int, 1),
+		Conversations: make([]int, 1),
 	}
 	agents := rm.Agents()
-	colorCounts := make([]int, rm.MaxColors(), rm.MaxColors())
+	colorCounts := make([]int, rm.MaxColors())
 	for _, a := range agents {
 		colorCounts[a.GetColor()]++
 	}
 	step.Results.Colors[0] = colorCounts
-	err = sh.AddItem(step, savedsiminfo, c, "step")
+	err := sh.AddItem(step, siminfo, c, "step")
 	if err != nil {
 		c.Error(err.Error(), http.StatusInternalServerError)
 	} else {
 		c.RespondWith(step).WithStatus(http.StatusCreated)
 	}
+}
+
+//ParseNetwork parses a network from a text file uploaded in the body of the post.
+//The network is modified according to the options already stored in the simulation
+//and then set as the starting point for the simulation. This will throw if a
+//the simulation already has steps.
+func (sh *SimHandlerState) ParseNetwork(siminfo *SimInfo, c *mango.Context) {
+	of := ParseBody{}
+	err := c.Bind(&of)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(siminfo.Steps) > 0 {
+		c.Error("Simulation must have no steps when parsing a new network", http.StatusBadRequest)
+		return
+	}
+	r := []string{}
+	br := bytes.NewReader(of.Payload)
+	s := bufio.NewScanner(br)
+	for s.Scan() {
+		r = append(r, s.Text())
+	}
+	err = s.Err()
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	seed := time.Now().UnixNano()
+	rand.Seed(int64(seed))
+
+	rm, err := of.ParseDelim(r)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	crm, err := siminfo.Options.CloneModify(rm)
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sh.createFirstSimStep(siminfo, crm, c)
 }
 
 //readSiminfo reads the SimInfo object specifed by the Id in the route

@@ -57,7 +57,7 @@ func NewSimStepFromRelPath(relPath string) *SimStep {
 func (ss *SimStep) CopyValues(obj Persistable) error {
 	ssToCopy, ok := obj.(*SimStep)
 	if !ok {
-		return fmt.Errorf("Failed to copy values")
+		return fmt.Errorf("failed to copy values")
 	}
 	ss.Network = ssToCopy.Network
 	ss.Results = ssToCopy.Results

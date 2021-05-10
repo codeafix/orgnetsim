@@ -1,6 +1,10 @@
 package srvr
 
-import "github.com/spaceweasel/mango"
+import (
+	"strings"
+
+	"github.com/spaceweasel/mango"
+)
 
 //SimListHandlerState holds state data for the SimListHandler
 type SimListHandlerState struct {
@@ -17,9 +21,16 @@ type SimListHandler interface {
 	DeleteSimulation(c *mango.Context)
 }
 
+//SimListExt is the struct that embeds SimInfo objects into the SimList
+type SimListExt struct {
+	TimestampHolder
+	Items []*SimInfo `json:"simulations"`
+	Notes string     `json:"notes"`
+}
+
 //NewSimListHandler returns a new instance of SimListHandler
 func NewSimListHandler(fm FileManager) SimListHandler {
-	return &SimListHandlerState{
+	sh := &SimListHandlerState{
 		ListHandlerState{
 			FileManager: fm,
 		},
@@ -27,6 +38,30 @@ func NewSimListHandler(fm FileManager) SimListHandler {
 			FileManager: fm,
 		},
 	}
+	sh.ListHandlerState.EncodeFunc = sh.EncodeFunc
+	return sh
+}
+
+func (sh *SimListHandlerState) EncodeFunc(listHolder ListHolder, listname string) (interface{}, error) {
+	paths := listHolder.GetItems(listname)
+	items := []*SimInfo{}
+	for _, path := range paths {
+		elems := strings.Split(path, "/")
+		newItem := NewSimInfo(elems[len(elems)-1])
+		itemUpdater := sh.ListHandlerState.FileManager.Get(newItem.Filepath())
+		err := itemUpdater.Read(newItem)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, newItem)
+	}
+	return SimListExt{
+		TimestampHolder: TimestampHolder{
+			Stamp: listHolder.Timestamp(),
+		},
+		Notes: listHolder.(*SimList).Notes,
+		Items: items,
+	}, nil
 }
 
 //Register the routes for this routehandler

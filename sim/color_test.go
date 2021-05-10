@@ -9,5 +9,4 @@ func TestRandomlySelectAlternateColor(t *testing.T) {
 		NotEqual(t, Grey, color, "Grey randomly selected")
 		NotEqual(t, currentColor, color, "Existing Color randomly selected")
 	}
-	return
 }

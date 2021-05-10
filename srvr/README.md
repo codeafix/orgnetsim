@@ -30,6 +30,12 @@ There should be no existing steps within the simulation otherwise this request w
 Returns the created first step that contains the generated network and the initial color
 results for the generated network.
 
+### `POST /api/simulation/{sim_id}/parse`
+Parses a network from a byte array to be simulated in an existing simulation.
+There should be no existing steps within the simulation otherwise this request will fail.
+Returns the created first step that contains the generated network and the initial color
+results for the generated network.
+
 ### `POST /api/simulation/{sim_id}/run`
 Runs the simulation for a specified number of steps, each step runs a specified number of 
 iterations.

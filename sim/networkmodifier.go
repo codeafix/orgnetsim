@@ -43,7 +43,7 @@ func (o *NetworkOptions) AddTeamPeerLinks(rm RelationshipMgr) error {
 			for j := i + 1; j < teamSize; j++ {
 				err = addLink(rm, teamMembers[i], teamMembers[j])
 				if err != nil {
-					return fmt.Errorf("Error linking team peers: %s", err.Error())
+					return fmt.Errorf("error linking team peers: %s", err.Error())
 				}
 			}
 		}
@@ -63,7 +63,7 @@ func (o *NetworkOptions) AddEvangelists(rm RelationshipMgr) error {
 				agent.State().Color = Blue
 				agent.State().Susceptability = 5.0
 			} else {
-				return fmt.Errorf("Unrecognised entry in Evangelist List: %s", id1)
+				return fmt.Errorf("unrecognised entry in Evangelist List: %s", id1)
 			}
 		}
 	}
@@ -81,7 +81,7 @@ func (o *NetworkOptions) LinkTeams(rm RelationshipMgr) error {
 				id2 := o.LinkedTeamList[j]
 				err = addLink(rm, id1, id2)
 				if err != nil {
-					return fmt.Errorf("Unrecognised entry in LinkTeams List: %s", err.Error())
+					return fmt.Errorf("unrecognised entry in LinkTeams List: %s", err.Error())
 				}
 			}
 		}
@@ -108,7 +108,7 @@ func (o *NetworkOptions) AddLoneEvangelist(rm RelationshipMgr) error {
 		for i := 1; i < leTeamSize; i++ {
 			err = addLink(rm, agent.Identifier(), o.LoneEvangelist[i])
 			if err != nil {
-				return fmt.Errorf("Unrecognised entry in LoneEvangelist List: %s", err.Error())
+				return fmt.Errorf("unrecognised entry in LoneEvangelist List: %s", err.Error())
 			}
 		}
 	}
@@ -119,11 +119,11 @@ func (o *NetworkOptions) AddLoneEvangelist(rm RelationshipMgr) error {
 func addLink(rm RelationshipMgr, id1 string, id2 string) error {
 	a1 := rm.GetAgentByID(id1)
 	if a1 == nil {
-		return fmt.Errorf("Unrecognised Agent Id '%s'", id1)
+		return fmt.Errorf("unrecognised Agent Id '%s'", id1)
 	}
 	a2 := rm.GetAgentByID(id2)
 	if a2 == nil {
-		return fmt.Errorf("Unrecognised Agent Id '%s'", id2)
+		return fmt.Errorf("unrecognised Agent Id '%s'", id2)
 	}
 	rm.AddLink(a1, a2)
 	return nil

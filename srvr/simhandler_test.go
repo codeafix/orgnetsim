@@ -1,9 +1,11 @@
 package srvr
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -76,7 +78,7 @@ func TestGetSimSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, simfu.Obj.(*SimInfo).Name, rsim.Name, "Wrong name in returned SimInfo")
 	AreEqual(t, simfu.Obj.(*SimInfo).Description, rsim.Description, "Wrong description in returned SimInfo")
@@ -100,7 +102,7 @@ func TestGetSimStepsSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, 3, len(rsim.Steps), "Wrong number of Steps in returned SimInfo")
 	AreEqual(t, steps[0], rsim.Steps[0], "Wrong Step 0 in returned SimInfo")
@@ -119,7 +121,7 @@ func TestUpdateSimSuccess(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, "myUpdatedSim", rsim.Name, "Wrong name in returned SimInfo")
 	AreEqual(t, "A description of mySavedSim", rsim.Description, "Wrong description in returned SimInfo")
@@ -164,15 +166,53 @@ func TestGenerateNetworkFailsIfStepsExist(t *testing.T) {
 	AreEqual(t, "Simulation must have no steps when generating a new network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
 }
 
+func TestParseNetworkFailsIfStepsExist(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(0)
+
+	data := []string{
+		"Header row is always skipped ,check_this_is_not_an_Id,,\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Strips ws around Id, my_id\n",
+		"Blank lines are ignored\n",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 1,
+			Parent:     3,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad Request")
+	AreEqual(t, "Simulation must have no steps when parsing a new network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
 func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdater, string) {
 	simid := uuid.New().String()
-	sim := NewSimInfo(simid)
-	sim.Name = "mySavedSim"
-	sim.Description = "A description of mySavedSim"
-	sim.Steps = []string{}
+	nsim := NewSimInfo(simid)
+	nsim.Name = "mySavedSim"
+	nsim.Description = "A description of mySavedSim"
+	nsim.Steps = []string{}
+	nsim.Options.LinkedTeamList = []string{}
+	nsim.Options.EvangelistList = []string{}
+	nsim.Options.LoneEvangelist = []string{}
+	nsim.Options.InitColors = []sim.Color{}
 	simfu := &TestFileUpdater{
-		Obj:      sim,
-		Filepath: sim.Filepath(),
+		Obj:      nsim,
+		Filepath: nsim.Filepath(),
 	}
 	tfm := NewTestFileManager(simfu)
 	ssfu := &TestFileUpdater{}
@@ -182,6 +222,51 @@ func CreateSimHandlerBrowser() (*mango.Browser, *TestFileUpdater, *TestFileUpdat
 	br := mango.NewBrowser(r)
 
 	return br, simfu, ssfu, simid
+}
+
+func TestParseNetworkSucceeds(t *testing.T) {
+	br, simfu, ssfu, simid := CreateSimHandlerBrowser()
+	savedsim, ok := simfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	savedsim.Options.MaxColors = 5
+
+	data := []string{
+		"Header always skipped ,check_this_is_not_an_Id\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Strips ws around Id, my_id\n",
+		"Blank lines are ignored\n",
+		"First agent, agent_1, some text,,\n",
+		"Second agent, agent_2, more text, agent_1,\n",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 1,
+			Parent:     3,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	AreEqual(t, 5, simstep.Network.MaxColors(), "Wrong MaxColors on network")
+	IsTrue(t, simstep.Network.Links() != nil, "Links array is nil")
+	AreEqual(t, len(simstep.Network.Links()), 1, "Links should have a single item")
+	IsTrue(t, simstep.Network.Agents() != nil, "Agents array is nil")
+	AreEqual(t, len(simstep.Network.Agents()), 3, "Agents array should have 3 items")
 }
 
 func TestGenerateNetworkSucceeds(t *testing.T) {
@@ -203,7 +288,6 @@ func TestGenerateNetworkSucceeds(t *testing.T) {
 	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
 	simstep, ok := ssfu.Obj.(*SimStep)
 	IsTrue(t, ok, "Saved object would not cast to *SimStep")
-	IsFalse(t, simstep == nil, "SimStep not created")
 	AreEqual(t, 4, simstep.Network.MaxColors(), "Wrong MaxColors on network")
 	AreEqual(t, 3, len(simstep.Network.Agents()), "Wrong number of agents on network")
 	AreEqual(t, 4, len(simstep.Results.Colors[0]), "Wrong number of Colors in Color results array")
@@ -299,7 +383,7 @@ func CreateResults(iterations, maxColors int) sim.Results {
 	}
 	for i := 0; i < iterations; i++ {
 		results.Conversations[i] = i + 1
-		colorCounts := make([]int, maxColors, maxColors)
+		colorCounts := make([]int, maxColors)
 		for j := 0; j < maxColors; j++ {
 			colorCounts[j] = i + j
 		}
@@ -352,7 +436,7 @@ func TestGetResultsSucceeds(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 	rs := &sim.Results{}
-	json.Unmarshal([]byte(resp.Body.String()), rs)
+	json.Unmarshal(resp.Body.Bytes(), rs)
 	AreEqual(t, 6, rs.Iterations, "Wrong number of iterations")
 	AreEqual(t, 1, rs.Conversations[0], "Wrong conversation count")
 	AreEqual(t, 1, rs.Conversations[1], "Wrong conversation count")
@@ -366,4 +450,59 @@ func TestGetResultsSucceeds(t *testing.T) {
 	AreEqual(t, 3, rs.Colors[3][3], "Wrong color count")
 	AreEqual(t, 4, rs.Colors[4][3], "Wrong color count")
 	AreEqual(t, 5, rs.Colors[5][3], "Wrong color count")
+}
+
+func TestGetResultsSucceedsAsCsv(t *testing.T) {
+	br, simid := CreateSimHandlerBrowserWithStepsAndResults()
+
+	hdrs := http.Header{
+		"Content-Type": []string{"text/csv"},
+	}
+	resp, err := br.Get(fmt.Sprintf("/api/simulation/%s/results", simid), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
+	csv := resp.Body.String()
+	scanner := bufio.NewScanner(strings.NewReader(csv))
+
+	//check the headers are correct
+	ct := false
+	for _, header := range resp.Header()[http.CanonicalHeaderKey("content-type")] {
+		if header == "text/csv" {
+			ct = true
+			break
+		}
+	}
+	IsTrue(t, ct, "content-type header incorrect or missing")
+	IsTrue(t, len(resp.Header()[http.CanonicalHeaderKey("content-disposition")]) > 0, "content-disposition missing")
+
+	//Read the header line
+	scanner.Scan()
+	endCol := len(strings.Split(scanner.Text(), ",")) - 1
+
+	//convert the csv into an array of int arrays
+	rs := [][]int{}
+	i := 0
+	for scanner.Scan() {
+		strs := strings.Split(scanner.Text(), ",")
+		vals := make([]int, endCol+1)
+		for j, val := range strs {
+			vals[j], _ = strconv.Atoi(val)
+		}
+		rs = append(rs, vals)
+		i++
+	}
+	//Check the results are correct
+	AreEqual(t, 6, len(rs), "Wrong number of iterations")
+	AreEqual(t, 1, rs[0][endCol], "Wrong conversation count")
+	AreEqual(t, 1, rs[1][endCol], "Wrong conversation count")
+	AreEqual(t, 2, rs[2][endCol], "Wrong conversation count")
+	AreEqual(t, 1, rs[3][endCol], "Wrong conversation count")
+	AreEqual(t, 2, rs[4][endCol], "Wrong conversation count")
+	AreEqual(t, 3, rs[5][endCol], "Wrong conversation count")
+	AreEqual(t, 3, rs[0][3], "Wrong color count")
+	AreEqual(t, 3, rs[1][3], "Wrong color count")
+	AreEqual(t, 4, rs[2][3], "Wrong color count")
+	AreEqual(t, 3, rs[3][3], "Wrong color count")
+	AreEqual(t, 4, rs[4][3], "Wrong color count")
+	AreEqual(t, 5, rs[5][3], "Wrong color count")
 }

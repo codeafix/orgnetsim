@@ -41,7 +41,7 @@ func TestReadSimStep(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rs := &SimStep{}
-	json.Unmarshal([]byte(resp.Body.String()), rs)
+	json.Unmarshal(resp.Body.Bytes(), rs)
 	AreEqual(t, ts.ID, rs.ID, "Wrong object returned")
 	AreEqual(t, ts.ParentID, rs.ParentID, "Wrong parent returned")
 }
@@ -120,7 +120,7 @@ func TestUpdateSimStepUpdatesCorrectly(t *testing.T) {
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
 	rs := &SimStep{}
-	json.Unmarshal([]byte(resp.Body.String()), rs)
+	json.Unmarshal(resp.Body.Bytes(), rs)
 	AreEqual(t, ts.ID, rs.ID, "Wrong object returned")
 	AreEqual(t, ts.ParentID, rs.ParentID, "Wrong parent returned")
 	AreEqual(t, 5, rs.Results.Iterations, "Wrong iterations count returned")

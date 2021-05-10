@@ -22,6 +22,7 @@ type ListItem interface {
 //ListHandlerState holds state information for a ListHandler
 type ListHandlerState struct {
 	FileManager FileManager
+	EncodeFunc  func(ListHolder, string) (interface{}, error)
 }
 
 //GetList returns the list of items
@@ -31,7 +32,16 @@ func (lh *ListHandlerState) GetList(listHolder ListHolder, c *mango.Context, lis
 	if err != nil {
 		c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
 	} else {
-		c.RespondWith(listHolder).WithStatus(http.StatusOK)
+		if lh.EncodeFunc != nil {
+			encoded, err := lh.EncodeFunc(listHolder, listname)
+			if err != nil {
+				c.RespondWith(err.Error()).WithStatus(http.StatusInternalServerError)
+			} else {
+				c.RespondWith(encoded).WithStatus(http.StatusOK)
+			}
+		} else {
+			c.RespondWith(listHolder).WithStatus(http.StatusOK)
+		}
 	}
 }
 

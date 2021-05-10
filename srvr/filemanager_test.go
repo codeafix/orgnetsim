@@ -50,27 +50,27 @@ func TestConcurrentGetFromFileManager(t *testing.T) {
 	g2success := make(chan bool)
 
 	for i := 0; i < 100; i++ {
-		go func() {
+		go func(count int) {
 			<-hold
-			file := fmt.Sprintf("dir/file%d.json", i)
+			file := fmt.Sprintf("dir/file%d.json", count)
 			path := filepath.Join(root, file)
 			fu := fm.Get(file)
 			fu2 := fm.Get(file)
 			g1success <- fu.Path() == path && fu == fu2
-		}()
+		}(i)
 	}
 
 	for i := 0; i < 100; i++ {
-		go func() {
+		go func(count int) {
 			<-hold
-			file := fmt.Sprintf("dir/file%d.json", i)
+			file := fmt.Sprintf("dir/file%d.json", count)
 			path := filepath.Join(root, file)
 			r := rand.Intn(10)
 			time.Sleep(time.Duration(r) * time.Nanosecond)
 			fu := fm.Get(file)
 			fu2 := fm.Get(file)
 			g2success <- fu.Path() == path && fu == fu2
-		}()
+		}(i)
 	}
 
 	close(hold)

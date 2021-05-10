@@ -20,7 +20,14 @@ type SimInfo struct {
 //CreateSimInfo creates a new SimInfo object with a new ID
 func CreateSimInfo() *SimInfo {
 	return &SimInfo{
-		ID: uuid.New().String(),
+		ID:    uuid.New().String(),
+		Steps: []string{},
+		Options: sim.NetworkOptions{
+			EvangelistList: []string{},
+			InitColors:     []sim.Color{sim.Grey},
+			LinkedTeamList: []string{},
+			MaxColors:      2,
+		},
 	}
 }
 
@@ -36,7 +43,7 @@ func NewSimInfo(id string) *SimInfo {
 func (si *SimInfo) CopyValues(obj Persistable) error {
 	siToCopy, ok := obj.(*SimInfo)
 	if !ok {
-		return fmt.Errorf("Failed to copy values")
+		return fmt.Errorf("failed to copy values")
 	}
 	si.Name = siToCopy.Name
 	si.Description = siToCopy.Description

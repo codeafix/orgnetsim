@@ -44,7 +44,7 @@ func TestUpdateSimListNotesSuccess(t *testing.T) {
 	AreEqual(t, "/api/simulation/{someIdHere}", slfu.Obj.(*SimList).Items[0], "Sim list changed when updating notes")
 
 	rsl := &SimList{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsl)
+	err = json.Unmarshal(resp.Body.Bytes(), rsl)
 	AssertSuccess(t, err)
 	AreEqual(t, 1, len(rsl.Items), "There should be one item in the returned list")
 	AreEqual(t, "/api/simulation/{someIdHere}", rsl.Items[0], "Returned Sim list changed when updating notes")
@@ -59,10 +59,14 @@ func TestGetSimList(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
-	rsl := NewSimList()
-	json.Unmarshal([]byte(resp.Body.String()), rsl)
+	rsl := &SimListExt{
+		TimestampHolder: TimestampHolder{},
+		Items:           []*SimInfo{},
+		Notes:           "",
+	}
+	json.Unmarshal(resp.Body.Bytes(), rsl)
 	AreEqual(t, 1, len(rsl.Items), "Wrong number of items in returned list")
-	AreEqual(t, "/api/simulation/{someIdHere}", rsl.Items[0], "Wrong item in list")
+	AreEqual(t, "{someIdHere}", rsl.Items[0].ID, "Wrong item in list")
 	AreEqual(t, "Some notes", rsl.Notes, "Wrong notes")
 }
 
@@ -74,7 +78,7 @@ func TestGetSimListReturnErrorWhenReadFails(t *testing.T) {
 	resp, err := br.Get("/api/simulation", hdrs)
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusInternalServerError, resp.Code, "Not Error")
-	AreEqual(t, "Access denied", resp.Body.String(), "Wrong notes")
+	AreEqual(t, "Access denied", resp.Body.String(), "Incorrect error message")
 }
 
 func TestAddSimToSimListSuccess(t *testing.T) {
@@ -91,7 +95,7 @@ func TestAddSimToSimListSuccess(t *testing.T) {
 	AreEqual(t, fmt.Sprintf("/api/simulation/%s", dfu.Obj.(*SimInfo).ID), slfu.Obj.(*SimList).Items[1], "Wrong path added to sim list")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, dfu.Obj.(*SimInfo).ID, rsim.ID, "ID of returned SimInfo incorrect")
 	AreEqual(t, "mySim", rsim.Name, "Name of returned SimInfo incorrect")
@@ -113,7 +117,7 @@ func TestAddsSimToEmptySimListSuccess(t *testing.T) {
 	AreEqual(t, fmt.Sprintf("/api/simulation/%s", dfu.Obj.(*SimInfo).ID), slfu.Obj.(*SimList).Items[0], "Wrong path added to sim list")
 
 	rsim := &SimInfo{}
-	err = json.Unmarshal([]byte(resp.Body.String()), rsim)
+	err = json.Unmarshal(resp.Body.Bytes(), rsim)
 	AssertSuccess(t, err)
 	AreEqual(t, dfu.Obj.(*SimInfo).ID, rsim.ID, "ID of returned SimInfo incorrect")
 	AreEqual(t, "mySim", rsim.Name, "Name of returned SimInfo incorrect")

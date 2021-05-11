@@ -1,23 +1,36 @@
 const Color = {
+    nameArray: [
+        "Grey",
+        "Blue",
+        "Red",
+        "Green",
+        "Yellow",
+        "Orange",
+        "Purple",
+    ],
+
+    cssColorArray: [
+        "SlateGray",
+        "Blue",
+        "Red",
+        "LawnGreen",
+        "Yellow",
+        "Orange",
+        "Purple"
+    ],
+    
     colorFromVal: function(color) {
-        switch(color) {
-            case 0:
-                return "Grey";
-            case 1:
-                return "Blue";
-            case 2:
-                return "Red";
-            case 3:
-                return "Green";
-            case 4:
-                return "Yellow";
-            case 5:
-                return "Orange";
-            case 6:
-                return "Purple";
-            default:
-                return "Invalid Color";
+        if (color >= 0 && color < this.nameArray.length){
+            return this.nameArray[color];
         }
+        return "Invalid Color";
+    },
+
+    cssColorFromVal: function(color) {
+        if (color >= 0 && color < this.nameArray.length){
+            return this.cssColorArray[color];
+        }
+        return this.cssColorArray[0];
     }
 }
 

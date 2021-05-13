@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {Card, Table, Button, Modal, Form} from 'react-bootstrap';
+import AgentColorChart from './AgentColorChart'
 import API from '../api';
 import Color from './Color';
 
@@ -31,12 +32,11 @@ const StepsCard = (props) => {
         }
         setcolors(culrs);
     },[props.sim]);
-
  
     const handlerunshow = () => setShowrunmodal(true);
 
     const getresults = () => {
-        API.getResults(props.sim).then(data => {
+        API.getResultsCsv(props.sim).then(data => {
             setfilename(data.filename);
             const href = window.URL.createObjectURL(data.blob);
             const a = hlink.current;
@@ -73,7 +73,8 @@ const StepsCard = (props) => {
                     <Button size="sm" className="btn btn-primary float-right mr-2" onClick={handlerunshow} disabled={nostep}>Run</Button>
                 </Card.Title></Card.Header>
             <Card.Body className="small">
-                <Table className="m-n3" striped bordered size="sm">
+                <AgentColorChart sim={props.sim}/>
+                <Table className="ml-n3 mr-n3 mb-n3" striped bordered size="sm">
                     <thead>
                         <tr>
                             <th>Iterations</th>

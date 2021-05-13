@@ -5,8 +5,7 @@ const API = {
         const response = await fetch(this.rootPath+"/api/simulation", {
         "method": "GET",
         "headers": {}
-        })
-        .catch(err => { console.log(err); 
+        }).catch(err => { console.log(err); 
         });
         return response.json();
     },
@@ -14,21 +13,28 @@ const API = {
         const response = await fetch(this.rootPath+"/api/simulation/"+id, {
             "method": "GET",
             "headers": {}
-            })
-            .catch(err => { console.log(err); 
-            });
-            return response.json();
+            }).catch(err => { console.log(err); 
+        });
+        return response.json();
     },
     getStep: async function(path){
         const response = await fetch(this.rootPath+path, {
             "method": "GET",
             "headers": {}
-            })
-            .catch(err => { console.log(err); 
-            });
-            return response.json();
+            }).catch(err => { console.log(err); 
+        });
+        return response.json();
     },
     getResults: async function(sim){
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
+            "method": "GET",
+            "headers": {}
+            }).catch(err => { console.log(err); 
+        });
+        
+        return response.json();
+    },
+    getResultsCsv: async function(sim){
         var fn = "results.csv";
         const data = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
             "method": "GET",

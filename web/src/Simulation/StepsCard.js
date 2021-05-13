@@ -74,7 +74,7 @@ const StepsCard = (props) => {
                 </Card.Title></Card.Header>
             <Card.Body className="small">
                 <AgentColorChart sim={props.sim}/>
-                <Table className="m-n3" striped bordered size="sm">
+                <Table className="ml-n3 mr-n3 mb-n3" striped bordered size="sm">
                     <thead>
                         <tr>
                             <th>Iterations</th>

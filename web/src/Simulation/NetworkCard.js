@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Card, Form, Modal, FormControl, Button} from 'react-bootstrap'
 import API from '../api';
+import NetworkGraph from './NetworkGraph';
 
 const NetworkCard = (props) => {
     const [idcol, setidcol] = useState(0);
@@ -53,6 +54,9 @@ const NetworkCard = (props) => {
     return(
         <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)} disabled={hasstep}>Import</Button></Card.Title></Card.Header>
+            <Card.Body>
+                <NetworkGraph sim={props.sim}/>
+            </Card.Body>
             <Modal
                 show={showimpmodal}
                 onHide={handleimpclose}

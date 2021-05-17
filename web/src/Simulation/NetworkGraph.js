@@ -3,10 +3,24 @@ import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX,
 import Color from './Color';
 import API from '../api';
 import Spinner from 'react-bootstrap/Spinner';
+import ToggleButton from 'react-bootstrap/ToggleButton';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 const NetworkGraph = (props) => {
     const graph = useRef(null);
     const [loading, setloading] = useState(false);
+    const [layout, setlayout] = useState(false);
+    const [run, setrun] = useState({stopped:true, sim:null});
+
+    const runsim = (enable) => {
+        setlayout(enable);
+        run.stopped = !enable;
+        if(enable){
+            run.sim.restart();
+        }else{
+            run.sim.stop();
+        }
+    };
 
     const createGraph = (network) => {
         const margin = {top: 0, right: 0, bottom: 0, left: 0},
@@ -18,7 +32,7 @@ const NetworkGraph = (props) => {
         const width = 1024, height = 768;
 
         const resize = () => {
-            const w = graph.current.parentElement.offsetWidth,
+            var w = graph.current.parentElement.offsetWidth,
                 h = Math.round((w -  margin.left - margin.right)/1.6);
             select(graph.current).attr('width', w)
                 .attr('height', h);
@@ -41,7 +55,7 @@ const NetworkGraph = (props) => {
             .force("center", forceCenter(width / 2, height / 2))
             .force("xAxis", forceX().strength(0.01).x((width)/2))
             .force("yAxis", forceY().strength(0.01).y((height)/2));
-        
+
         const networkGraph = svg.append('svg:g').attr('class','grpParent');
 
         const zoomed = (event) => {
@@ -100,20 +114,25 @@ const NetworkGraph = (props) => {
       
         simulation.force("link")
             .links(network.links);
-
+        
+        run.sim = simulation;
+        runsim(false);
         
         function dragstarted(event, d) {
+            if(run.stopped) return;
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         };
             
         function dragged(event, d) {
+            if(run.stopped) return;
             d.fx = event.x;
             d.fy = event.y;
         };
             
         function dragended(event, d) {
+            if(run.stopped) return;
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
@@ -145,6 +164,9 @@ const NetworkGraph = (props) => {
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
             <svg class="mb-3" ref={graph}/>
+            <ButtonGroup size="sm" toggle className="btn btn-primary float-right" >
+                <ToggleButton type="checkbox" checked={layout} onChange={(e) => runsim(e.currentTarget.checked)}>{layout ? 'Click to save' : 'Click to layout'}</ToggleButton>
+            </ButtonGroup>
         </div>
 }
 

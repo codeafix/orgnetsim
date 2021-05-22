@@ -10,6 +10,7 @@ const NetworkGraph = (props) => {
     const graph = useRef(null);
     const [loading, setloading] = useState(false);
     const [layout, setlayout] = useState(false);
+    const [step, setstep] = useState();
     const [run, setrun] = useState({stopped:true, sim:null});
 
     const runsim = (enable) => {
@@ -19,7 +20,36 @@ const NetworkGraph = (props) => {
             run.sim.restart();
         }else{
             run.sim.stop();
+            savegraph();
         }
+    };
+
+    const savegraph = () => {
+        if(!run.sim || !step) return;
+
+        var graphnodes = run.sim.nodes();
+        var netnodes = step.network.nodes;
+        for(var i = 0; i < graphnodes.length; i++) {
+            var uinode = graphnodes[i];
+            var netnode = netnodes[i];
+            netnode.fx = uinode.x;
+            netnode.fy = uinode.y
+        }
+        var links = [];
+        var graphlinks = run.sim.force("link").links();
+        for(var i = 0; i < graphlinks.length; i++) {
+            var link = {
+                source: graphlinks[i].source.id,
+                target: graphlinks[i].target.id,
+            };
+            links.push(link);
+        }
+        step.network.links = links;
+        var response = API.updateStep(step);
+        response.then(updatedstep => setstep(updatedstep)
+        ).catch(err => {
+            console.log(err);
+        });
     };
 
     const createGraph = (network) => {
@@ -117,6 +147,8 @@ const NetworkGraph = (props) => {
         
         run.sim = simulation;
         runsim(false);
+        simulation.tick();
+        ticked();
         
         function dragstarted(event, d) {
             if(run.stopped) return;
@@ -153,6 +185,7 @@ const NetworkGraph = (props) => {
         
         const lastStep = props.sim.steps[sl-1];
         API.getStep(lastStep).then(step => {
+            setstep(step);
             createGraph(step.network);
             setloading(false);
         }).catch(err => {

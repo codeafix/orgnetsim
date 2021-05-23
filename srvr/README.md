@@ -41,8 +41,8 @@ Runs the simulation for a specified number of steps, each step runs a specified 
 iterations.
 
 ### `GET /api/simulation/{sim_id}/step`
-Returns the list of steps in this simulation. Currently returns the same as 
-`GET /api/simulation/{sim_id}`
+Returns the list of steps in this simulation. This returns the actual content of the steps
+as opposed to the list of step paths that is returned in `GET /api/simulation/{sim_id}`
 
 ### `GET /api/simulation/{sim_id}/results`
 Returns the concatenated set of results for all the steps in this simulation.

@@ -9,6 +9,7 @@ const AgentColorChart = (props) => {
     const [loading, setloading] = useState(false);
 
     const createChart = (results) => {
+        if(!results['colors'][0]) return;
         const maxColors = props.sim.options['maxColors'];
         const margin = {top: 10, right: 60, bottom: 20, left: 40},
             vwidth = chart.current.parentElement.offsetWidth,

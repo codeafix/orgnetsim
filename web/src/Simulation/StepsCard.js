@@ -31,7 +31,7 @@ const StepsCard = (props) => {
             culrs.push(i);
         }
         setcolors(culrs);
-    },[props.sim]);
+    },[props.sim, props.steps]);
  
     const handlerunshow = () => setShowrunmodal(true);
 
@@ -58,9 +58,7 @@ const StepsCard = (props) => {
             steps: stepcount
         };
         API.runsim(props.sim, spec).then(response => {
-            API.get(response.parent).then(sim => {
-                props.setsim(sim);
-            })
+            props.readsim(response.parent);
         })
     }   
 
@@ -85,7 +83,7 @@ const StepsCard = (props) => {
                         </tr>
                     </thead>
                     <tbody>
-                        <StepsList steps={props.sim.steps}/>
+                        <StepsList steps={props.steps}/>
                     </tbody>
                 </Table>
             </Card.Body>
@@ -133,7 +131,7 @@ const StepsList = (props) => {
     
     return steps.map(step => {        
         return(
-            <StepItem steppath={step}/>
+            <StepItem step={step}/>
         );
     });
 }
@@ -144,17 +142,16 @@ const StepItem = (props) => {
     const [colors, setcolors] = useState([]);
 
     useEffect(() => {
-        API.getStep(props.steppath).then(response => {
-            const step = response;
-            setiterations(step.results.iterations);
-            setconversations(step.results.conversations[iterations]);
-            const culrs = [];
-            for (var i = 0; i < step.network['maxColors']; i++) {
-                culrs.push(step.results.colors[iterations][i]);
-            }
-            setcolors(culrs);
-        });
-    },[props.steppath]);
+        if(!props.step) return;
+        const step = props.step;
+        setiterations(step.results.iterations);
+        setconversations(step.results.conversations[iterations]);
+        const culrs = [];
+        for (var i = 0; i < step.network['maxColors']; i++) {
+            culrs.push(step.results.colors[iterations][i]);
+        }
+        setcolors(culrs);
+    },[props.step]);
     
     return(
         <tr>

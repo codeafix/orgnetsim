@@ -3,8 +3,8 @@ import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX,
 import Color from './Color';
 import API from '../api';
 import Spinner from 'react-bootstrap/Spinner';
-import ToggleButton from 'react-bootstrap/ToggleButton';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import {Button} from 'react-bootstrap';
+import {indexBy} from 'underscore';
 
 const NetworkGraph = (props) => {
     const graph = useRef(null);
@@ -12,6 +12,9 @@ const NetworkGraph = (props) => {
     const [layout, setlayout] = useState(false);
     const [step, setstep] = useState();
     const [run, setrun] = useState({stopped:true, sim:null});
+    const [steps, setsteps] = useState([]);
+    const [running, setrunning] = useState(false);
+    const [runcount, setruncount] = useState(0);
 
     const runsim = (enable) => {
         setlayout(enable);
@@ -50,6 +53,38 @@ const NetworkGraph = (props) => {
         ).catch(err => {
             console.log(err);
         });
+    };
+
+    const hold = (ms) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    const playsteps = async () => {
+        if(running) {
+            return;
+        }
+        setrunning(true);
+        var graphnodes = run.sim.nodes();
+        var graphnodesbyid = indexBy(graphnodes, n => n.id);
+        var stepcount = steps.length;
+        var waittime = 10000 / stepcount;
+        for(var i = 0; i < stepcount; i++) {
+            setruncount(stepcount - i);
+            var s = steps[i];
+            await renderstep(s, graphnodesbyid, waittime);
+        }
+        setrunning(false);
+    };
+
+    const renderstep = async (step, graphnodesbyid, waittime) => {
+        var netnodes = step.network.nodes;
+        for(var i = 0; i < netnodes.length; i++) {
+            var node = netnodes[i];
+            var graphnode = graphnodesbyid[node.id];
+            graphnode.color = node.color;
+        }
+        run.sim.tick();
+        run.nodes.style("fill", function(d){ return Color.cssColorFromVal(d.color); });
+        await hold(waittime);
     };
 
     const createGraph = (network) => {
@@ -107,14 +142,14 @@ const NetworkGraph = (props) => {
             .data(network.links)
             .enter().append("line")
             .style("stroke", "LightGray")
-            .style('stroke-width', function(d) { return 5*d.strength/its;} );
+            .style('stroke-width', function(d) { return 10*d.strength/its;} );
         
         const nodes = networkGraph.append("g")
             .attr("class", "nodes")
             .selectAll("circle")
             .data(network.nodes)
             .enter().append("circle")
-            .attr("r", function(d,i){return 5 + 2.5*d.change/chgits;})
+            .attr("r", function(d,i){return 5 + 5*d.change/chgits;})
             .style("fill", function(d){ return Color.cssColorFromVal(d.color); })
             .call(drag()
                 .on("start", dragstarted)
@@ -146,6 +181,7 @@ const NetworkGraph = (props) => {
             .links(network.links);
         
         run.sim = simulation;
+        run.nodes = nodes;
         runsim(false);
         simulation.tick();
         ticked();
@@ -172,34 +208,29 @@ const NetworkGraph = (props) => {
     }
 
     useEffect(() => {
-        if (!props.sim['id']) {
-            return;
-        }
-        const steps = props.sim.steps || [];
-        const sl = steps.length;
-        if (sl == 0){
-            return;
-        }
         setloading(true);
+        if (!props.sim['id']) {
+            setloading(false);
+            return;
+        }
+        const steplist = props.steps || [];
+        setsteps(steplist);
+        if (steplist.length == 0){
+            return;
+        }
         select(graph.current).selectAll("*").remove();
         
-        const lastStep = props.sim.steps[sl-1];
-        API.getStep(lastStep).then(step => {
-            setstep(step);
-            createGraph(step.network);
-            setloading(false);
-        }).catch(err => {
-            console.log(err);
-            setloading(false);
-        });
-    },[props.sim]);
+        const lastStep = steplist[steplist.length-1];
+        setstep(lastStep);
+        createGraph(lastStep.network);
+        setloading(false);
+    },[props.sim, props.steps]);
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
             <svg class="mb-3" ref={graph}/>
-            <ButtonGroup size="sm" toggle className="btn btn-primary float-right" >
-                <ToggleButton type="checkbox" checked={layout} onChange={(e) => runsim(e.currentTarget.checked)}>{layout ? 'Click to save' : 'Click to layout'}</ToggleButton>
-            </ButtonGroup>
+            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{running ? runcount : 'Play'}</Button>
+            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
         </div>
 }
 

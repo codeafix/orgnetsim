@@ -12,8 +12,8 @@ const NetworkCard = (props) => {
     const [hasstep, sethasstep] = useState(false);
 
     useEffect(() => {
-        sethasstep((props.sim.steps || []).length > 0)
-    },[props.sim]);
+        sethasstep((props.steps || []).length > 0)
+    },[props.sim, props.steps]);
 
     const handleimpclose = () => {
         setshowimpmodal(false);
@@ -43,10 +43,8 @@ const NetworkCard = (props) => {
                 "Payload": base64data
             };
             API.parse(props.sim, pdata).then(response => {
-                API.get(response.parent).then(sim => {
-                    props.setsim(sim);
-                })
-            })
+                props.readsim(response.parent);
+            });
         };
         handleimpclose();
     };
@@ -55,7 +53,7 @@ const NetworkCard = (props) => {
         <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)} disabled={hasstep}>Import</Button></Card.Title></Card.Header>
             <Card.Body>
-                <NetworkGraph sim={props.sim}/>
+                <NetworkGraph sim={props.sim} steps={props.steps}/>
             </Card.Body>
             <Modal
                 show={showimpmodal}

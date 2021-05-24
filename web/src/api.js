@@ -25,6 +25,14 @@ const API = {
         });
         return response.json();
     },
+    getSteps: async function(sim){
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/step", {
+            "method": "GET",
+            "headers": {}
+            }).catch(err => { console.log(err); 
+        });
+        return response.json();
+    },
     getResults: async function(sim){
         const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
             "method": "GET",

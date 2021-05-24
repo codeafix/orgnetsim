@@ -215,9 +215,10 @@ const NetworkGraph = (props) => {
         }
         const steplist = props.steps || [];
         setsteps(steplist);
-        if (steplist.length == 0){
-            return;
-        }
+        
+        if (props.sim.steps.length == 0) setloading(false);
+        if (steplist.length == 0) return;
+
         select(graph.current).selectAll("*").remove();
         
         const lastStep = steplist[steplist.length-1];

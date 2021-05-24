@@ -104,7 +104,7 @@ func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed i
 			opt = opt + arg
 		case "-be":
 			opt = opt + arg
-			if len(os.Args) < i+5 {
+			if len(os.Args) < i+5 || strings.HasPrefix(os.Args[i+4], "-") {
 				fmt.Printf("<beListFile> missing after -be option \n\n")
 				success = false
 				break
@@ -114,7 +114,7 @@ func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed i
 			of.Network.EvangelistList = readFileIntoArray(beFile)
 		case "-lt":
 			opt = opt + arg
-			if len(os.Args) < i+5 {
+			if len(os.Args) < i+5 || strings.HasPrefix(os.Args[i+4], "-") {
 				fmt.Printf("<ltListFile> missing after -lt option \n\n")
 				success = false
 				break
@@ -124,7 +124,7 @@ func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed i
 			of.Network.LinkedTeamList = readFileIntoArray(ltFile)
 		case "-mc":
 			opt = opt + arg
-			if len(os.Args) < i+5 {
+			if len(os.Args) < i+5 || strings.HasPrefix(os.Args[i+4], "-") {
 				fmt.Printf("<maxColors> missing after -mc option \n\n")
 				success = false
 				break
@@ -140,7 +140,7 @@ func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed i
 			opt = opt + os.Args[i+4]
 		case "-opt":
 			opt = opt + arg
-			if len(os.Args) < i+5 {
+			if len(os.Args) < i+5 || strings.HasPrefix(os.Args[i+4], "-") {
 				fmt.Printf("<optionsFile> missing after -opt option \n\n")
 				success = false
 				break
@@ -159,7 +159,7 @@ func parseCommandLineOptions() (success bool, of OptionsFile, opt string, seed i
 			opt = opt + "-" + l[len(l)-1]
 		case "-seed":
 			opt = opt + arg
-			if len(os.Args) < i+5 {
+			if len(os.Args) < i+5 || strings.HasPrefix(os.Args[i+4], "-") {
 				fmt.Printf("<seed> missing after -seed option \n\n")
 				success = false
 				break

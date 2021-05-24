@@ -18,4 +18,4 @@ The simulator is created from a Network of Agents. The Network itself can be any
 ## TODOs
 - [X] Integrate into a web service
 - [X] Add web UI for orgnetsim application
-- [ ] Create a network visualiser using D3
+- [X] Create a network visualiser using D3

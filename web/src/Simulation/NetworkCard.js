@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Card, Form, Modal, FormControl, Button} from 'react-bootstrap'
 import API from '../api';
+import NetworkGraph from './NetworkGraph';
 
 const NetworkCard = (props) => {
     const [idcol, setidcol] = useState(0);
@@ -11,8 +12,8 @@ const NetworkCard = (props) => {
     const [hasstep, sethasstep] = useState(false);
 
     useEffect(() => {
-        sethasstep((props.sim.steps || []).length > 0)
-    },[props.sim]);
+        sethasstep((props.steps || []).length > 0)
+    },[props.sim, props.steps]);
 
     const handleimpclose = () => {
         setshowimpmodal(false);
@@ -42,10 +43,8 @@ const NetworkCard = (props) => {
                 "Payload": base64data
             };
             API.parse(props.sim, pdata).then(response => {
-                API.get(response.parent).then(sim => {
-                    props.setsim(sim);
-                })
-            })
+                props.readsim(response.parent);
+            });
         };
         handleimpclose();
     };
@@ -53,6 +52,9 @@ const NetworkCard = (props) => {
     return(
         <Card className="mb-2 mx-n2">
             <Card.Header><Card.Title>Network<Button size="sm" className="btn btn-primary float-right" onClick={() => setshowimpmodal(true)} disabled={hasstep}>Import</Button></Card.Title></Card.Header>
+            <Card.Body>
+                <NetworkGraph sim={props.sim} steps={props.steps}/>
+            </Card.Body>
             <Modal
                 show={showimpmodal}
                 onHide={handleimpclose}

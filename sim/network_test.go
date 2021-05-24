@@ -7,7 +7,7 @@ import (
 )
 
 func TestSerialisationOfAgentWithMemory(t *testing.T) {
-	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory","x":0.1,"y":0.2}],"maxColors":0}`
+	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory","fx":0.1,"fy":0.2}],"maxColors":0}`
 	n := Network{}
 	a := AgentWithMemory{AgentState{"id_1", 1, 0.2, 0.3, 0.4, nil, 5, "", 0.1, 0.2}, nil, nil, 0}
 	a.Initialise(&n)
@@ -17,7 +17,7 @@ func TestSerialisationOfAgentWithMemory(t *testing.T) {
 }
 
 func TestDeserialisationOfAgentWithMemory(t *testing.T) {
-	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory","x":8,"y":9}],"maxColors":0}`
+	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"AgentWithMemory","fx":8,"fy":9}],"maxColors":0}`
 	n, err := NewNetwork(sJSON)
 	AssertSuccess(t, err)
 	serJSON := n.Serialise()
@@ -25,7 +25,7 @@ func TestDeserialisationOfAgentWithMemory(t *testing.T) {
 }
 
 func TestJsonSerialisationAgent(t *testing.T) {
-	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent","x":1.2,"y":3.4}],"maxColors":0}`
+	sJSON := `{"links":null,"nodes":[{"id":"id_1","color":1,"susceptability":0.2,"influence":0.3,"contrariness":0.4,"change":5,"type":"Agent","fx":1.2,"fy":3.4}],"maxColors":0}`
 	n := Network{}
 	n.Nodes = append(n.Nodes, &AgentState{"id_1", 1, 0.2, 0.3, 0.4, make(chan string), 5, "Agent", 1.2, 3.4})
 	serJSON := n.Serialise()

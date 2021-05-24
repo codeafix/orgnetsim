@@ -25,6 +25,14 @@ const API = {
         });
         return response.json();
     },
+    getSteps: async function(sim){
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/step", {
+            "method": "GET",
+            "headers": {}
+            }).catch(err => { console.log(err); 
+        });
+        return response.json();
+    },
     getResults: async function(sim){
         const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
             "method": "GET",
@@ -65,7 +73,19 @@ const API = {
             })
             .catch(err => { console.log(err); 
             });
-            return response.json();
+        return response.json();
+    },
+    updateStep: async function(step){
+        const response = await fetch(this.rootPath+"/api/simulation/"+step.parent+"/step/"+step.id, {
+            "method": "PUT",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(step),
+            })
+            .catch(err => { console.log(err); 
+            });
+        return response.json();
     },
     runsim: async function(sim, spec){
         const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/run", {

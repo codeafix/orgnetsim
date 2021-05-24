@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/codeafix/orgnetsim/sim"
@@ -41,7 +42,7 @@ type ParseBody struct {
 
 //NewSimHandler returns a new instance of SimHandler
 func NewSimHandler(fm FileManager) SimHandler {
-	return &SimHandlerState{
+	sh := &SimHandlerState{
 		ListHandlerState{
 			FileManager: fm,
 		},
@@ -49,6 +50,24 @@ func NewSimHandler(fm FileManager) SimHandler {
 			FileManager: fm,
 		},
 	}
+	sh.ListHandlerState.EncodeFunc = sh.EncodeStepList
+	return sh
+}
+
+func (sh *SimHandlerState) EncodeStepList(listHolder ListHolder, listname string) (interface{}, error) {
+	paths := listHolder.GetItems(listname)
+	items := []*SimStep{}
+	for _, path := range paths {
+		elems := strings.Split(path, "/")
+		newItem := NewSimStep(elems[len(elems)-1], elems[len(elems)-3])
+		itemUpdater := sh.ListHandlerState.FileManager.Get(newItem.Filepath())
+		err := itemUpdater.Read(newItem)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, newItem)
+	}
+	return items, nil
 }
 
 //Register the routes for this routehandler

@@ -10,17 +10,25 @@ import StepsCard from './StepsCard'
 
 const Simulation = (props) => {
     const [sim, setSim] = useState({options:{}});
+    const [simsteps, setSimsteps] = useState([]);
     const [showsimeditmodal, setShowsimeditmodal] = useState(false);
 
     useEffect(() => {
-        API.get(props.match.params.id).then(response => {
-            setSim(response);
-        })
+        readsim(props.match.params.id);
       }, [props.match.params.id]);
 
     const handlesimeditshow = () => setShowsimeditmodal(true);
     const handlesimeditclose = () => setShowsimeditmodal(false);
 
+    const readsim = (id) => {
+        API.get(id).then(sresp => {
+            setSim(sresp);
+            API.getSteps(sresp).then(steps => {
+                setSimsteps(steps);
+            });
+        })
+    };
+    
     const updatesim = (simtosave) => {
         API.update(simtosave).then(response => {
             setSim(response);
@@ -33,8 +41,8 @@ const Simulation = (props) => {
             <Container>
                 <Row>
                     <Col sm={8}>
-                        <NetworkCard sim={sim} setsim={setSim}/>
-                        <StepsCard sim={sim} setsim={setSim}/>
+                        <NetworkCard sim={sim} steps={simsteps} readsim={readsim}/>
+                        <StepsCard sim={sim} steps={simsteps} readsim={readsim}/>
                     </Col>
                     <Col sm={4}>
                         <Card className="mb-2 mx-n2">

@@ -35,9 +35,9 @@ func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *Tes
 	sim.Name = "mySavedSim"
 	sim.Description = "A description of mySavedSim"
 	ids := []string{
-		uuid.New().String(),
-		uuid.New().String(),
-		uuid.New().String(),
+		uuid.NewString(),
+		uuid.NewString(),
+		uuid.NewString(),
 	}
 	steps := make([]string, len(ids))
 	for i, id := range ids {
@@ -67,6 +67,27 @@ func CreateSimHandlerBrowserWithSteps(deleteItemIndex int) (*mango.Browser, *Tes
 	br := mango.NewBrowser(r)
 
 	return br, simfu, ssfu, dfu, steps, simid
+}
+
+func TestMarshalling(t *testing.T) {
+	parent := uuid.NewString()
+	s1 := &SimStep{
+		ID:       uuid.NewString(),
+		ParentID: parent,
+		Network:  CreateNetwork(),
+	}
+
+	s2 := &SimStep{
+		ID:       uuid.NewString(),
+		ParentID: parent,
+		Network:  CreateNetwork(),
+	}
+	steps := []*SimStep{s1, s2}
+	b, err := json.Marshal(steps)
+	AssertSuccess(t, err)
+	rstep := []*SimStep{}
+	err = json.Unmarshal(b, &rstep)
+	AssertSuccess(t, err)
 }
 
 func TestGetSimSuccess(t *testing.T) {
@@ -101,13 +122,14 @@ func TestGetSimStepsSuccess(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
-	rsim := &SimInfo{}
-	err = json.Unmarshal(resp.Body.Bytes(), rsim)
+	rsteps := []SimStep{}
+	err = json.Unmarshal(resp.Body.Bytes(), &rsteps)
+
 	AssertSuccess(t, err)
-	AreEqual(t, 3, len(rsim.Steps), "Wrong number of Steps in returned SimInfo")
-	AreEqual(t, steps[0], rsim.Steps[0], "Wrong Step 0 in returned SimInfo")
-	AreEqual(t, steps[1], rsim.Steps[1], "Wrong Step 1 in returned SimInfo")
-	AreEqual(t, steps[2], rsim.Steps[2], "Wrong Step 2 in returned SimInfo")
+	AreEqual(t, 3, len(rsteps), "Wrong number of Steps in returned SimInfo")
+	AreEqual(t, steps[0][strings.LastIndex(steps[0], "/")+1:], rsteps[0].ID, "Wrong Step 0 in returned SimInfo")
+	AreEqual(t, steps[1][strings.LastIndex(steps[0], "/")+1:], rsteps[1].ID, "Wrong Step 1 in returned SimInfo")
+	AreEqual(t, steps[2][strings.LastIndex(steps[0], "/")+1:], rsteps[2].ID, "Wrong Step 2 in returned SimInfo")
 }
 
 func TestUpdateSimSuccess(t *testing.T) {

@@ -9,16 +9,17 @@ const AgentColorChart = (props) => {
     const [loading, setloading] = useState(false);
 
     const createChart = (results) => {
+        if(!results['colors'][0]) return;
         const maxColors = props.sim.options['maxColors'];
-        const margin = {top: 0, right: 60, bottom: 20, left: 40},
+        const margin = {top: 10, right: 60, bottom: 20, left: 40},
             vwidth = chart.current.parentElement.offsetWidth,
             cw = vwidth - margin.left - margin.right,
-            vheight = Math.round(chart.current.parentElement.offsetWidth/1.6),
+            vheight = Math.round(cw/1.6),
             ch = vheight - margin.top - margin.bottom;
         
         const resize = () => {
             const w = chart.current.parentElement.offsetWidth,
-                h = Math.round(chart.current.parentElement.offsetWidth/1.6);
+                h = Math.round((w -  margin.left - margin.right)/1.6);
             select(chart.current).attr('width', w)
                 .attr('height', h);
         };
@@ -34,7 +35,7 @@ const AgentColorChart = (props) => {
             .attr('preserveAspectRatio', 'xMinYMid')
             .call(resize);
 
-        const dataMax = max(results['conversations']);
+        const dataMax = results['colors'][0].reduce((a, b) => a + b, 0);
         const iterations = results['iterations'];
         const chartData = results['colors'];
 
@@ -44,7 +45,7 @@ const AgentColorChart = (props) => {
                 return d[key]
             })
             (chartData)
-        
+            
         //X Axis
         var xh = ch + margin.top;
         var xScale = scaleLinear()
@@ -61,7 +62,7 @@ const AgentColorChart = (props) => {
             .range([ch, 0]);
         svg.append("g")
             .attr("class", "small")
-            .attr("transform", "translate(" + margin.left + ",0)")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .call(axisLeft(yScale).ticks(10));
           
         svg.selectAll("mylayers")
@@ -69,7 +70,7 @@ const AgentColorChart = (props) => {
             .enter()
             .append("path")
             .style("fill", (d) => Color.cssColorFromVal(d.key))
-            .attr("transform", "translate(" + margin.left + ",0)")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .attr("d", area()
                 .x(function(d, i) { return xScale(i); })
                 .y0(function(d) { return yScale(d[0]); })

@@ -114,7 +114,7 @@ func TestUpdateSimStepUpdatesCorrectly(t *testing.T) {
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
-	data := `{"network":null,"results":{"iterations":5,"colors":null,"conversations":null}}`
+	data := fmt.Sprintf(`{"network":null,"results":{"iterations":5,"colors":null,"conversations":null},"id":"%s","parent":"%s"}`, ts.ID, ts.ParentID)
 	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/step/%s", ts.ParentID, ts.ID), data, hdrs)
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
@@ -141,7 +141,7 @@ func TestUpdateSimStepReturnsErrorWithFileReadErr(t *testing.T) {
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
-	data := `{"network":null,"results":{"iterations":5,"colors":null,"conversations":null}}`
+	data := fmt.Sprintf(`{"network":null,"results":{"iterations":5,"colors":null,"conversations":null},"id":"%s","parent":"%s"}`, ts.ID, ts.ParentID)
 	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/step/%s", ts.ParentID, ts.ID), data, hdrs)
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusInternalServerError, resp.Code, "No error reported")
@@ -162,7 +162,7 @@ func TestUpdateSimStepReturnsErrorWithFileUpdateErr(t *testing.T) {
 
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
-	data := `{"network":null,"results":{"iterations":5,"colors":null,"conversations":null}}`
+	data := fmt.Sprintf(`{"network":null,"results":{"iterations":5,"colors":null,"conversations":null},"id":"%s","parent":"%s"}`, ts.ID, ts.ParentID)
 	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/step/%s", ts.ParentID, ts.ID), data, hdrs)
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusInternalServerError, resp.Code, "No error reported")

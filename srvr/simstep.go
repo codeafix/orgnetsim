@@ -1,6 +1,7 @@
 package srvr
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -15,6 +16,33 @@ type SimStep struct {
 	Results  sim.Results         `json:"results"`
 	ID       string              `json:"id"`
 	ParentID string              `json:"parent"`
+}
+
+//UnmarshalJSON implements unmarshaling to make sure network is properly unmarshalled into sim.Network
+func (ss *SimStep) UnmarshalJSON(b []byte) error {
+	var simstep map[string]json.RawMessage
+	err := json.Unmarshal(b, &simstep)
+	if err != nil {
+		return err
+	}
+	ss.Network = &sim.Network{}
+	err = json.Unmarshal(simstep["network"], ss.Network)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(simstep["results"], &ss.Results)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(simstep["id"], &ss.ID)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(simstep["parent"], &ss.ParentID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //CreateSimStep creates a new SimStep object with a new ID

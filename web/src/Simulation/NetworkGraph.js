@@ -13,8 +13,18 @@ const NetworkGraph = (props) => {
     const [step, setstep] = useState();
     const [run, setrun] = useState({stopped:true, sim:null});
     const [steps, setsteps] = useState([]);
-    const [running, setrunning] = useState(false);
+    const [play, setplay] = useState({playing: false});
+    const [isrunning, setisrunning] = useState(false);
     const [runcount, setruncount] = useState(0);
+
+    const getrunning = () => {
+        return play.playing;
+    };
+
+    const setrunning = (running) => {
+        setisrunning(running);
+        return play.playing = running;
+    };
 
     const runsim = (enable) => {
         setlayout(enable);
@@ -57,9 +67,11 @@ const NetworkGraph = (props) => {
 
     const hold = (ms) => {
         return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    };
+
     const playsteps = async () => {
-        if(running) {
+        if(getrunning()) {
+            setrunning(false);
             return;
         }
         setrunning(true);
@@ -68,6 +80,7 @@ const NetworkGraph = (props) => {
         var stepcount = steps.length;
         var waittime = 10000 / stepcount;
         for(var i = 0; i < stepcount; i++) {
+            if(!getrunning()) return;
             setruncount(stepcount - i);
             var s = steps[i];
             await renderstep(s, graphnodesbyid, waittime);
@@ -215,7 +228,7 @@ const NetworkGraph = (props) => {
         }
         const steplist = props.steps || [];
         setsteps(steplist);
-        
+
         if (props.sim.steps.length == 0) setloading(false);
         if (steplist.length == 0) return;
 
@@ -230,7 +243,7 @@ const NetworkGraph = (props) => {
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
             <svg class="mb-3" ref={graph}/>
-            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{running ? runcount : 'Play'}</Button>
+            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>
             <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
         </div>
 }

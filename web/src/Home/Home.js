@@ -5,6 +5,7 @@ import {Modal} from 'react-bootstrap'
 import EditNameDescModal from './EditNameDescModal'
 import {Button} from 'react-bootstrap'
 import {CardDeck} from 'react-bootstrap';
+import Logo from '../logo.svg';
 
 const Home = () => {
     const [simlist, setSimlist] = useState([]);
@@ -29,6 +30,7 @@ const Home = () => {
     }
 
     useEffect(() => {
+        document.title = "orgnetsim";
         API.sims()
             .then(response => {
                 setSimlist(response.simulations);
@@ -51,7 +53,7 @@ const Home = () => {
 
     return(
         <div className="container-fluid">
-            <h1>Simulation Set</h1>
+            <h1><img src={Logo} style={{ height: 60, width: 60}} alt="logo"/>Simulation Set</h1>
             <p>{notes}</p>
             <h2>List of Simulations<Button className="btn btn-primary float-right" onClick={handleAddShow}>Add</Button></h2>
             <CardDeck>

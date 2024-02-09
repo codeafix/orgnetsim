@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { scaleLinear, max, select, stack, axisBottom, axisLeft, area } from 'd3';
+import { scaleLinear, select, stack, axisBottom, axisLeft, area } from 'd3';
 import Color from './Color';
 import API from '../api';
 import Spinner from 'react-bootstrap/Spinner';
@@ -91,7 +91,7 @@ const AgentColorChart = (props) => {
             console.error(err);
             setloading(false);
         });
-    },[props.sim]);
+    },[props.sim]);//eslint-disable-line react-hooks/exhaustive-deps
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}

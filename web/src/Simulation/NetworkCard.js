@@ -28,8 +28,7 @@ const NetworkCard = (props) => {
 
         fr.readAsText(filetoupload);
         fr.onload = function() {
-            const buff = new Buffer(fr.result);
-            const base64data = buff.toString('base64');
+            const base64data = btoa(fr.result);
         
             const pdata = {
                 "identifier": idcol,

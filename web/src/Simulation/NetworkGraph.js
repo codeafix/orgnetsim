@@ -11,9 +11,9 @@ const NetworkGraph = (props) => {
     const [loading, setloading] = useState(false);
     const [layout, setlayout] = useState(false);
     const [step, setstep] = useState();
-    const [run, setrun] = useState({stopped:true, sim:null});
+    const [run,] = useState({stopped:true, sim:null});
     const [steps, setsteps] = useState([]);
-    const [play, setplay] = useState({playing: false});
+    const [play,] = useState({playing: false});
     const [isrunning, setisrunning] = useState(false);
     const [runcount, setruncount] = useState(0);
 
@@ -50,10 +50,10 @@ const NetworkGraph = (props) => {
         }
         var links = [];
         var graphlinks = run.sim.force("link").links();
-        for(var i = 0; i < graphlinks.length; i++) {
+        for(var j = 0; j < graphlinks.length; j++) {
             var link = {
-                source: graphlinks[i].source.id,
-                target: graphlinks[i].target.id,
+                source: graphlinks[j].source.id,
+                target: graphlinks[j].target.id,
             };
             links.push(link);
         }
@@ -229,8 +229,8 @@ const NetworkGraph = (props) => {
         const steplist = props.steps || [];
         setsteps(steplist);
 
-        if (props.sim.steps.length == 0) setloading(false);
-        if (steplist.length == 0) return;
+        if (props.sim.steps.length === 0) setloading(false);
+        if (steplist.length === 0) return;
 
         select(graph.current).selectAll("*").remove();
         
@@ -238,7 +238,7 @@ const NetworkGraph = (props) => {
         setstep(lastStep);
         createGraph(lastStep.network);
         setloading(false);
-    },[props.sim, props.steps]);
+    },[props.sim, props.steps]);//eslint-disable-line react-hooks/exhaustive-deps
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}

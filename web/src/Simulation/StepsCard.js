@@ -67,7 +67,7 @@ const StepsCard = (props) => {
             <Card.Header>
                 <Card.Title>Steps
                     <Button size="sm" className="btn btn-primary float-right" onClick={getresults} disabled={nostep}>Export Results</Button>
-                    <a ref={hlink} download={filename}/>
+                    <a href="#/" ref={hlink} download={filename}>...</a>
                     <Button size="sm" className="btn btn-primary float-right mr-2" onClick={handlerunshow} disabled={nostep}>Run</Button>
                 </Card.Title></Card.Header>
             <Card.Body className="small">
@@ -151,7 +151,7 @@ const StepItem = (props) => {
             culrs.push(step.results.colors[iterations][i]);
         }
         setcolors(culrs);
-    },[props.step]);
+    },[props.step]);//eslint-disable-line react-hooks/exhaustive-deps
     
     return(
         <tr>

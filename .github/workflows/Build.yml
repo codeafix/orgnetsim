@@ -28,6 +28,7 @@ jobs:
 
         cd ../orgnetsim
         go build
+        cd ..
 
     - name: Test
       run: |

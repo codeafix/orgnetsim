@@ -144,14 +144,15 @@ const StepItem = (props) => {
     useEffect(() => {
         if(!props.step) return;
         const step = props.step;
+        var itrs = step.results.iterations > 0 ? step.results.iterations - 1 : 0;
         setiterations(step.results.iterations);
-        setconversations(step.results.conversations[iterations]);
+        setconversations(step.results.conversations[itrs]);
         const culrs = [];
         for (var i = 0; i < step.network['maxColors']; i++) {
-            culrs.push(step.results.colors[iterations][i]);
+            culrs.push(step.results.colors[itrs][i]);
         }
         setcolors(culrs);
-    },[props.step]);//eslint-disable-line react-hooks/exhaustive-deps
+    },[props.step, iterations]);
     
     return(
         <tr>

@@ -1,4 +1,4 @@
-name: Go Build
+name: build
 
 on:
   push:
@@ -20,15 +20,7 @@ jobs:
 
     - name: Build
       run: |
-        set -e
-        cd web
-        npm install
-        npm run-script build
-        cp -r build/* ../orgnetsim/web/
-
-        cd ../orgnetsim
-        go build
-        cd ..
+        ./build.sh
 
     - name: Test
       run: |

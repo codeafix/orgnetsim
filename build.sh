@@ -3,6 +3,7 @@
 set -e
 
 cd web
+npm install
 npm run-script build
 cp -r build/* ../orgnetsim/web/
 

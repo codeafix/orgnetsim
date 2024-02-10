@@ -1,4 +1,6 @@
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/spaceweasel/mango v0.0.0-20170711124442-ee00930b5b67 h1:5KPDJ7nu+oUxf46JD9ZvuhyI4xEyW7e6S95pPaUr4Js=
 github.com/spaceweasel/mango v0.0.0-20170711124442-ee00930b5b67/go.mod h1:1HjrwXiX30ARFIN07DId1Lqs4sAeMvK/wKyIGaxUIGM=

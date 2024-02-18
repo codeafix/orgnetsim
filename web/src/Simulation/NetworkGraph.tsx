@@ -1,34 +1,45 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom } from 'd3';
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom, Simulation } from 'd3';
 import Color from './Color';
-import API from '../api';
+import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
 import {Button} from 'react-bootstrap';
 import {indexBy} from 'underscore';
 
-const NetworkGraph = (props) => {
-    const graph = useRef(null);
-    const [loading, setloading] = useState(false);
-    const [layout, setlayout] = useState(false);
-    const [step, setstep] = useState();
-    const [run,] = useState({stopped:true, sim:null});
-    const [steps, setsteps] = useState([]);
+type NetworkGraphProps = {
+    sim:SimInfo;
+    steps:Array<Step>;
+}
+
+type Run = {
+    stopped:boolean;
+    sim?:Simulation<AgentState, Link>;
+}
+
+const NetworkGraph = (props:NetworkGraphProps) => {
+    const graph = useRef<SVGSVGElement>(null);
+    const [loading, setloading] = useState<boolean>(false);
+    const [layout, setlayout] = useState<boolean>(false);
+    const [step, setstep] = useState<Step>();
+    const [run,] = useState<Run>({stopped:true});
+    const [steps, setsteps] = useState<Array<Step>>([]);
     const [play,] = useState({playing: false});
-    const [isrunning, setisrunning] = useState(false);
-    const [runcount, setruncount] = useState(0);
+    const [isrunning, setisrunning] = useState<boolean>(false);
+    const [runcount, setruncount] = useState<number>(0);
 
     const getrunning = () => {
         return play.playing;
     };
 
-    const setrunning = (running) => {
+    const setrunning = (running:boolean) => {
         setisrunning(running);
         return play.playing = running;
     };
 
-    const runsim = (enable) => {
+    const runsim = (enable:boolean) => {
         setlayout(enable);
         run.stopped = !enable;
+        if(!run.sim) return;
         if(enable){
             run.sim.restart();
         }else{
@@ -127,7 +138,7 @@ const NetworkGraph = (props) => {
             .attr('preserveAspectRatio', 'xMinYMid')
             .call(resize);
         
-        const simulation = forceSimulation()
+        const simulation = forceSimulation<AgentState, Link>()
             .force("link", forceLink().id(function(d) { return d.id; }))
             .force("charge", forceManyBody())
             .force("center", forceCenter(width / 2, height / 2))
@@ -242,9 +253,9 @@ const NetworkGraph = (props) => {
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
-            <svg class="mb-3" ref={graph}/>
-            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>
-            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
+            <svg className="mb-3" ref={graph}/>
+            <Button size="sm" className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>
+            <Button size="sm" className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
         </div>
 }
 

@@ -64,42 +64,42 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                 <fieldset disabled>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-awm">Use agents that have memory in the network simulation</Tooltip>}>
                         <span>
-                            <Form.Check type="checkbox" label="Use agents with memory" defaultChecked={awm}/>
+                            <Form.Check type="checkbox" label="Use agents with memory" checked={awm} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-el">List the agents that are evangelists for a new idea</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Evangelist list</Form.Label>
-                            <Form.Control size="sm" as="textarea" defaultValue={el.join("; ")}/>
+                            <Form.Control size="sm" as="textarea" value={el.join("; ")} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-culr">Select the colors that the agents will be randomly assigned to</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Initial colors</Form.Label>
-                            <Form.Control size="sm" type="text" defaultValue={ic.map(culr => Color.colorFromVal(culr)).join("; ")}/>
+                            <Form.Control size="sm" type="text" value={ic.map(culr => Color.colorFromVal(culr)).join("; ")} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-ltp">Generate links between all members of a team</Tooltip>}>
                         <span>
-                            <Form.Check className="pt-2" type="checkbox" label="Link team peers" defaultChecked={ltp}/>
+                            <Form.Check className="pt-2" type="checkbox" label="Link team peers" checked={ltp} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-ltl">Generate links between the specified teams</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Linked team list</Form.Label>
-                            <Form.Control size="sm" as="textarea" defaultValue={ltl.join("; ")}/>
+                            <Form.Control size="sm" as="textarea" value={ltl.join("; ")} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-le">An agent that will act as an evangelist for a new idea</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Lone evangelist</Form.Label>
-                            <Form.Control size="sm" type="text" defaultValue={le}/>
+                            <Form.Control size="sm" type="text" value={le} readOnly/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-mc">Set the maximum number of colors representing competing ideas in the network</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Maximum colors</Form.Label>
-                            <Form.Control size="sm" type="text" defaultValue={mc}/>
+                            <Form.Control size="sm" type="text" value={mc} readOnly/>
                         </span>
                     </OverlayTrigger>
                 </fieldset>
@@ -115,7 +115,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="form-awm">
-                        <Form.Check type="checkbox" label="Use agents with memory" checked={awm} onChange={
+                        <Form.Check type="checkbox" label="Use agents with memory" defaultChecked={awm} onChange={
                             e => setawm(e.target.checked)
                             }/>
                         <Form.Text className="text-muted">
@@ -146,7 +146,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-ltp">
-                        <Form.Check type="checkbox" label="Link team peers" checked={ltp} onChange={e => setltp(e.target.checked)}/>
+                        <Form.Check type="checkbox" label="Link team peers" defaultChecked={ltp} onChange={e => setltp(e.target.checked)}/>
                         <Form.Text className="text-muted">
                             Generate links between all members of a team
                         </Form.Text>

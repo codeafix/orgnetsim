@@ -14,8 +14,8 @@ const StepsCard = (props:StepsCardProps) => {
     const [showrunmodal, setShowrunmodal] = useState<boolean>(false);
     const [nostep, setnostep] = useState<boolean>(false);
     
-    const [itcount, setitcount] = useState<number>(0);
-    const [stepcount, setstepcount] = useState<number>(0);
+    const [itcount, setitcount] = useState<number|undefined>(0);
+    const [stepcount, setstepcount] = useState<number|undefined>(0);
     const [colors, setcolors] = useState<Array<number>>([]);
     const [filename, setfilename] = useState<string>("results.csv");
 
@@ -61,8 +61,8 @@ const StepsCard = (props:StepsCardProps) => {
     const handlerun = () => {
         setShowrunmodal(false);
         const spec = {
-            iterations: itcount,
-            steps: stepcount
+            iterations: itcount||0,
+            steps: stepcount||0
         };
         API.runsim(props.sim, spec).then(response => {
             props.readsim(response.parent);
@@ -106,14 +106,14 @@ const StepsCard = (props:StepsCardProps) => {
                 <Modal.Body>
                     <Form.Group controlId="form-steps">
                         <Form.Label>Step count</Form.Label>
-                        <Form.Control type="number" value={stepcount} onChange={(e:any) => setstepcount(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={stepcount} onChange={(e:any) => setstepcount(e.target.valueAsNumber||"")}/>
                         <Form.Text className="text-muted">
                             The number of steps to run this simulation for
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-iterations">
                         <Form.Label>Iteration count</Form.Label>
-                        <Form.Control type="number" value={itcount} onChange={(e:any) => setitcount(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={itcount} onChange={(e:any) => setitcount(e.target.valueAsNumber||"")}/>
                         <Form.Text className="text-muted">
                             The number of iterations that will be computed in each step
                         </Form.Text>

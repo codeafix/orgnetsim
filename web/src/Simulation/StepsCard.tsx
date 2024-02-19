@@ -143,7 +143,7 @@ const StepsList = (props:StepsListProps) => {
     
     return steps.map(step => {        
         return(
-            <StepItem step={step}/>
+            <StepItem key={step.id} step={step}/>
         );
     });
 }

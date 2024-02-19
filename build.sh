@@ -4,7 +4,7 @@ set -e
 
 cd web
 npm install
-vite build
+npm run build
 cp -r dist/* ../orgnetsim/web/
 
 cd ../orgnetsim

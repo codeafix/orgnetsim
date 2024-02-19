@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {Card, Table, Button, Modal, Form} from 'react-bootstrap';
 import AgentColorChart from './AgentColorChart'
-import API from '../api';
+import API from '../API/api';
 import Color from './Color';
 
-const StepsCard = (props) => {
-    const [showrunmodal, setShowrunmodal] = useState(false);
-    const [nostep, setnostep] = useState(false);
-    
-    const [itcount, setitcount] = useState(0);
-    const [stepcount, setstepcount] = useState(0);
-    const [colors, setcolors] = useState([]);
-    const [filename, setfilename] = useState("results.csv");
+type StepsCardProps = {
+    sim:SimInfo;
+    steps:Array<Step>;
+    readsim(id:string): void;
+}
 
-    const hlink = useRef(null);
+const StepsCard = (props:StepsCardProps) => {
+    const [showrunmodal, setShowrunmodal] = useState<boolean>(false);
+    const [nostep, setnostep] = useState<boolean>(false);
+    
+    const [itcount, setitcount] = useState<number|undefined>(0);
+    const [stepcount, setstepcount] = useState<number|undefined>(0);
+    const [colors, setcolors] = useState<Array<number>>([]);
+    const [filename, setfilename] = useState<string>("results.csv");
+
+    const hlink = useRef<HTMLAnchorElement>(null);
 
     const setOptions = () => {
         setitcount(100);
@@ -40,6 +46,7 @@ const StepsCard = (props) => {
             setfilename(data.filename);
             const href = window.URL.createObjectURL(data.blob);
             const a = hlink.current;
+            if(!a) return;
             a.href = href;
             a.click();
             a.href = '';
@@ -54,8 +61,8 @@ const StepsCard = (props) => {
     const handlerun = () => {
         setShowrunmodal(false);
         const spec = {
-            iterations: itcount,
-            steps: stepcount
+            iterations: itcount||0,
+            steps: stepcount||0
         };
         API.runsim(props.sim, spec).then(response => {
             props.readsim(response.parent);
@@ -99,14 +106,14 @@ const StepsCard = (props) => {
                 <Modal.Body>
                     <Form.Group controlId="form-steps">
                         <Form.Label>Step count</Form.Label>
-                        <Form.Control type="number" value={stepcount} onChange={e => setstepcount(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={stepcount} onChange={(e:any) => setstepcount(e.target.valueAsNumber||"")}/>
                         <Form.Text className="text-muted">
                             The number of steps to run this simulation for
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-iterations">
                         <Form.Label>Iteration count</Form.Label>
-                        <Form.Control type="number" value={itcount} onChange={e => setitcount(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={itcount} onChange={(e:any) => setitcount(e.target.valueAsNumber||"")}/>
                         <Form.Text className="text-muted">
                             The number of iterations that will be computed in each step
                         </Form.Text>
@@ -122,8 +129,13 @@ const StepsCard = (props) => {
     )
 }
 
-const StepsList = (props) => {
-    const [steps, setsteps] = useState([]);
+type StepsListProps = {
+    steps:Array<Step>;
+}
+
+
+const StepsList = (props:StepsListProps) => {
+    const [steps, setsteps] = useState<Array<Step>>([]);
 
     useEffect(() => {
         setsteps(props.steps || []);
@@ -131,15 +143,19 @@ const StepsList = (props) => {
     
     return steps.map(step => {        
         return(
-            <StepItem step={step}/>
+            <StepItem key={step.id} step={step}/>
         );
     });
 }
 
-const StepItem = (props) => {
-    const [iterations, setiterations] = useState(0);
-    const [conversations, setconversations] = useState(0);
-    const [colors, setcolors] = useState([]);
+type StepItemProps = {
+    step:Step;
+}
+
+const StepItem = (props:StepItemProps) => {
+    const [iterations, setiterations] = useState<number>(0);
+    const [conversations, setconversations] = useState<number>(0);
+    const [colors, setcolors] = useState<Array<number>>([]);
 
     useEffect(() => {
         if(!props.step) return;

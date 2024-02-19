@@ -3,7 +3,13 @@ import {Link} from 'react-router-dom';
 import {Card} from 'react-bootstrap';
 import {Trash} from 'react-bootstrap-icons';
 
-const SimList = (props) => {
+
+type SimListProps = {
+    deleteFunc(id: string, name: string): void;
+    sims: Array<SimInfo>;
+}
+
+const SimList = (props:SimListProps) => {
 
     return props.sims.map(sim => {
             return(

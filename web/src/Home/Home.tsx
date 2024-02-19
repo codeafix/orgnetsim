@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import API from '../api';
+import API from '../API/api';
 import SimList from './SimList';
 import {Modal} from 'react-bootstrap'
 import EditNameDescModal from './EditNameDescModal'
@@ -8,8 +8,8 @@ import {CardDeck} from 'react-bootstrap';
 import Logo from '../logo.svg';
 
 const Home = () => {
-    const [simlist, setSimlist] = useState([]);
-    const [notes, setNotes] = useState("");
+    const [simlist, setSimlist] = useState<Array<SimInfo>>([]);
+    const [notes, setNotes] = useState<string>("");
     const [showaddmodal, setShowaddmodal] = useState(false);
     const [showdelmodal, setShowdelmodal] = useState(false);
     const [delsimid, setDelsimid] = useState("");
@@ -23,7 +23,7 @@ const Home = () => {
         setDelsimid("");
         setDelsimname("");
     }
-    const handleDelShow = (id, simname) => {
+    const handleDelShow = (id:string, simname:string) => {
         setShowdelmodal(true);
         setDelsimid(id);
         setDelsimname(simname);
@@ -38,13 +38,13 @@ const Home = () => {
             })
       },[]);
 
-    const addSimulation = (sim) => {
+    const addSimulation = (sim:SimInfo) => {
         API.add(sim.name, sim.description).then(response => {
             setSimlist(simlist.concat(response));
         });
     };
     
-    const deleteSimulation = (id) => {
+    const deleteSimulation = (id:string) => {
         API.delete(id).then(() => {
             setSimlist(simlist.filter(item => item.id !== id));
         });
@@ -59,14 +59,14 @@ const Home = () => {
             <CardDeck>
                 <SimList sims={simlist} deleteFunc={handleDelShow}/>
             </CardDeck>
-            <EditNameDescModal show={showaddmodal} saveFunc={addSimulation} closeFunc={handleAddClose}/>
+            <EditNameDescModal sim={API.emptySim()} show={showaddmodal} saveFunc={addSimulation} closeFunc={handleAddClose}/>
             <Modal
                 show={showdelmodal}
                 onHide={handleDelClose}
                 backdrop="static"
                 keyboard={false}
             >
-                <Modal.Header closeButton>
+                <Modal.Header closeButton={true}>
                     <Modal.Title className="text-danger">Delete "{delsimname}"</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

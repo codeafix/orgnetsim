@@ -1,35 +1,43 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { scaleLinear, select, stack, axisBottom, axisLeft, area } from 'd3';
 import Color from './Color';
-import API from '../api';
+import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
 
-const AgentColorChart = (props) => {
-    const chart = useRef(null);
-    const [loading, setloading] = useState(false);
+type AgentColorChartProps = {
+    sim:SimInfo;
+}
 
-    const createChart = (results) => {
+const AgentColorChart = (props:AgentColorChartProps) => {
+    const chart = useRef<SVGSVGElement>(null);
+    const [loading, setloading] = useState<boolean>(false);
+
+    const createChart = (results:Results) => {
         if(!results['colors'][0]) return;
+        if(!chart.current) return;
+        var c = chart.current;
+        if(!c.parentElement) return;
+
         const maxColors = props.sim.options['maxColors'];
         const margin = {top: 10, right: 60, bottom: 20, left: 40},
-            vwidth = chart.current.parentElement.offsetWidth,
+            vwidth = c.parentElement.offsetWidth,
             cw = vwidth - margin.left - margin.right,
             vheight = Math.round(cw/1.6),
             ch = vheight - margin.top - margin.bottom;
         
         const resize = () => {
-            const w = chart.current.parentElement.offsetWidth,
+            const w = vwidth,
                 h = Math.round((w -  margin.left - margin.right)/1.6);
-            select(chart.current).attr('width', w)
+            select(c).attr('width', w)
                 .attr('height', h);
         };
 
         select(window).on(
-            'resize.' + select(chart.current.parentElement).attr('id'), 
+            'resize.' + select(c.parentElement).attr('id'), 
             resize
         );
         
-        const svg = select(chart.current);
+        const svg = select(c);
 
         svg.attr('viewBox', `0 0 ${vwidth} ${vheight}`)
             .attr('preserveAspectRatio', 'xMinYMid')
@@ -39,12 +47,8 @@ const AgentColorChart = (props) => {
         const iterations = results['iterations'];
         const chartData = results['colors'];
 
-        var stackedData = stack()
-            .keys(Color.colorValSlice(maxColors))
-            .value(function(d, key){
-                return d[key]
-            })
-            (chartData)
+        var stackedData = stack<number[], number>()
+            .keys(Color.colorValSlice(maxColors))(chartData);
             
         //X Axis
         var xh = ch + margin.top;
@@ -71,7 +75,7 @@ const AgentColorChart = (props) => {
             .append("path")
             .style("fill", (d) => Color.cssColorFromVal(d.key))
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-            .attr("d", area()
+            .attr("d", area<number[]>()
                 .x(function(d, i) { return xScale(i); })
                 .y0(function(d) { return yScale(d[0]); })
                 .y1(function(d) { return yScale(d[1]); })
@@ -95,7 +99,7 @@ const AgentColorChart = (props) => {
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
-            <svg class="mb-3" ref={chart}/>
+            <svg className="mb-3" ref={chart}/>
         </div>
 }
 

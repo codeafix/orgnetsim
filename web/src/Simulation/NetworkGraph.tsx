@@ -1,34 +1,48 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom } from 'd3';
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom, Simulation, SimulationNodeDatum, SimulationLinkDatum, ForceLink, ZoomBehavior } from 'd3';
 import Color from './Color';
-import API from '../api';
+import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
 import {Button} from 'react-bootstrap';
 import {indexBy} from 'underscore';
 
-const NetworkGraph = (props) => {
-    const graph = useRef(null);
-    const [loading, setloading] = useState(false);
-    const [layout, setlayout] = useState(false);
-    const [step, setstep] = useState();
-    const [run,] = useState({stopped:true, sim:null});
-    const [steps, setsteps] = useState([]);
+type NetworkGraphProps = {
+    sim:SimInfo;
+    steps:Array<Step>;
+}
+
+import { Selection } from 'd3';
+
+type Run = {
+    stopped: boolean;
+    sim?: Simulation<SimulationNodeDatum, SimulationLinkDatum<SimulationNodeDatum>>;
+    nodes?: Selection<SVGCircleElement, SimulationNodeDatum, SVGGElement, unknown>;
+}
+
+const NetworkGraph = (props:NetworkGraphProps) => {
+    const graph = useRef<SVGSVGElement>(null);
+    const [loading, setloading] = useState<boolean>(false);
+    const [layout, setlayout] = useState<boolean>(false);
+    const [step, setstep] = useState<Step>();
+    const [run,] = useState<Run>({stopped:true});
+    const [steps, setsteps] = useState<Array<Step>>([]);
     const [play,] = useState({playing: false});
-    const [isrunning, setisrunning] = useState(false);
-    const [runcount, setruncount] = useState(0);
+    const [isrunning, setisrunning] = useState<boolean>(false);
+    const [runcount, setruncount] = useState<number>(0);
 
     const getrunning = () => {
         return play.playing;
     };
 
-    const setrunning = (running) => {
+    const setrunning = (running:boolean) => {
         setisrunning(running);
         return play.playing = running;
     };
 
-    const runsim = (enable) => {
+    const runsim = (enable:boolean) => {
         setlayout(enable);
         run.stopped = !enable;
+        if(!run.sim) return;
         if(enable){
             run.sim.restart();
         }else{
@@ -45,15 +59,19 @@ const NetworkGraph = (props) => {
         for(var i = 0; i < graphnodes.length; i++) {
             var uinode = graphnodes[i];
             var netnode = netnodes[i];
-            netnode.fx = uinode.x;
-            netnode.fy = uinode.y
+            netnode.fx = uinode.x || 0;
+            netnode.fy = uinode.y || 0
         }
         var links = [];
-        var graphlinks = run.sim.force("link").links();
+        var force = run.sim.force<ForceLink<SimulationNodeDatum, SimulationLinkDatum<SimulationNodeDatum>>>("link");
+        if(!force) return;
+        var graphlinks = force.links();
         for(var j = 0; j < graphlinks.length; j++) {
-            var link = {
-                source: graphlinks[j].source.id,
-                target: graphlinks[j].target.id,
+            var link:Link = {
+                source: (graphlinks[j].source as any).id,
+                target: (graphlinks[j].target as any).id,
+                strength: 0,
+                length: 0
             };
             links.push(link);
         }
@@ -65,7 +83,7 @@ const NetworkGraph = (props) => {
         });
     };
 
-    const hold = (ms) => {
+    const hold = (ms:number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
     };
 
@@ -75,20 +93,23 @@ const NetworkGraph = (props) => {
             return;
         }
         setrunning(true);
-        var graphnodes = run.sim.nodes();
-        var graphnodesbyid = indexBy(graphnodes, n => n.id);
-        var stepcount = steps.length;
-        var waittime = 10000 / stepcount;
-        for(var i = 0; i < stepcount; i++) {
-            if(!getrunning()) return;
-            setruncount(stepcount - i);
-            var s = steps[i];
-            await renderstep(s, graphnodesbyid, waittime);
+        if(run.sim){
+            var graphnodes = run.sim.nodes();
+            var graphnodesbyid = indexBy(graphnodes, (n:AgentState) => n.id);
+            var stepcount = steps.length;
+            var waittime = 10000 / stepcount;
+            for(var i = 0; i < stepcount; i++) {
+                if(!getrunning()) return;
+                setruncount(stepcount - i);
+                var s = steps[i];
+                await renderstep(s, graphnodesbyid, waittime);
+            }
         }
         setrunning(false);
     };
 
-    const renderstep = async (step, graphnodesbyid, waittime) => {
+    const renderstep = async (step:Step, graphnodesbyid:any, waittime:number) => {
+        if(!run.sim || !run.nodes) return;
         var netnodes = step.network.nodes;
         for(var i = 0; i < netnodes.length; i++) {
             var node = netnodes[i];
@@ -96,13 +117,16 @@ const NetworkGraph = (props) => {
             graphnode.color = node.color;
         }
         run.sim.tick();
-        run.nodes.style("fill", function(d){ return Color.cssColorFromVal(d.color); });
+        run.nodes.style("fill", function(d:any){ return Color.cssColorFromVal(d.color); });
         await hold(waittime);
     };
 
-    const createGraph = (network) => {
+    const createGraph = (network:Network) => {
+        if(!graph.current) return;
+        const parentElement = graph.current.parentElement;
+        if(!parentElement) return;
         const margin = {top: 0, right: 0, bottom: 0, left: 0},
-            vwidth = graph.current.parentElement.offsetWidth,
+            vwidth = parentElement.offsetWidth,
             cw = vwidth - margin.left - margin.right,
             vheight = Math.round(cw/1.6),
             ch = vheight - margin.top - margin.bottom;
@@ -110,14 +134,14 @@ const NetworkGraph = (props) => {
         const width = 1024, height = 768;
 
         const resize = () => {
-            var w = graph.current.parentElement.offsetWidth,
+            var w = parentElement.offsetWidth,
                 h = Math.round((w -  margin.left - margin.right)/1.6);
             select(graph.current).attr('width', w)
                 .attr('height', h);
         };
 
         select(window).on(
-            'resize.' + select(graph.current.parentElement).attr('id'), 
+            'resize.' + select(parentElement).attr('id'), 
             resize
         );
         
@@ -127,8 +151,8 @@ const NetworkGraph = (props) => {
             .attr('preserveAspectRatio', 'xMinYMid')
             .call(resize);
         
-        const simulation = forceSimulation()
-            .force("link", forceLink().id(function(d) { return d.id; }))
+        const simulation = forceSimulation<SimulationNodeDatum, SimulationLinkDatum<SimulationNodeDatum>>()
+            .force("link", forceLink().id(function(d:any) { return d.id; }))
             .force("charge", forceManyBody())
             .force("center", forceCenter(width / 2, height / 2))
             .force("xAxis", forceX().strength(0.01).x((width)/2))
@@ -136,11 +160,11 @@ const NetworkGraph = (props) => {
 
         const networkGraph = svg.append('svg:g').attr('class','grpParent');
 
-        const zoomed = (event) => {
+        const zoomed = (event:any) => {
             networkGraph.attr("transform", event.transform);
         }
 
-        const z = zoom()
+        const z = zoom<SVGSVGElement, unknown>()
             .scaleExtent([-40, 40])
             .translateExtent([[-2*width, -2*height], [4*width, 4*height]])
             .on("zoom", zoomed);
@@ -164,7 +188,7 @@ const NetworkGraph = (props) => {
             .enter().append("circle")
             .attr("r", function(d,i){return 5 + 5*d.change/chgits;})
             .style("fill", function(d){ return Color.cssColorFromVal(d.color); })
-            .call(drag()
+            .call(drag<SVGCircleElement, AgentState>()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended));
@@ -174,10 +198,10 @@ const NetworkGraph = (props) => {
       
         const ticked = () => {
             links
-                .attr("x1", function(d) { return d.source.x; })
-                .attr("y1", function(d) { return d.source.y; })
-                .attr("x2", function(d) { return d.target.x; })
-                .attr("y2", function(d) { return d.target.y; });
+                .attr("x1", function(d:any) { return d.source.x; })
+                .attr("y1", function(d:any) { return d.source.y; })
+                .attr("x2", function(d:any) { return d.target.x; })
+                .attr("y2", function(d:any) { return d.target.y; });
         
             nodes
                 .attr("cx", function(d) { 
@@ -190,33 +214,34 @@ const NetworkGraph = (props) => {
             .nodes(network.nodes)
             .on("tick", ticked);
       
-        simulation.force("link")
-            .links(network.links);
+        var force = simulation.force<ForceLink<SimulationNodeDatum, SimulationLinkDatum<SimulationNodeDatum>>>("link");
+        if (!force) return;
+        force.links(network.links);
         
         run.sim = simulation;
-        run.nodes = nodes;
+        run.nodes = nodes as any;
         runsim(false);
         simulation.tick();
         ticked();
         
-        function dragstarted(event, d) {
+        function dragstarted(event:any, d:AgentState) {
             if(run.stopped) return;
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         };
             
-        function dragged(event, d) {
+        function dragged(event:any, d:AgentState) {
             if(run.stopped) return;
             d.fx = event.x;
             d.fy = event.y;
         };
             
-        function dragended(event, d) {
+        function dragended(event:any, d:AgentState) {
             if(run.stopped) return;
             if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            d.fx = undefined;
+            d.fy = undefined;
         };
     }
 
@@ -242,9 +267,9 @@ const NetworkGraph = (props) => {
 
     return <div>
             {loading && <Spinner animation="border" variant="info" />}
-            <svg class="mb-3" ref={graph}/>
-            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>
-            <Button size="sm" toggle className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
+            <svg className="mb-3" ref={graph}/>
+            <Button size="sm" className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>
+            <Button size="sm" className="btn btn-primary float-right" onClick={(e) => runsim(!layout)} disabled={steps.length > 1}>{layout ? 'Save layout' : 'Layout'}</Button>
         </div>
 }
 

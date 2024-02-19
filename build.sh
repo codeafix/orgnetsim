@@ -4,8 +4,8 @@ set -e
 
 cd web
 npm install
-npm run-script build
-cp -r build/* ../orgnetsim/web/
+npm run build
+cp -r dist/* ../orgnetsim/web/
 
 cd ../orgnetsim
 go build

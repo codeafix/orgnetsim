@@ -9,20 +9,20 @@ import (
 	"github.com/spaceweasel/mango"
 )
 
-//StaticRouter is a derived version of mango.Router that also serves an embedded
-//copy of the orgnetsim UI
+// StaticRouter is a derived version of mango.Router that also serves an embedded
+// copy of the orgnetsim UI
 type StaticRouter struct {
 	Router       *mango.Router
 	embedHandler http.Handler
 	webpath      string
 }
 
-//ListenAndServe launches the web server
-//rootpath is the root directory where data served by this server is persisted
-//webpath is the root directory of the static website served by this server
-//webfs is the embedded copy of the static website that will be served if the
-//webpath is an empty string
-//port is the port to listen on
+// ListenAndServe launches the web server
+// rootpath is the root directory where data served by this server is persisted
+// webpath is the root directory of the static website served by this server
+// webfs is the embedded copy of the static website that will be served if the
+// webpath is an empty string
+// port is the port to listen on
 func ListenAndServe(rootpath string, webpath string, webfs fs.FS, port string) {
 	fm := NewFileManager(rootpath)
 	r := CreateRouter(fm)
@@ -33,6 +33,11 @@ func ListenAndServe(rootpath string, webpath string, webfs fs.FS, port string) {
 	r.ErrorLogger = func(err error) {
 		fmt.Println(err.Error())
 	}
+	corsConfig := mango.CORSConfig{
+		Origins: []string{"*"},
+		Methods: []string{"GET", "POST", "PUT", "DELETE"},
+	}
+	r.SetGlobalCORS(corsConfig)
 
 	sr := StaticRouter{
 		Router:  r,
@@ -49,8 +54,8 @@ func ListenAndServe(rootpath string, webpath string, webfs fs.FS, port string) {
 	http.ListenAndServe(":"+port, &sr)
 }
 
-//CreateRouter registers the route handlers. This function allows the route handlers
-//to be tested with the mango.Browser
+// CreateRouter registers the route handlers. This function allows the route handlers
+// to be tested with the mango.Browser
 func CreateRouter(fm FileManager) *mango.Router {
 	r := mango.NewRouter()
 
@@ -63,8 +68,8 @@ func CreateRouter(fm FileManager) *mango.Router {
 	return r
 }
 
-//ServeHTTP Decides based on the route path whether to use the API router or an embedded
-//file server that serves the static files of the embedded website
+// ServeHTTP Decides based on the route path whether to use the API router or an embedded
+// file server that serves the static files of the embedded website
 func (sr *StaticRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := strings.Split(req.URL.Path, "/")
 	//Ignore optional first /

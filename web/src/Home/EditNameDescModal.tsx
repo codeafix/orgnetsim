@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {Modal, InputGroup, FormControl, Button} from 'react-bootstrap'
+import API from '../API/api';
 
-const EditNameDescModal = (props) => {
-    const [sim, setsim] = useState(props.sim);
-    const [simname, setsimname] = useState("");
-    const [simdescription, setsimdescription] = useState("");
+type EditNameProps = {
+    show: boolean;
+    sim: SimInfo;
+    closeFunc: () => void;
+    saveFunc: (sim:SimInfo) => void;
+}
 
-    const setfields = (ps) => {
-        const s = ps || {};
+const EditNameDescModal = (props:EditNameProps) => {
+    const [sim, setsim] = useState<SimInfo>(props.sim);
+    const [simname, setsimname] = useState<string>("");
+    const [simdescription, setsimdescription] = useState<string>("");
+
+    const setfields = (ps:SimInfo) => {
+        const s = ps;
         setsimname(s['name']);
         setsimdescription(s['description']);
     };
-    
+
     const handleClose = () => {
         setfields(sim);
         props.closeFunc();
@@ -23,7 +31,7 @@ const EditNameDescModal = (props) => {
       },[props.sim]);
 
     const saveSimulation = () => {
-        var simtosave = sim || {}
+        var simtosave:SimInfo = sim;
         simtosave.name = simname;
         simtosave.description = simdescription;
         props.saveFunc(simtosave);
@@ -49,7 +57,7 @@ const EditNameDescModal = (props) => {
                     placeholder="Simulation name"
                     aria-label="Simulation name"
                     aria-describedby="basic-on1"
-                    value={simname}
+                    defaultValue={simname}
                     onChange={e => setsimname(e.target.value)}
                     />
                 </InputGroup>
@@ -57,7 +65,7 @@ const EditNameDescModal = (props) => {
                     <InputGroup.Prepend>
                         <InputGroup.Text>Description</InputGroup.Text>
                     </InputGroup.Prepend>
-                    <FormControl as="textarea" aria-label="Description" value={simdescription} onChange={e => setsimdescription(e.target.value)}/>
+                    <FormControl as="textarea" aria-label="Description" defaultValue={simdescription} onChange={e => setsimdescription(e.target.value)}/>
                 </InputGroup>
             </Modal.Body>
             <Modal.Footer>

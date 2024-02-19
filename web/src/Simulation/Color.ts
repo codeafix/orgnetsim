@@ -30,14 +30,14 @@ const Color = {
     ],
     
     //return the color name used in the UI for the given color enum
-    colorFromVal: function(color) {
+    colorFromVal: function(color:number):string {
         if (color >= 0 && color < this.nameArray.length){
             return this.nameArray[color];
         }
         return "Invalid Color";
     },
     //return the color style name used to fill objects in a d3 chart
-    cssColorFromVal: function(color) {
+    cssColorFromVal: function(color:number):string {
         if (color >= 0 && color < this.nameArray.length){
             return this.cssColorArray[color];
         }
@@ -45,17 +45,17 @@ const Color = {
     },
 
     //return a slice of the UI color names
-    colorNameSlice: function(maxColors) {
+    colorNameSlice: function(maxColors:number):Array<string> {
         return this.nameArray.slice(0,maxColors);
     },
 
     //return a slice of the UI color values
-    cssValSlice: function(maxColors) {
+    cssValSlice: function(maxColors:number):Array<string> {
         return this.cssColorArray.slice(0,maxColors);
     },
 
     //return a slice of the UI color values
-    colorValSlice: function(maxColors) {
+    colorValSlice: function(maxColors:number):Array<number> {
         return this.colorValArray.slice(0,maxColors);
     }
 }

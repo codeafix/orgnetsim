@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {Card, Form, Modal, FormControl, Button} from 'react-bootstrap'
-import API from '../api';
+import API from '../API/api';
 import NetworkGraph from './NetworkGraph';
 
-const NetworkCard = (props) => {
-    const [idcol, setidcol] = useState(0);
-    const [pcol, setpcol] = useState(2);
-    const [delim, setdelim] = useState(",");
-    const [filetoupload, setfiletoupload] = useState();
-    const [showimpmodal, setshowimpmodal] = useState(false);
-    const [hasstep, sethasstep] = useState(false);
+type NetworkCardProps = {
+    sim:SimInfo;
+    steps:Array<Step>;
+    readsim(id:string): void;
+}
+
+const NetworkCard = (props:NetworkCardProps) => {
+    const [idcol, setidcol] = useState<number>(0);
+    const [pcol, setpcol] = useState<number>(2);
+    const [delim, setdelim] = useState<string>(",");
+    const [filetoupload, setfiletoupload] = useState<Blob>();
+    const [showimpmodal, setshowimpmodal] = useState<boolean>(false);
+    const [hasstep, sethasstep] = useState<boolean>(false);
 
     useEffect(() => {
         sethasstep((props.steps || []).length > 0)
@@ -20,17 +26,19 @@ const NetworkCard = (props) => {
         setidcol(0);
         setpcol(2);
         setdelim(",");
-        setfiletoupload();
+        setfiletoupload({} as Blob);
     };
     
     const handleimport = () => {
         const fr = new FileReader();
+        if(!filetoupload) return;
 
         fr.readAsText(filetoupload);
         fr.onload = function() {
-            const base64data = btoa(fr.result);
+            if(!fr.result) return;
+            const base64data = btoa(fr.result.toString());
         
-            const pdata = {
+            const pdata:ParseOptions = {
                 "identifier": idcol,
                 "parent": pcol,
                 "regex": {
@@ -39,7 +47,7 @@ const NetworkCard = (props) => {
                     "3":"\\S+"
                   },
                 "delimiter": delim,
-                "Payload": base64data
+                "payload": base64data
             };
             API.parse(props.sim, pdata).then(response => {
                 props.readsim(response.parent);
@@ -65,20 +73,20 @@ const NetworkCard = (props) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="form-file">
-                        <Form.File label="Select File" onChange={(e) => {
+                        <Form.File label="Select File" onChange={(e:any) => {
                             if(e.target.files.length) setfiletoupload(e.target.files[0]);
                         }}/>
                     </Form.Group>
                     <Form.Group controlId="form-identifier">
                         <Form.Label>Identifier column</Form.Label>
-                        <Form.Control type="number" value={idcol} onChange={e => setidcol(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={idcol} onChange={e => setidcol((e.target as HTMLInputElement).valueAsNumber)}/>
                         <Form.Text className="text-muted">
                             The column that has the unique identifier in it
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-parent">
                         <Form.Label>Parent Identifier Column</Form.Label>
-                        <Form.Control type="number" value={pcol} onChange={e => setpcol(e.target.valueAsNumber)}/>
+                        <Form.Control type="number" value={pcol} onChange={e => setpcol((e.target as HTMLInputElement).valueAsNumber)}/>
                         <Form.Text className="text-muted">
                             The column that has a parent identifier in it to show hierarchy in the network
                         </Form.Text>

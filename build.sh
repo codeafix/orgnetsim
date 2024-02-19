@@ -4,9 +4,8 @@ set -e
 
 cd web
 npm install
-tsc
 vite build
-cp -r build/* ../orgnetsim/web/
+cp -r dist/* ../orgnetsim/web/
 
 cd ../orgnetsim
 go build

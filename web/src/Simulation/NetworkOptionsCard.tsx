@@ -16,7 +16,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
     const [ic, setic] = useState<Array<number>>([0]);
     const [ltp, setltp] = useState<boolean>(false);
     const [ltl, setltl] = useState<Array<string>>([]);
-    const [le, setle] = useState<Array<string>>([]);
+    const [le, setle] = useState<string>("");
     const [mc, setmc] = useState<number>(2);
     const [hasstep, sethasstep] = useState<boolean>(false);
  
@@ -31,7 +31,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
         setic(options['initColors'] || []);
         setltp(options['linkTeamPeers'] === true);
         setltl(options['linkedTeamList'] || []);
-        setle(options['loneEvangelist'] || []);
+        setle(options['loneEvangelist'] || "");
         setmc(options['maxColors']);
     };
 
@@ -115,23 +115,21 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="form-awm">
-                        <Form.Check type="checkbox" label="Use agents with memory" defaultChecked={awm} onChange={
-                            e => setawm(e.target.checked)
-                            }/>
+                        <Form.Check type="checkbox" label="Use agents with memory" defaultChecked={awm} onChange={e => setawm(e.target.checked)}/>
                         <Form.Text className="text-muted">
                             Use agents that have memory in the network simulation
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-evangelist">
                         <Form.Label>Evangelist list</Form.Label>
-                        <Form.Control as="select" value={el} onChange={(e:any) => setel(Array.from<string>(e.target.selectedOptions).filter((sel:any)  => sel.value))} multiple/>
+                        <Form.Control as="select" value={el.map(i => String(i))} onChange={(e:any) => setel(Array.from<string>(e.target.selectedOptions).filter((sel:any)  => sel.value))} multiple/>
                         <Form.Text className="text-muted">
                             List the agents that are evangelists for a new idea
                         </Form.Text>
                     </Form.Group>
                     <Form.Group controlId="form-initcolors">
                         <Form.Label>Initialisation colors</Form.Label>
-                        <Form.Control as="select" value={ic.toString()} onChange={(e:any) => setic(Array.from(e.target.selectedOptions).filter((sel:any) => sel.value).map((sel:any) => parseInt(sel.value)))} multiple>
+                        <Form.Control as="select" value={ic.map(i => String(i))} onChange={(e:any) => setic(Array.from(e.target.selectedOptions).filter((sel:any) => sel.value).map((sel:any) => parseInt(sel.value)))} multiple>
                             <option></option>
                             <option value={0}>{Color.colorFromVal(0)}</option>
                             <option value={1}>{Color.colorFromVal(1)}</option>
@@ -153,7 +151,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                     </Form.Group>
                     <Form.Group controlId="form-linkedteam">
                         <Form.Label>Linked team list</Form.Label>
-                        <Form.Control as="select" value={ltl} onChange={(e:any) => setltl(Array.from<string>(e.target.selectedOptions).filter((sel:any) => sel.value))} multiple/>
+                        <Form.Control as="select" value={ltl.map(i => String(i))} onChange={(e:any) => setltl(Array.from<string>(e.target.selectedOptions).filter((sel:any) => sel.value))} multiple/>
                         <Form.Text className="text-muted">
                             Generate links between the specified teams
                         </Form.Text>

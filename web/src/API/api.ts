@@ -5,7 +5,7 @@ const API = {
         linkTeamPeers: false,
         linkedTeamList: [],
         evangelistList: [],
-        loneEvangelist: [],
+        loneEvangelist: "",
         initColors: [],
         maxColors: 0,
         agentsWithMemory: false

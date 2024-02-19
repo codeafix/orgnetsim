@@ -57,7 +57,7 @@ const EditNameDescModal = (props:EditNameProps) => {
                     placeholder="Simulation name"
                     aria-label="Simulation name"
                     aria-describedby="basic-on1"
-                    value={simname}
+                    defaultValue={simname}
                     onChange={e => setsimname(e.target.value)}
                     />
                 </InputGroup>
@@ -65,7 +65,7 @@ const EditNameDescModal = (props:EditNameProps) => {
                     <InputGroup.Prepend>
                         <InputGroup.Text>Description</InputGroup.Text>
                     </InputGroup.Prepend>
-                    <FormControl as="textarea" aria-label="Description" value={simdescription} onChange={e => setsimdescription(e.target.value)}/>
+                    <FormControl as="textarea" aria-label="Description" defaultValue={simdescription} onChange={e => setsimdescription(e.target.value)}/>
                 </InputGroup>
             </Modal.Body>
             <Modal.Footer>

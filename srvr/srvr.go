@@ -35,6 +35,7 @@ func ListenAndServe(rootpath string, webpath string, webfs fs.FS, port string) {
 	}
 	corsConfig := mango.CORSConfig{
 		Origins: []string{"*"},
+		Methods: []string{"GET", "POST", "PUT", "DELETE"},
 	}
 	r.SetGlobalCORS(corsConfig)
 

@@ -64,42 +64,42 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
                 <fieldset disabled>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-awm">Use agents that have memory in the network simulation</Tooltip>}>
                         <span>
-                            <Form.Check type="checkbox" label="Use agents with memory" checked={awm}/>
+                            <Form.Check type="checkbox" label="Use agents with memory" defaultChecked={awm}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-el">List the agents that are evangelists for a new idea</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Evangelist list</Form.Label>
-                            <Form.Control size="sm" as="textarea" value={el.join("; ")}/>
+                            <Form.Control size="sm" as="textarea" defaultValue={el.join("; ")}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-culr">Select the colors that the agents will be randomly assigned to</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Initial colors</Form.Label>
-                            <Form.Control size="sm" type="text" value={ic.map(culr => Color.colorFromVal(culr)).join("; ")}/>
+                            <Form.Control size="sm" type="text" defaultValue={ic.map(culr => Color.colorFromVal(culr)).join("; ")}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-ltp">Generate links between all members of a team</Tooltip>}>
                         <span>
-                            <Form.Check className="pt-2" type="checkbox" label="Link team peers" checked={ltp}/>
+                            <Form.Check className="pt-2" type="checkbox" label="Link team peers" defaultChecked={ltp}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-ltl">Generate links between the specified teams</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Linked team list</Form.Label>
-                            <Form.Control size="sm" as="textarea" value={ltl.join("; ")}/>
+                            <Form.Control size="sm" as="textarea" defaultValue={ltl.join("; ")}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-le">An agent that will act as an evangelist for a new idea</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Lone evangelist</Form.Label>
-                            <Form.Control size="sm" type="text" value={le}/>
+                            <Form.Control size="sm" type="text" defaultValue={le}/>
                         </span>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={<Tooltip id="tooltip-mc">Set the maximum number of colors representing competing ideas in the network</Tooltip>}>
                         <span>
                             <Form.Label className="pt-2">Maximum colors</Form.Label>
-                            <Form.Control size="sm" type="text" value={mc}/>
+                            <Form.Control size="sm" type="text" defaultValue={mc}/>
                         </span>
                     </OverlayTrigger>
                 </fieldset>

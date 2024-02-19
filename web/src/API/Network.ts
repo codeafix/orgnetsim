@@ -19,6 +19,8 @@ type AgentState = {
     contrariness: number;
     change: number;
     type: string;
-    fx: number;
-    fy: number;
+    fx?: number;
+    fy?: number;
+    x: number;
+    y: number;
 }

@@ -26,7 +26,10 @@ const AgentColorChart = (props:AgentColorChartProps) => {
             ch = vheight - margin.top - margin.bottom;
         
         const resize = () => {
-            const w = vwidth,
+            const c = chart.current;
+            if(!c) return;
+            if(!c.parentElement) return;
+            const w = c.parentElement.offsetWidth,
                 h = Math.round((w -  margin.left - margin.right)/1.6);
             select(c).attr('width', w)
                 .attr('height', h);
@@ -97,7 +100,7 @@ const AgentColorChart = (props:AgentColorChartProps) => {
         });
     },[props.sim]);//eslint-disable-line react-hooks/exhaustive-deps
 
-    return <div>
+    return <div id="chart-container">
             {loading && <Spinner animation="border" variant="info" />}
             <svg className="mb-3" ref={chart}/>
         </div>

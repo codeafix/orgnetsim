@@ -134,9 +134,12 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         const width = 1024, height = 768;
 
         const resize = () => {
-            var w = parentElement.offsetWidth,
+            const c = graph.current;
+            if(!c) return;
+            if(!c.parentElement) return;
+            var w = c.parentElement.offsetWidth,
                 h = Math.round((w -  margin.left - margin.right)/1.6);
-            select(graph.current).attr('width', w)
+            select(c).attr('width', w)
                 .attr('height', h);
         };
 
@@ -265,7 +268,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         setloading(false);
     },[props.sim, props.steps]);//eslint-disable-line react-hooks/exhaustive-deps
 
-    return <div>
+    return <div id="graph-container">
             {loading && <Spinner animation="border" variant="info" />}
             <svg className="mb-3" ref={graph}/>
             <Button size="sm" className="btn btn-primary float-right" onClick={(e) => playsteps()} disabled={steps.length < 2 || layout}>{isrunning ? runcount : 'Play'}</Button>

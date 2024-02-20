@@ -44,9 +44,9 @@ const Simulation = (props:SimulationProps) => {
     };
 
     return (
-        <Container>
+        <Container fluid>
             <h1 className="px-2 py-2 bg-light rounded"><Link className="btn btn-outline-secondary mr-3 mt-n2 mb-2" to='/' role="button"><ArrowLeftCircle className="mt-n1" /></Link>{sim.name}<Button size="sm" className="btn btn-primary mt-2 mr-2 float-right" onClick={handlesimeditshow}>Edit</Button></h1>
-            <Container>
+            <Container fluid>
                 <Row>
                     <Col sm={8}>
                         <NetworkCard sim={sim} steps={simsteps} readsim={readsim}/>

@@ -5,86 +5,67 @@ const API = {
         linkTeamPeers: false,
         linkedTeamList: [],
         evangelistList: [],
-        loneEvangelist: "",
+        loneEvangelist: [],
         initColors: [],
         maxColors: 0,
         agentsWithMemory: false
     }};},
     sims: async function():Promise<SimList> {
-        return this.emptySimList;
+        // return this.emptySimList;
+        return {notes:"Some notes",simulations:[
+            {id:"1",name:"test1",description:"test1desc",steps:[],options:{
+                linkTeamPeers: false,
+                linkedTeamList: [],
+                evangelistList: [],
+                loneEvangelist: [],
+                initColors: [],
+                maxColors: 0,
+                agentsWithMemory: false
+            }},
+            {id:"2",name:"test2",description:"test2desc",steps:[],options:{
+                linkTeamPeers: false,
+                linkedTeamList: [],
+                evangelistList: [],
+                loneEvangelist: [],
+                initColors: [],
+                maxColors: 0,
+                agentsWithMemory: false
+            }}
+        ]};
     },
     get: async function(id:string):Promise<SimInfo>{
         return this.emptySim();
     },
     getStep: async function(path:string):Promise<Step>{
-        const response = await fetch(this.rootPath+path, {
-            "method": "GET",
-            "headers": {}
-            }).catch(err => { console.log(err); 
-        }) as Response;
-        return response.json();
+        return {
+            id: "1",
+            parent: "1",
+            network:{
+                nodes: [],
+                links: [],
+                maxColors: 0,
+            },
+            results:{
+                iterations: 0,
+                colors: [[]],
+                conversations: []
+            }
+        };
     },
     getSteps: async function(sim:SimInfo):Promise<Array<Step>>{
-        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/step", {
-            "method": "GET",
-            "headers": {}
-            }).catch(err => { console.log(err); 
-        }) as Response;
-        return response.json();
+        return [];
     },
     getResults: async function(sim:SimInfo):Promise<Results>{
-        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
-            "method": "GET",
-            "headers": {}
-            }).catch(err => { console.log(err); 
-        }) as Response;
-        
-        return response.json();
+        return {"iterations":100,"colors":[[6,0],[4,2],[6,0],[5,1],[4,2],[4,2],[4,2],[5,1],[5,1],[5,1],[5,1],[6,0],[4,2],[4,2],[4,2],[4,2],[5,1],[4,2],[4,2],[5,1],[5,1],[6,0],[5,1],[6,0],[6,0],[6,0],[6,0],[6,0],[5,1],[5,1],[5,1],[6,0],[4,2],[5,1],[4,2],[5,1],[5,1],[5,1],[6,0],[5,1],[4,2],[4,2],[6,0],[5,1],[5,1],[5,1],[6,0],[5,1],[5,1],[5,1],[5,1],[4,2],[5,1],[5,1],[5,1],[4,2],[5,1],[6,0],[6,0],[6,0],[6,0],[5,1],[5,1],[5,1],[5,1],[6,0],[4,2],[5,1],[6,0],[4,2],[5,1],[5,1],[5,1],[5,1],[4,2],[5,1],[4,2],[5,1],[4,2],[5,1],[6,0],[5,1],[5,1],[6,0],[6,0],[5,1],[5,1],[6,0],[4,2],[4,2],[5,1],[3,3],[3,3],[4,2],[3,3],[4,2],[4,2],[4,2],[6,0],[4,2],[4,2]],"conversations":[0,6,6,6,6,5,6,6,6,6,6,6,6,6,6,6,5,6,6,6,6,6,6,6,6,6,6,6,5,6,6,6,6,6,6,6,6,6,5,6,6,6,6,6,6,6,5,6,6,6,6,6,5,6,6,6,6,6,6,6,5,6,6,6,6,6,6,6,6,6,6,6,6,5,6,6,6,6,6,6,6,5,6,6,6,6,6,5,6,5,6,6,6,6,5,6,6,6,6,6,6]};
     },
     getResultsCsv: async function(sim:SimInfo):Promise<ResultsCsv>{
-        var fn = "results.csv";
-        const data = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/results", {
-            "method": "GET",
-            "headers": {
-                "Content-Type": "text/csv"
-            }
-            }).then(response => {
-                const contentDisp = response.headers.get('Content-Disposition') as string;
-                const regExpFilename = /filename="(?<filename>[^"]*)"/;
-                fn = regExpFilename.exec(contentDisp)?.groups?.filename ?? fn;
-                return response.blob();
-            }).then(blob => {
-                return {
-                    filename: fn,
-                    blob: blob,
-                };
-            }).catch(err => { console.log(err); 
-            }) as ResultsCsv;
-        return data;
+        return {filename:"results.csv",blob:new Blob()};
     },
     update: async function(sim:SimInfo):Promise<SimInfo>{
-        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id, {
-            "method": "PUT",
-            "headers": {
-                'Content-Type': 'application/json'
-            },
-            "body": JSON.stringify(sim),
-            })
-            .catch(err => { console.log(err); 
-            }) as Response;
-        return response.json();
+        return sim;
     },
     updateStep: async function(step:Step):Promise<Step>{
-        const response = await fetch(this.rootPath+"/api/simulation/"+step.parent+"/step/"+step.id, {
-            "method": "PUT",
-            "headers": {
-                'Content-Type': 'application/json'
-            },
-            "body": JSON.stringify(step),
-            })
-            .catch(err => { console.log(err); 
-            }) as Response;
-        return response.json();
+        return step;
     },
     runsim: async function(sim:SimInfo, spec:RunSpec){
         const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/run", {
@@ -110,25 +91,18 @@ const API = {
             return response.json();
     },
     add: async function(name:string, description:string):Promise<SimInfo>{
-        var sim = {name:name,description:description};
-        const response = await fetch(this.rootPath+"/api/simulation", {
-            "method": "POST",
-            "headers": {
-                'Content-Type': 'application/json'
-            },
-            "body": JSON.stringify(sim),
-            })
-            .catch(err => { console.log(err); 
-            }) as Response;
-        return response.json();
+        return {id:"1",name:name,description:description, steps:[], options:{
+            linkTeamPeers: false,
+            linkedTeamList: [],
+            evangelistList: [],
+            loneEvangelist: [],
+            initColors: [],
+            maxColors: 0,
+            agentsWithMemory: false
+        }};
     },
     delete: async function(id:string){
-        await fetch(this.rootPath+"/api/simulation/"+id, {
-            "method": "DELETE",
-            "headers": {}
-            })
-            .catch(err => { console.log(err); 
-            }) as Response;
+        return;
     },
 }
 

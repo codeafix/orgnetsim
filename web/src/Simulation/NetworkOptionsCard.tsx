@@ -31,7 +31,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
         setic(options['initColors'] || []);
         setltp(options['linkTeamPeers'] === true);
         setltl(options['linkedTeamList'] || []);
-        setle(options['loneEvangelist'] || "");
+        setle((options['loneEvangelist'] || [])[0]||"");
         setmc(options['maxColors']);
     };
 
@@ -50,7 +50,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
         s.options['initColors'] = ic;
         s.options['linkTeamPeers'] = ltp;
         s.options['linkedTeamList'] = ltl;
-        s.options['loneEvangelist'] = le;
+        s.options['loneEvangelist'] = [le];
         s.options['maxColors'] = mc;
         API.update(s).then(response => {
             props.setsim(response);

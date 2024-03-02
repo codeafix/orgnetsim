@@ -98,7 +98,7 @@ const AgentColorChart = (props:AgentColorChartProps) => {
             console.error(err);
             setloading(false);
         });
-    },[props.sim]);//eslint-disable-line react-hooks/exhaustive-deps
+    },[props.sim]);
 
     return <div id="chart-container">
             {loading && <Spinner animation="border" variant="info" />}

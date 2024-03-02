@@ -7,8 +7,8 @@ type Network = {
 type Link = {
     source: string;
     target: string;
-    strength: number;
-    length: number;
+    strength?: number;
+    length?: number;
 }
 
 type AgentState = {
@@ -21,6 +21,6 @@ type AgentState = {
     type: string;
     fx?: number;
     fy?: number;
-    x: number;
-    y: number;
+    x?: number;
+    y?: number;
 }

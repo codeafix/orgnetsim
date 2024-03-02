@@ -182,7 +182,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
             .data(network.links)
             .enter().append("line")
             .style("stroke", "LightGray")
-            .style('stroke-width', function(d) { return 10*d.strength/its;} );
+            .style('stroke-width', function(d) { return 10*(d.strength||0)/its;} );
         
         const nodes = networkGraph.append("g")
             .attr("class", "nodes")
@@ -208,9 +208,9 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         
             nodes
                 .attr("cx", function(d) { 
-                    return d.x = Math.max(-2*width+5, Math.min(4*width - 5, d.x)); })
+                    return d.x = Math.max(-2*width+5, Math.min(4*width - 5, d.x||0)); })
                 .attr("cy", function(d) { 
-                    return d.y = Math.max(-2*height+5, Math.min(4*height - 5, d.y)); });
+                    return d.y = Math.max(-2*height+5, Math.min(4*height - 5, d.y||0)); });
             };
 
         simulation

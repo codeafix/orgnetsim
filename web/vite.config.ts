@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
+import { configDefaults } from 'vitest/config'
 
 export default defineConfig({
     // depending on your application, base can also be "/"
@@ -14,6 +15,11 @@ export default defineConfig({
     },
     test: {
         globals: true,
-        environment: 'jsdom'
-    }
+        environment: 'jsdom',
+        coverage: {
+            exclude: [
+                ...configDefaults.coverage.exclude || [],
+                'src/API/**'],
+        },
+    },
 })

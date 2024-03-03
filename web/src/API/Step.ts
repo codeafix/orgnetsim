@@ -1,3 +1,6 @@
+import { Network } from './Network';
+import { Results } from './Results';
+
 type Step = {
     id: string;
     parent: string;
@@ -9,3 +12,5 @@ type RunSpec = {
     steps: number;
     iterations: number;
 }
+
+export type { Step, RunSpec };

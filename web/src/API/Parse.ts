@@ -5,3 +5,5 @@ type ParseOptions = {
     delimiter: string;
     payload: string;
 }
+
+export type { ParseOptions };

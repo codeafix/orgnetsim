@@ -3,6 +3,8 @@ import {Card, Table, Button, Modal, Form} from 'react-bootstrap';
 import AgentColorChart from './AgentColorChart'
 import API from '../API/api';
 import Color from './Color';
+import { SimInfo } from '../API/SimInfo';
+import { Step } from '../API/Step';
 
 type StepsCardProps = {
     sim:SimInfo;

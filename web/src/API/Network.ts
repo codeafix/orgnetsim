@@ -24,3 +24,5 @@ type AgentState = {
     x?: number;
     y?: number;
 }
+
+export type { Network, Link, AgentState }

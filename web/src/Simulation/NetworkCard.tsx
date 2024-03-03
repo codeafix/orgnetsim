@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {Card, Form, Modal, FormControl, Button} from 'react-bootstrap'
 import API from '../API/api';
 import NetworkGraph from './NetworkGraph';
+import { SimInfo } from '../API/SimInfo';
+import { Step } from '../API/Step';
+import { ParseOptions } from '../API/Parse';
 
 type NetworkCardProps = {
     sim:SimInfo;

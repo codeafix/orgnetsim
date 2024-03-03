@@ -6,6 +6,7 @@ import EditNameDescModal from './EditNameDescModal'
 import {Button} from 'react-bootstrap'
 import {CardDeck} from 'react-bootstrap';
 import Logo from '../logo.svg';
+import {SimInfo} from '../API/SimInfo';
 
 const Home = () => {
     const [simlist, setSimlist] = useState<Array<SimInfo>>([]);

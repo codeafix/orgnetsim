@@ -1,3 +1,11 @@
+import { SimInfo } from '../API/SimInfo';
+import { Step } from '../API/Step';
+import { Results } from '../API/Results';
+import { RunSpec } from '../API/Step';
+import { ParseOptions } from '../API/Parse';
+import { ResultsCsv } from '../API/Results';
+import { SimList } from '../API/SimList';
+
 const API = {
     rootPath: "http://localhost:8080",
     emptySimList: {simulations:[],notes:""},

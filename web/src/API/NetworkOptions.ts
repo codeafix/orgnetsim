@@ -7,3 +7,4 @@ type NetworkOptions = {
     maxColors: number;
     agentsWithMemory: boolean;
 }
+export type { NetworkOptions };

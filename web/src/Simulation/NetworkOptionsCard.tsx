@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import API from '../API/api';
 import Color from './Color';
 import {Card, Form, Button, OverlayTrigger, Tooltip, Modal} from 'react-bootstrap';
+import { SimInfo } from '../API/SimInfo';
+import { NetworkOptions } from '../API/NetworkOptions';
 
 type NetworkOptionsCardProps = {
     sim:SimInfo;

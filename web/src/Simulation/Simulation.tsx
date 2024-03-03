@@ -7,6 +7,8 @@ import EditNameDescModal from '../Home/EditNameDescModal'
 import NetworkOptionsCard from './NetworkOptionsCard'
 import NetworkCard from './NetworkCard'
 import StepsCard from './StepsCard'
+import { SimInfo } from '../API/SimInfo';
+import { Step } from '../API/Step';
 
 type SimulationProps = {
     match: {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {Modal, InputGroup, FormControl, Button} from 'react-bootstrap'
-import API from '../API/api';
+import { SimInfo } from '../API/SimInfo';
 
 type EditNameProps = {
     show: boolean;

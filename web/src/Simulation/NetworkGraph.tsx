@@ -5,6 +5,9 @@ import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
 import {Button} from 'react-bootstrap';
 import {indexBy} from 'underscore';
+import { SimInfo } from '../API/SimInfo';
+import { Step } from '../API/Step';
+import { Network, Link, AgentState } from '../API/Network';
 
 type NetworkGraphProps = {
     sim:SimInfo;

@@ -3,6 +3,8 @@ import { scaleLinear, select, stack, axisBottom, axisLeft, area } from 'd3';
 import Color from './Color';
 import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
+import { SimInfo } from '../API/SimInfo';
+import { Results } from '../API/Results';
 
 type AgentColorChartProps = {
     sim:SimInfo;

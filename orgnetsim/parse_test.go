@@ -46,7 +46,7 @@ func TestParseReturnsFalseForHelp(t *testing.T) {
 func TestParseReturnsTrue(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
-	os.Args = []string{"orgnetsim", "parse", "../sim/tst.csv"}
+	os.Args = []string{"orgnetsim", "parse", "../sim/tst.json"}
 	success, _, _, _ := parseCommandLineOptions()
 	IsTrue(t, success, "not returning true")
 }

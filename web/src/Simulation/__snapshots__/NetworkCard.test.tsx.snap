@@ -1,0 +1,232 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renders without crashing 1`] = `
+<DocumentFragment>
+  <div
+    class="mb-2 mx-n2 card"
+  >
+    <div
+      class="card-header"
+    >
+      <div
+        class="card-title h5"
+      >
+        Network
+        <button
+          class="btn btn-primary float-right btn btn-primary btn-sm"
+          disabled=""
+          type="button"
+        >
+          Import
+        </button>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        id="graph-container"
+      >
+        <svg
+          class="mb-3"
+          height="0"
+          preserveAspectRatio="xMinYMid"
+          viewBox="0 0 0 0"
+          width="0"
+        >
+          <g
+            class="grpParent"
+          >
+            <g
+              class="links"
+            >
+              <line
+                style="stroke: LightGray; stroke-width: 0.175;"
+                x1="512.0238945054554"
+                x2="528.3743371463426"
+                y1="383.2777626590721"
+                y2="403.6228601629286"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.175;"
+                x1="512.0238945054554"
+                x2="486.83099078103857"
+                y1="383.2777626590721"
+                y2="378.383316333952"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.2;"
+                x1="512.0238945054554"
+                x2="536.0980539104477"
+                y1="383.2777626590721"
+                y2="374.5974462319489"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.225;"
+                x1="512.0238945054554"
+                x2="498.7319761723783"
+                y1="383.2777626590721"
+                y2="406.0009971245655"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.205;"
+                x1="512.0238945054554"
+                x2="509.9407199938294"
+                y1="383.2777626590721"
+                y2="358.1175533021693"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.235;"
+                x1="528.3743371463426"
+                x2="486.83099078103857"
+                y1="403.6228601629286"
+                y2="378.383316333952"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.225;"
+                x1="528.3743371463426"
+                x2="536.0980539104477"
+                y1="403.6228601629286"
+                y2="374.5974462319489"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.18;"
+                x1="528.3743371463426"
+                x2="498.7319761723783"
+                y1="403.6228601629286"
+                y2="406.0009971245655"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.185;"
+                x1="528.3743371463426"
+                x2="509.9407199938294"
+                y1="403.6228601629286"
+                y2="358.1175533021693"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.17;"
+                x1="486.83099078103857"
+                x2="536.0980539104477"
+                y1="378.383316333952"
+                y2="374.5974462319489"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.195;"
+                x1="486.83099078103857"
+                x2="498.7319761723783"
+                y1="378.383316333952"
+                y2="406.0009971245655"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.185;"
+                x1="486.83099078103857"
+                x2="509.9407199938294"
+                y1="378.383316333952"
+                y2="358.1175533021693"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.17;"
+                x1="536.0980539104477"
+                x2="498.7319761723783"
+                y1="374.5974462319489"
+                y2="406.0009971245655"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.225;"
+                x1="536.0980539104477"
+                x2="509.9407199938294"
+                y1="374.5974462319489"
+                y2="358.1175533021693"
+              />
+              <line
+                style="stroke: LightGray; stroke-width: 0.19;"
+                x1="498.7319761723783"
+                x2="509.9407199938294"
+                y1="406.0009971245655"
+                y2="358.1175533021693"
+              />
+            </g>
+            <g
+              class="nodes"
+            >
+              <circle
+                cx="512.0238945054554"
+                cy="383.2777626590721"
+                r="5.1125"
+                style="fill: Blue;"
+              >
+                <title>
+                  Lead
+                </title>
+              </circle>
+              <circle
+                cx="498.7319761723783"
+                cy="406.0009971245655"
+                r="5.0325"
+                style="fill: Blue;"
+              >
+                <title>
+                  Dev_1
+                </title>
+              </circle>
+              <circle
+                cx="509.9407199938294"
+                cy="358.1175533021693"
+                r="5"
+                style="fill: SlateGray;"
+              >
+                <title>
+                  Dev_2
+                </title>
+              </circle>
+              <circle
+                cx="528.3743371463426"
+                cy="403.6228601629286"
+                r="5"
+                style="fill: SlateGray;"
+              >
+                <title>
+                  Dev_3
+                </title>
+              </circle>
+              <circle
+                cx="486.83099078103857"
+                cy="378.383316333952"
+                r="5.045"
+                style="fill: SlateGray;"
+              >
+                <title>
+                  Dev_4
+                </title>
+              </circle>
+              <circle
+                cx="536.0980539104477"
+                cy="374.5974462319489"
+                r="5"
+                style="fill: SlateGray;"
+              >
+                <title>
+                  Dev_5
+                </title>
+              </circle>
+            </g>
+          </g>
+        </svg>
+        <button
+          class="btn btn-primary float-right btn btn-primary btn-sm"
+          type="button"
+        >
+          Play
+        </button>
+        <button
+          class="btn btn-primary float-right btn btn-primary btn-sm"
+          disabled=""
+          type="button"
+        >
+          Layout
+        </button>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

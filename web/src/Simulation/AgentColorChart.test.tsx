@@ -2,7 +2,7 @@ import React from 'react';
 import {render} from '@testing-library/react';
 import '../../node_modules/bootstrap/dist/css/bootstrap.css';
 import '../index.css';
-import { test, vi } from 'vitest'
+import { test, vi, expect } from 'vitest'
 import { act } from 'react-dom/test-utils';
 import AgentColorChart from './AgentColorChart';
 import { SimInfo } from '../API/SimInfo';
@@ -12,9 +12,12 @@ const sim:SimInfo = {"id":"27f06fe2-6e82-44b0-af4a-6975d169ff48","name":"test","
 vi.mock('../API/api');
 
 test('renders without crashing', async () => {
+    var result:any;
     await act(async () => {
-        render(
+        result = render(
             <AgentColorChart sim={sim}/>
         );
     });
+    expect(result).toBeDefined();
+    expect(result.asFragment()).toMatchSnapshot();
 });

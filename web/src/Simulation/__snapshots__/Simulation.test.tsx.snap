@@ -1,0 +1,299 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renders without crashing 1`] = `
+<DocumentFragment>
+  <div
+    class="container-fluid"
+  >
+    <h1
+      class="px-2 py-2 bg-light rounded"
+    >
+      <a
+        class="btn btn-outline-secondary mr-3 mt-n2 mb-2"
+        href="/"
+        role="button"
+      >
+        <svg
+          class="mt-n1"
+          fill="currentColor"
+          height="1em"
+          viewBox="0 0 16 16"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"
+            fill-rule="evenodd"
+          />
+        </svg>
+      </a>
+      <button
+        class="btn btn-primary mt-2 mr-2 float-right btn btn-primary btn-sm"
+        type="button"
+      >
+        Edit
+      </button>
+    </h1>
+    <div
+      class="container-fluid"
+    >
+      <div
+        class="row"
+      >
+        <div
+          class="col-sm-8"
+        >
+          <div
+            class="mb-2 mx-n2 card"
+          >
+            <div
+              class="card-header"
+            >
+              <div
+                class="card-title h5"
+              >
+                Network
+                <button
+                  class="btn btn-primary float-right btn btn-primary btn-sm"
+                  type="button"
+                >
+                  Import
+                </button>
+              </div>
+            </div>
+            <div
+              class="card-body"
+            >
+              <div
+                id="graph-container"
+              >
+                <svg
+                  class="mb-3"
+                />
+                <button
+                  class="btn btn-primary float-right btn btn-primary btn-sm"
+                  disabled=""
+                  type="button"
+                >
+                  Play
+                </button>
+                <button
+                  class="btn btn-primary float-right btn btn-primary btn-sm"
+                  type="button"
+                >
+                  Layout
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="mb-2 mx-n2 card"
+          >
+            <div
+              class="card-header"
+            >
+              <div
+                class="card-title h5"
+              >
+                Steps
+                <button
+                  class="btn btn-primary float-right btn btn-primary btn-sm"
+                  disabled=""
+                  type="button"
+                >
+                  Export Results
+                </button>
+                <a
+                  download="results.csv"
+                  href="#/"
+                >
+                  ...
+                </a>
+                <button
+                  class="btn btn-primary float-right mr-2 btn btn-primary btn-sm"
+                  disabled=""
+                  type="button"
+                >
+                  Run
+                </button>
+              </div>
+            </div>
+            <div
+              class="small card-body"
+            >
+              <div
+                id="chart-container"
+              >
+                <svg
+                  class="mb-3"
+                />
+              </div>
+              <table
+                class="mb-n3 table table-sm table-striped table-bordered"
+              >
+                <thead>
+                  <tr>
+                    <th>
+                      Iterations
+                    </th>
+                    <th>
+                      Conversations
+                    </th>
+                  </tr>
+                </thead>
+                <tbody />
+              </table>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col-sm-4"
+        >
+          <div
+            class="mb-2 mx-n2 card"
+          >
+            <div
+              class="card-header"
+            >
+              <div
+                class="card-title h5"
+              >
+                Description
+              </div>
+            </div>
+            <div
+              class="card-body"
+            >
+              <p
+                class="card-text"
+              />
+            </div>
+          </div>
+          <div
+            class="mb-2 mx-n2 card"
+          >
+            <div
+              class="card-header"
+            >
+              <div
+                class="card-title h5"
+              >
+                Network Options
+                <button
+                  class="btn btn-primary float-right btn btn-primary btn-sm"
+                  type="button"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+            <div
+              class="small card-body"
+            >
+              <fieldset
+                disabled=""
+              >
+                <span>
+                  <div
+                    class="form-check"
+                  >
+                    <input
+                      class="form-check-input"
+                      readonly=""
+                      type="checkbox"
+                    />
+                    <label
+                      class="form-check-label"
+                      title=""
+                    >
+                      Use agents with memory
+                    </label>
+                  </div>
+                </span>
+                <span>
+                  <label
+                    class="pt-2 form-label"
+                  >
+                    Evangelist list
+                  </label>
+                  <textarea
+                    class="form-control form-control-sm"
+                    readonly=""
+                  />
+                </span>
+                <span>
+                  <label
+                    class="pt-2 form-label"
+                  >
+                    Initial colors
+                  </label>
+                  <input
+                    class="form-control form-control-sm"
+                    readonly=""
+                    type="text"
+                    value=""
+                  />
+                </span>
+                <span>
+                  <div
+                    class="pt-2 form-check"
+                  >
+                    <input
+                      class="form-check-input"
+                      readonly=""
+                      type="checkbox"
+                    />
+                    <label
+                      class="form-check-label"
+                      title=""
+                    >
+                      Link team peers
+                    </label>
+                  </div>
+                </span>
+                <span>
+                  <label
+                    class="pt-2 form-label"
+                  >
+                    Linked team list
+                  </label>
+                  <textarea
+                    class="form-control form-control-sm"
+                    readonly=""
+                  />
+                </span>
+                <span>
+                  <label
+                    class="pt-2 form-label"
+                  >
+                    Lone evangelist
+                  </label>
+                  <input
+                    class="form-control form-control-sm"
+                    readonly=""
+                    type="text"
+                    value=""
+                  />
+                </span>
+                <span>
+                  <label
+                    class="pt-2 form-label"
+                  >
+                    Maximum colors
+                  </label>
+                  <input
+                    class="form-control form-control-sm"
+                    readonly=""
+                    type="text"
+                    value="0"
+                  />
+                </span>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

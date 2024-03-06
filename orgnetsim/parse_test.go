@@ -54,12 +54,22 @@ func TestParseReturnsTrue(t *testing.T) {
 func TestParseReturnsTrueGetsArgs(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
-	os.Args = []string{"orgnetsim", "parse", "../sim/tst.csv", "-awm", "-ltp", "-ic", "-mc", "7"}
-	success, of, _, _ := parseCommandLineOptions()
+	os.Args = []string{"orgnetsim", "parse", "../sim/tst.csv", "-awm", "-ltp", "-ic", "-mc", "7", "-seed", "9"}
+	success, of, _, seed := parseCommandLineOptions()
 	IsTrue(t, success, "not returning true")
 	IsTrue(t, of.Network.AgentsWithMemory, "awm not true")
 	IsTrue(t, of.Network.LinkTeamPeers, "ltp not true")
 	AreEqual(t, of.Network.MaxColors, 7, "wrong max colors")
+	var expectedSeed int64 = 9
+	AreEqual(t, seed, expectedSeed, "wrong seed")
+}
+
+func TestParseReturnsFalseWithMissingSeed(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	os.Args = []string{"orgnetsim", "parse", "../sim/tst.csv", "-seed"}
+	success, _, _, _ := parseCommandLineOptions()
+	IsFalse(t, success, "not returning false")
 }
 
 func TestParseReturnsFalseWithErrorArgs(t *testing.T) {

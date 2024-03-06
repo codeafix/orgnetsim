@@ -185,7 +185,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
             .data(network.links)
             .enter().append("line")
             .style("stroke", "LightGray")
-            .style('stroke-width', function(d) { return 10*(d.strength||0)/its;} );
+            .style('stroke-width', function(d) { return d.strength ? 10*(d.strength)/its : 1; });
         
         const nodes = networkGraph.append("g")
             .attr("class", "nodes")

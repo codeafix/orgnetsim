@@ -15,7 +15,10 @@ The simulator is created from a Network of Agents. The Network itself can be any
 
 [orgnetsim](orgnetsim/README.md) A command line utility for parsing lists and creating networks
 
-## TODOs
-- [X] Integrate into a web service
-- [X] Add web UI for orgnetsim application
-- [X] Create a network visualiser using D3
+## Docker
+This project also contains a Dockerfile that builds both the API and front-end into a container. All data that is created in the app is stored in the container path `/var/data`. By default the container will be built with an empty simulation list. To persist data outside the container make sure to mount the container path to a persistable storage path on the host machine.
+```
+docker run -v <host_path>:/var/data -d -p 8080:8080 orgnetsim:v0.1
+```
+
+

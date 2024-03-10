@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  orgnetsim:
+    build:
+      context: .
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    image: orgnetsim
+    ports: 
+      - "8080:8080"
+    container_name: orgnetsim
+    volumes:
+      - ./data:/tmp/data

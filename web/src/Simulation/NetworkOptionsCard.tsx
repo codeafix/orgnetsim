@@ -52,7 +52,7 @@ const NetworkOptionsCard = (props:NetworkOptionsCardProps) => {
         s.options['initColors'] = ic;
         s.options['linkTeamPeers'] = ltp;
         s.options['linkedTeamList'] = ltl;
-        s.options['loneEvangelist'] = [le];
+        s.options['loneEvangelist'] = le?[le]:[];
         s.options['maxColors'] = mc;
         API.update(s).then(response => {
             props.setsim(response);

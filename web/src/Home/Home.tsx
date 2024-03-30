@@ -4,7 +4,7 @@ import SimList from './SimList';
 import {Modal} from 'react-bootstrap'
 import EditNameDescModal from './EditNameDescModal'
 import {Button} from 'react-bootstrap'
-import {CardDeck} from 'react-bootstrap';
+import {Row} from 'react-bootstrap';
 import Logo from '../logo.svg';
 import {SimInfo} from '../API/SimInfo';
 
@@ -57,9 +57,9 @@ const Home = () => {
             <h1><img src={Logo} style={{ height: 60, width: 60}} alt="logo"/>Simulation Set</h1>
             <p>{notes}</p>
             <h2>List of Simulations<Button className="btn btn-primary float-right" onClick={handleAddShow}>Add</Button></h2>
-            <CardDeck>
+            <Row className="row-cols-1 row-cols-md-3 g-4">
                 <SimList sims={simlist} deleteFunc={handleDelShow}/>
-            </CardDeck>
+            </Row>
             <EditNameDescModal sim={API.emptySim()} show={showaddmodal} saveFunc={addSimulation} closeFunc={handleAddClose}/>
             <Modal
                 show={showdelmodal}

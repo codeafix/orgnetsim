@@ -200,7 +200,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
                 .on("end", dragended));
       
         nodes.append("title")
-            .text(function(d) { return d.id; });
+            .text(function(d) { return d.name; });
       
         const ticked = () => {
             links

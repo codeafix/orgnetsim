@@ -16,11 +16,11 @@ import (
 
 func CreateNetwork() sim.RelationshipMgr {
 	rm := &sim.Network{}
-	agent1 := sim.GenerateRandomAgent("Agent_1", []sim.Color{sim.Blue}, false)
+	agent1 := sim.GenerateRandomAgent("Agent_1", "Agent 1", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent1)
-	agent2 := sim.GenerateRandomAgent("Agent_2", []sim.Color{sim.Blue}, false)
+	agent2 := sim.GenerateRandomAgent("Agent_2", "Agent 2", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent2)
-	agent3 := sim.GenerateRandomAgent("Agent_3", []sim.Color{sim.Blue}, false)
+	agent3 := sim.GenerateRandomAgent("Agent_3", "Agent 3", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent3)
 	rm.AddLink(agent1, agent2)
 	rm.AddLink(agent1, agent3)

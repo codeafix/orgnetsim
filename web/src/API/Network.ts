@@ -13,6 +13,7 @@ type Link = {
 
 type AgentState = {
     id: string;
+    name: string;
     color: number;
     susceptability: number;
     influence: number;

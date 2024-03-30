@@ -2,7 +2,7 @@ package sim
 
 import "fmt"
 
-//NetworkOptions contains information about how the network is set up for the simulation
+// NetworkOptions contains information about how the network is set up for the simulation
 type NetworkOptions struct {
 	LinkTeamPeers    bool     `json:"linkTeamPeers"`
 	LinkedTeamList   []string `json:"linkedTeamList"`
@@ -13,7 +13,7 @@ type NetworkOptions struct {
 	AgentsWithMemory bool     `json:"agentsWithMemory"`
 }
 
-//CreateNetworkOptions creates a new network modifier from the passed HierarchySpec
+// CreateNetworkOptions creates a new network modifier from the passed HierarchySpec
 func CreateNetworkOptions(s HierarchySpec) *NetworkOptions {
 	return &NetworkOptions{
 		LinkTeamPeers:    s.LinkTeamPeers,
@@ -23,8 +23,8 @@ func CreateNetworkOptions(s HierarchySpec) *NetworkOptions {
 	}
 }
 
-//AddTeamPeerLinks links all Agents related to the same parent node to each other.
-//Turns a strictly hierarchical network in to a more realistic communication network.
+// AddTeamPeerLinks links all Agents related to the same parent node to each other.
+// Turns a strictly hierarchical network in to a more realistic communication network.
 func (o *NetworkOptions) AddTeamPeerLinks(rm RelationshipMgr) error {
 	teams := map[string][]string{}
 
@@ -51,8 +51,8 @@ func (o *NetworkOptions) AddTeamPeerLinks(rm RelationshipMgr) error {
 	return nil
 }
 
-//AddEvangelists sets a list of individuals to Blue and increases their susceptibility
-//so that they cannot be influenced by another Agent
+// AddEvangelists sets a list of individuals to Blue and increases their susceptibility
+// so that they cannot be influenced by another Agent
 func (o *NetworkOptions) AddEvangelists(rm RelationshipMgr) error {
 	eTeamSize := len(o.EvangelistList)
 	if eTeamSize > 0 {
@@ -70,7 +70,7 @@ func (o *NetworkOptions) AddEvangelists(rm RelationshipMgr) error {
 	return nil
 }
 
-//LinkTeams creates links between a specified set of individuals from across teams in the network
+// LinkTeams creates links between a specified set of individuals from across teams in the network
 func (o *NetworkOptions) LinkTeams(rm RelationshipMgr) error {
 	lTeamSize := len(o.LinkedTeamList)
 	var err error
@@ -89,17 +89,18 @@ func (o *NetworkOptions) LinkTeams(rm RelationshipMgr) error {
 	return nil
 }
 
-//AddLoneEvangelist links a single Agent to a list of other Agents across the Network.
-//The first agent in the LoneEvangelist list is the Evangelist and all subsequent Agents
-//are connected to her. If the Lone Evangelist Id does not exist in the network she is
-//created.
+// AddLoneEvangelist links a single Agent to a list of other Agents across the Network.
+// The first agent in the LoneEvangelist list is the Evangelist and all subsequent Agents
+// are connected to her. If the Lone Evangelist Id does not exist in the network she is
+// created.
 func (o *NetworkOptions) AddLoneEvangelist(rm RelationshipMgr) error {
 	leTeamSize := len(o.LoneEvangelist)
 	var err error
 	if leTeamSize > 0 {
 		agent := rm.GetAgentByID(o.LoneEvangelist[0])
 		if agent == nil {
-			agent = GenerateRandomAgent(o.LoneEvangelist[0], o.InitColors, o.AgentsWithMemory)
+			a_name := fmt.Sprintf("LoneEvangelist %s", o.LoneEvangelist[0])
+			agent = GenerateRandomAgent(o.LoneEvangelist[0], a_name, o.InitColors, o.AgentsWithMemory)
 			rm.AddAgent(agent)
 			rm.(*Network).PopulateMaps()
 		}
@@ -115,7 +116,7 @@ func (o *NetworkOptions) AddLoneEvangelist(rm RelationshipMgr) error {
 	return nil
 }
 
-//Convenience method to check agents exist before trying to add a link
+// Convenience method to check agents exist before trying to add a link
 func addLink(rm RelationshipMgr, id1 string, id2 string) error {
 	a1 := rm.GetAgentByID(id1)
 	if a1 == nil {
@@ -129,9 +130,9 @@ func addLink(rm RelationshipMgr, id1 string, id2 string) error {
 	return nil
 }
 
-//CloneModify clones the agents and links in the passed RelationshipMgr into a new
-//RelationshipMgr changing the Agent type and initial colors of all Agents on the Network,
-//then it modifies the links as specified in the passed Options struct.
+// CloneModify clones the agents and links in the passed RelationshipMgr into a new
+// RelationshipMgr changing the Agent type and initial colors of all Agents on the Network,
+// then it modifies the links as specified in the passed Options struct.
 func (o *NetworkOptions) CloneModify(rm RelationshipMgr) (RelationshipMgr, error) {
 	ret, err := o.cloneNetwork(rm)
 	if err != nil {
@@ -145,10 +146,10 @@ func (o *NetworkOptions) CloneModify(rm RelationshipMgr) (RelationshipMgr, error
 	return ret, err
 }
 
-//ModifyNetwork takes a RelationshipMgr as input and adds links as specified in the passed Options
-//struct. Note this method will ignore the InitColors and AgentsWithMemory options because
-//a new set of Agents require to be generated in order to set these options. To do that use
-//the CloneModify function instead.
+// ModifyNetwork takes a RelationshipMgr as input and adds links as specified in the passed Options
+// struct. Note this method will ignore the InitColors and AgentsWithMemory options because
+// a new set of Agents require to be generated in order to set these options. To do that use
+// the CloneModify function instead.
 func (o *NetworkOptions) ModifyNetwork(rm RelationshipMgr) error {
 	rm.SetMaxColors(o.MaxColors)
 	var err error
@@ -170,12 +171,12 @@ func (o *NetworkOptions) ModifyNetwork(rm RelationshipMgr) error {
 	return err
 }
 
-//cloneNetwork creates a new network and creates copies of the nodes and links in it from the passed network
-//The new Agents will be generated according to the settings in the passed Options struct
+// cloneNetwork creates a new network and creates copies of the nodes and links in it from the passed network
+// The new Agents will be generated according to the settings in the passed Options struct
 func (o *NetworkOptions) cloneNetwork(rm RelationshipMgr) (*Network, error) {
 	ret := &Network{}
 	for _, agent := range rm.Agents() {
-		clone := GenerateRandomAgent(agent.Identifier(), o.InitColors, o.AgentsWithMemory)
+		clone := GenerateRandomAgent(agent.Identifier(), agent.State().Name, o.InitColors, o.AgentsWithMemory)
 		ret.AddAgent(clone)
 	}
 	ret.PopulateMaps()

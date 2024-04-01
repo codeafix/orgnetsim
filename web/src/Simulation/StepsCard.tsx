@@ -176,8 +176,8 @@ const StepItem = (props:StepItemProps) => {
         <tr>
             <td>{iterations}</td>
             <td>{conversations}</td>
-            {colors.map((colorcount) => {
-                return <td>{colorcount}</td>
+            {colors.map((colorcount, i) => {
+                return <td key={i}>{colorcount}</td>
             })}
         </tr>
     );

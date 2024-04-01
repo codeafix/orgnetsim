@@ -15,7 +15,7 @@ const SimList = (props:SimListProps) => {
 
     return props.sims.map(sim => {
             return(
-                <Col className="mb-4">
+                <Col className="mb-4" key={"col_"+sim.id}>
                     <Card border="info" className="h-100" style={{ width: '20rem' }} key={sim.id}>
                         <Card.Header><Card.Title>{sim.name}<Trash className="float-right" onClick={() => props.deleteFunc(sim.id, sim.name)}/></Card.Title></Card.Header>
                         <Card.Body>

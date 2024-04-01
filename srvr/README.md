@@ -36,6 +36,14 @@ There should be no existing steps within the simulation otherwise this request w
 Returns the created first step that contains the generated network and the initial color
 results for the generated network.
 
+### `PUT /api/simulation/{sim_id}/links`
+Parses a list of relationships from a byte array and adds them to the network on the
+latest step of the simulation. This modifies the network in the latest step. Unlike
+`parse` and `generate` this will not fail if steps exist, this will fail if at least one
+step with a valid network does not already exist. Note also this can only be used to add
+new edges to the network. If any of the parsed links reference an agent that doesn't
+already exist on the network, this will fail.
+
 ### `POST /api/simulation/{sim_id}/run`
 Runs the simulation for a specified number of steps, each step runs a specified number of 
 iterations.

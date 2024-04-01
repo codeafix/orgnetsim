@@ -84,10 +84,10 @@ const StepsCard = (props:StepsCardProps) => {
                 <Table className="mb-n3" striped bordered size="sm">
                     <thead>
                         <tr>
-                            <th>Iterations</th>
-                            <th>Conversations</th>
-                            {colors.map((color) => {
-                                return <th>{Color.colorFromVal(color)}</th>
+                            <th key="h_iter">Iterations</th>
+                            <th key="h_conv">Conversations</th>
+                            {colors.map((color, i) => {
+                                return <th key={"h_c_"+i}>{Color.colorFromVal(color)}</th>
                             })}
                         </tr>
                     </thead>
@@ -173,11 +173,11 @@ const StepItem = (props:StepItemProps) => {
     },[props.step, iterations]);
     
     return(
-        <tr>
-            <td>{iterations}</td>
-            <td>{conversations}</td>
+        <tr key={props.step.id}>
+            <td key="iter">{iterations}</td>
+            <td key="conv">{conversations}</td>
             {colors.map((colorcount, i) => {
-                return <td key={i}>{colorcount}</td>
+                return <td key={"count_"+i}>{colorcount}</td>
             })}
         </tr>
     );

@@ -65,6 +65,8 @@ func TestParseDelimLinks(t *testing.T) {
 			AreEqual(t, "my_id", link.Agent1ID, "Wrong parent for Agent 'NewId18'")
 		case "NewId35":
 			AreEqual(t, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-+={}[]()!£$%^&*@~#<>/?\\", link.Agent1ID, "Wrong parent for Agent 'NewId35'")
+		default:
+			t.Errorf("Unexpected link found: %s -> %s", link.Agent1ID, link.Agent2ID)
 		}
 	}
 }
@@ -154,4 +156,176 @@ func TestParseDelimOnlyIncludesRowsWithOtherMatchingColumn(t *testing.T) {
 	AreEqual(t, 2, len(agents), "Wrong number of agents parsed from source data")
 	AreEqual(t, "id _ 1", agents[0].Identifier(), "Wrong first agent Id")
 	AreEqual(t, "id_4", agents[1].Identifier(), "Wrong second agent Id")
+}
+
+func TestParseEdgesCsv(t *testing.T) {
+	data := []string{
+		"Header row is always skipped ,check_this_is_not_an_Id,,",
+		"Should be ignored|||",
+		"",
+		"Blank lines are ignored",
+		",Lines with no Id should be ignored",
+		"Lines with no parent should be ignored,",
+		"Child,Parent",
+		"  my_id,  my_parent  ",
+	}
+	po := ParseOptions{
+		Delimiter:  ",",
+		Identifier: 0,
+		Parent:     1,
+	}
+	n := Network{}
+	n.AddAgent(GenerateRandomAgent("my_id", "An agent", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("my_parent", "Parent agent", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("Child", "Another agent", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("Parent", "Another parent agent", []Color{}, false))
+	n.PopulateMaps()
+
+	rm, err := po.ParseEdges(data, &n)
+	AssertSuccess(t, err)
+
+	links := rm.Links()
+	AreEqual(t, 2, len(links), "Wrong number of links parsed from source data")
+	for _, link := range links {
+		switch link.Agent2ID {
+		case "my_id":
+			AreEqual(t, "my_parent", link.Agent1ID, "Wrong parent for Agent 'my_id'")
+		case "Child":
+			AreEqual(t, "Parent", link.Agent1ID, "Wrong parent for Agent 'Some_id7'")
+		default:
+			t.Errorf("Unexpected link found: %s -> %s", link.Agent1ID, link.Agent2ID)
+		}
+	}
+}
+
+func TestParseEdgesThrowsErrorWhenAgentDoesntExist(t *testing.T) {
+	data := []string{
+		"Header row is always skipped ,check_this_is_not_an_Id,,",
+		"my_id, my_parent ",
+	}
+	po := ParseOptions{
+		Delimiter:  ",",
+		Identifier: 0,
+		Parent:     1,
+	}
+	n := Network{}
+	n.AddAgent(GenerateRandomAgent("my_id", "An agent", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("Child", "Another agent", []Color{}, false))
+	n.PopulateMaps()
+
+	_, err := po.ParseEdges(data, &n)
+	IsFalse(t, err == nil, "Expecting an error to be thrown")
+}
+
+func TestParseEdgesAddsMultipleParentLinks(t *testing.T) {
+	data := []string{
+		"u1,u2,<4,4-7,8+,total",
+		"1,1349,1,6,163,170",
+		"1,35,0,0,5,5",
+		"16,35,0,0,5,5",
+	}
+
+	po := ParseOptions{
+		Delimiter:  ",",
+		Identifier: 0,
+		Parent:     1,
+	}
+
+	n := Network{}
+	n.AddAgent(GenerateRandomAgent("1", "agent 1", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("1349", "agent 2", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("35", "agent 4", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("16", "agent 5", []Color{}, false))
+	n.PopulateMaps()
+
+	rm, err := po.ParseEdges(data, &n)
+	AssertSuccess(t, err)
+
+	links := rm.Links()
+	AreEqual(t, 3, len(links), "Wrong number of links parsed from source data")
+	for _, link := range links {
+		switch link.Agent2ID {
+		case "1":
+			IsTrue(t, link.Agent1ID == "1349" || link.Agent1ID == "35", "Wrong parent for Agent '1'")
+		case "16":
+			AreEqual(t, "35", link.Agent1ID, "Wrong parent for Agent '16'")
+		default:
+			t.Errorf("Unexpected link found: %s -> %s", link.Agent1ID, link.Agent2ID)
+		}
+	}
+}
+
+func TestParseEdgesOnlyIncludesLinksWithOtherMatchingColumn(t *testing.T) {
+	data := []string{
+		"u1,u2,<4,4-7,8+,total",
+		"1,1349,1,6,163,170",
+		"1,248,0,1,28,29",
+		"1,35,0,0,5,5",
+	}
+
+	po := ParseOptions{
+		Delimiter:  ",",
+		Identifier: 0,
+		Parent:     1,
+		Regex: map[string]string{
+			"2": `[1-9]\d*`,
+		},
+	}
+
+	n := Network{}
+	n.AddAgent(GenerateRandomAgent("1", "agent 1", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("1349", "agent 2", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("248", "agent 3", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("35", "agent 4", []Color{}, false))
+	n.PopulateMaps()
+
+	rm, err := po.ParseEdges(data, &n)
+	AssertSuccess(t, err)
+
+	links := rm.Links()
+	AreEqual(t, 1, len(links), "Wrong number of links parsed from source data")
+	AreEqual(t, "1349", links[0].Agent1ID, "Wrong parent for first link")
+	AreEqual(t, "1", links[0].Agent2ID, "Wrong child for first link")
+}
+
+func TestParseEdgesOnlyIncludesLinksWithOtherMatchingColumn2(t *testing.T) {
+	data := []string{
+		"u1,u2,<4,4-7,8+,total",
+		"1,1349,1,6,163,170",
+		"1,248,0,1,28,29",
+		"1,35,0,0,5,5",
+	}
+
+	po := ParseOptions{
+		Delimiter:  ",",
+		Identifier: 0,
+		Parent:     1,
+		Regex: map[string]string{
+			"3": `[1-9]\d*`,
+		},
+	}
+
+	n := Network{}
+	n.AddAgent(GenerateRandomAgent("1", "agent 1", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("1349", "agent 2", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("248", "agent 3", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("35", "agent 4", []Color{}, false))
+	n.AddAgent(GenerateRandomAgent("351", "agent 5", []Color{}, false))
+	n.PopulateMaps()
+
+	rm, err := po.ParseEdges(data, &n)
+	AssertSuccess(t, err)
+
+	links := rm.Links()
+	AreEqual(t, 2, len(links), "Wrong number of links parsed from source data")
+	for _, link := range links {
+		switch link.Agent1ID {
+		case "1349":
+			AreEqual(t, "1", link.Agent2ID, "Wrong child '1349' for Agent '1'")
+		case "248":
+			AreEqual(t, "1", link.Agent2ID, "Wrong child '248' for Agent '1'")
+		default:
+			t.Errorf("Unexpected link found: %s -> %s", link.Agent1ID, link.Agent2ID)
+		}
+	}
 }

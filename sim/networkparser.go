@@ -146,6 +146,76 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 	return &n, err
 }
 
+// ParseEdges is a variant of ParseDelim that takes a list of edges and adds the links in to an existing
+// network. This is useful when the network is expressed as separate lists of nodes and edges, or when
+// the nodes data is a list of parent child relationships and there are additional relationships to be
+// added to the network to complete it. ParseDelim may be used to parse a list of nodes with or without
+// edges.
+// The edges are expected to be in the form of a list of pairs of IDs.
+func (po *ParseOptions) ParseEdges(edges []string, n RelationshipMgr) (RelationshipMgr, error) {
+	ws := whitespace()
+	idre := po.IdentifierRegex()
+	pre := po.ParentRegex()
+
+	//Using a map of maps here because the links can be duplicated in the source data
+	//and this will allow me to ignore the duplicates
+	links := map[string]map[string]struct{}{}
+
+	for i := 1; i < len(edges); i++ {
+		cols := strings.Split(edges[i], po.Delimiter)
+		if po.Identifier < 0 || po.Identifier >= len(cols) {
+			continue
+		}
+		skip := false
+		for index, re := range po.GetOtherRegex() {
+			if index < 0 || index >= len(cols) || !re.MatchString(cols[index]) {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+
+		id := idre.ReplaceAllString(cols[po.Identifier], "$1")
+		idParent := ""
+		if po.Parent > 0 && po.Parent < len(cols) {
+			idParent = pre.ReplaceAllString(cols[po.Parent], "$1")
+		}
+
+		if ws.MatchString(id) || ws.MatchString(idParent) {
+			continue
+		}
+
+		if id != idParent {
+			id1entry, exists := links[idParent]
+			if exists {
+				_, exists := id1entry[id]
+				if !exists {
+					id1entry[id] = struct{}{}
+				}
+			} else {
+				links[idParent] = map[string]struct{}{id: {}}
+			}
+		}
+	}
+
+	for id1, id1Entries := range links {
+		for id2 := range id1Entries {
+			agent1 := n.GetAgentByID(id1)
+			agent2 := n.GetAgentByID(id2)
+			if agent1 == nil || agent2 == nil {
+				return nil, fmt.Errorf("Agent id1 '%s' or id2 '%s' not found when adding link", id1, id2)
+			}
+
+			n.AddLink(agent1, agent2)
+		}
+	}
+
+	err := n.PopulateMaps()
+	return n, err
+}
+
 // Convenience method to get Agents and check they exist
 func getAgents(agents map[string]Agent, id1 string, id2 string) (Agent, Agent, error) {
 	agent1, exists := agents[id1]

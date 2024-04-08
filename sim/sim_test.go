@@ -3,7 +3,6 @@ package sim
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -39,7 +38,7 @@ func AssertSuccess(t *testing.T, err error) {
 	}
 }
 
-//Convenience method to dump the colors and conversations arrays into a csv file
+// Convenience method to dump the colors and conversations arrays into a csv file
 func WriteOutput(t *testing.T, filename string, s HierarchySpec, n RelationshipMgr, results Results) {
 	f, err := os.Create(filename)
 	AssertSuccess(t, err)
@@ -132,7 +131,7 @@ func GenerateNetwork(t *testing.T, filename string) HierarchySpec {
 }
 
 func RunSimFromJSON(t *testing.T, filename string, s HierarchySpec) {
-	json, err := ioutil.ReadFile(filename)
+	json, err := os.ReadFile(filename)
 	AssertSuccess(t, err)
 
 	n, err := NewNetwork(string(json))
@@ -159,7 +158,7 @@ func TestGenerateAndRunSim(t *testing.T) {
 	RunSimFromJSON(t, filename, s)
 }
 
-//Run a sim from a specific JSON file
+// Run a sim from a specific JSON file
 func TestRunSim(t *testing.T) {
 	t.SkipNow() //Comment this line to stop skipping the test
 	filename := "out.json"

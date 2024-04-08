@@ -7,40 +7,41 @@ import (
 	"strings"
 )
 
-//ParseOptions contains details about how to parse data from the incoming file
-//Identifier provides the index of the column to use as an Agnent Identifier
-//Parent provides the index of the column to use as the Identifier of a Parent Agent
-//Regex provides the regular expressions to use to extract data from the columns.
-//It is in the form of a map, the key being the index of the column, the value being
-//the regex to apply.
-//When a Regex is supplied for the parent or identifier columns it will be used to
-//extract the value to use as the Identifier. If it is applied to another column then
-//the row will be skipped where the regex does not match the contents in that column.
-//Any regex supplied for a column that doesn't exist within a row will result in that
-//row being skipped.
-//If no regex is supplied for the parent and identifier columns then a default is applied
-//which will strip leading and trailing whitespace.
-//Delimiter is the delimiter to use when slicing rows into columns
+// ParseOptions contains details about how to parse data from the incoming file
+// Identifier provides the index of the column to use as an Agnent Identifier
+// Parent provides the index of the column to use as the Identifier of a Parent Agent
+// Regex provides the regular expressions to use to extract data from the columns.
+// It is in the form of a map, the key being the index of the column, the value being
+// the regex to apply.
+// When a Regex is supplied for the parent or identifier columns it will be used to
+// extract the value to use as the Identifier. If it is applied to another column then
+// the row will be skipped where the regex does not match the contents in that column.
+// Any regex supplied for a column that doesn't exist within a row will result in that
+// row being skipped.
+// If no regex is supplied for the parent and identifier columns then a default is applied
+// which will strip leading and trailing whitespace.
+// Delimiter is the delimiter to use when slicing rows into columns
 type ParseOptions struct {
 	Identifier int               `json:"identifier"`
 	Parent     int               `json:"parent"`
+	Name       int               `json:"name"`
 	Regex      map[string]string `json:"regex"`
 	Delimiter  string            `json:"delimiter"`
 }
 
-//IdentifierRegex returns the Regexp that must be applied to the Identifier column
+// IdentifierRegex returns the Regexp that must be applied to the Identifier column
 func (po *ParseOptions) IdentifierRegex() *regexp.Regexp {
 	regex, _ := po.GetColRegex(po.Identifier)
 	return regex
 }
 
-//ParentRegex returns the Regexp that must be applied to the Parent column
+// ParentRegex returns the Regexp that must be applied to the Parent column
 func (po *ParseOptions) ParentRegex() *regexp.Regexp {
 	regex, _ := po.GetColRegex(po.Parent)
 	return regex
 }
 
-//GetColRegex returns the Regexp that must be applied to the indicated column
+// GetColRegex returns the Regexp that must be applied to the indicated column
 func (po *ParseOptions) GetColRegex(col int) (*regexp.Regexp, bool) {
 	regex, exists := po.Regex[strconv.Itoa(col)]
 	if !exists || whitespace().MatchString(regex) {
@@ -49,8 +50,8 @@ func (po *ParseOptions) GetColRegex(col int) (*regexp.Regexp, bool) {
 	return regexp.MustCompile(regex), exists
 }
 
-//GetOtherRegex returns the compiled regular expressions for columns other
-//than the parent and identifier columns
+// GetOtherRegex returns the compiled regular expressions for columns other
+// than the parent and identifier columns
 func (po *ParseOptions) GetOtherRegex() map[int]*regexp.Regexp {
 	ret := make(map[int]*regexp.Regexp, len(po.Regex))
 	for index, regex := range po.Regex {
@@ -63,16 +64,16 @@ func (po *ParseOptions) GetOtherRegex() map[int]*regexp.Regexp {
 	return ret
 }
 
-//Returns a Regex that matches a string that only contains whitespace or is empty
+// Returns a Regex that matches a string that only contains whitespace or is empty
 func whitespace() *regexp.Regexp {
 	return regexp.MustCompile(`^\s*$`)
 }
 
-//ParseDelim takes a hierarchy expressed in a comma separated file and generates a Network out of it
-//po are the ParseOptions that control how the parse will operate.
-//returns a RelationshipMgr containing all the Agents with links to parent Agents as described in the input
-//data. If the same Id is listed in multiple rows as specified after any regular expressions is applied the
-//first row is used and subsequent rows are ignored.
+// ParseDelim takes a hierarchy expressed in a comma separated file and generates a Network out of it
+// po are the ParseOptions that control how the parse will operate.
+// returns a RelationshipMgr containing all the Agents with links to parent Agents as described in the input
+// data. If the same Id is listed in multiple rows as specified after any regular expressions is applied the
+// first row is used and subsequent rows are ignored.
 func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 	ws := whitespace()
 	idre := po.IdentifierRegex()
@@ -114,7 +115,13 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 		if exists {
 			continue
 		}
-		a := GenerateRandomAgent(id, []Color{}, false)
+
+		name := id
+		if po.Name >= 0 && po.Name < len(cols) {
+			nre, _ := po.GetColRegex(po.Name)
+			name = nre.ReplaceAllString(cols[po.Name], "$1")
+		}
+		a := GenerateRandomAgent(id, name, []Color{}, false)
 		n.AddAgent(a)
 		agents[id] = a
 		if !ws.MatchString(idParent) {
@@ -146,7 +153,83 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 	return &n, err
 }
 
-//Convenience method to get Agents and check they exist
+// ParseEdges is a variant of ParseDelim that takes a list of edges and adds the links in to an existing
+// network. This is useful when the network is expressed as separate lists of nodes and edges, or when
+// the nodes data is a list of parent child relationships and there are additional relationships to be
+// added to the network to complete it. ParseDelim may be used to parse a list of nodes with or without
+// edges.
+// The edges are expected to be in the form of a list of pairs of IDs. Unlike ParseDelim this function
+// will not add any Agents that are not already in the network. It will also ignore any edges that are
+// not between two Agents that are already in the network.
+func (po *ParseOptions) ParseEdges(edges []string, n RelationshipMgr) (RelationshipMgr, error) {
+	ws := whitespace()
+	idre := po.IdentifierRegex()
+	pre := po.ParentRegex()
+
+	//Using a map of maps here because the links can be duplicated in the source data
+	//and this will allow me to ignore the duplicates
+	links := map[string]map[string]struct{}{}
+
+	for i := 1; i < len(edges); i++ {
+		cols := strings.Split(edges[i], po.Delimiter)
+		if po.Identifier < 0 || po.Identifier >= len(cols) {
+			continue
+		}
+		skip := false
+		for index, re := range po.GetOtherRegex() {
+			if index < 0 || index >= len(cols) || !re.MatchString(cols[index]) {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+
+		id := idre.ReplaceAllString(cols[po.Identifier], "$1")
+		idParent := ""
+		if po.Parent > 0 && po.Parent < len(cols) {
+			idParent = pre.ReplaceAllString(cols[po.Parent], "$1")
+		}
+
+		if ws.MatchString(id) || ws.MatchString(idParent) {
+			continue
+		}
+
+		if (n.GetAgentByID(id) == nil) || (n.GetAgentByID(idParent) == nil) {
+			continue
+		}
+
+		if id != idParent {
+			id1entry, exists := links[idParent]
+			if exists {
+				_, exists := id1entry[id]
+				if !exists {
+					id1entry[id] = struct{}{}
+				}
+			} else {
+				links[idParent] = map[string]struct{}{id: {}}
+			}
+		}
+	}
+
+	for id1, id1Entries := range links {
+		for id2 := range id1Entries {
+			agent1 := n.GetAgentByID(id1)
+			agent2 := n.GetAgentByID(id2)
+			if agent1 == nil || agent2 == nil {
+				return nil, fmt.Errorf("Agent id1 '%s' or id2 '%s' not found when adding link", id1, id2)
+			}
+
+			n.AddLink(agent1, agent2)
+		}
+	}
+
+	err := n.PopulateMaps()
+	return n, err
+}
+
+// Convenience method to get Agents and check they exist
 func getAgents(agents map[string]Agent, id1 string, id2 string) (Agent, Agent, error) {
 	agent1, exists := agents[id1]
 	if !exists {

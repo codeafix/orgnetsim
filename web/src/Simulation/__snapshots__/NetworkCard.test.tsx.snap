@@ -14,7 +14,6 @@ exports[`renders without crashing 1`] = `
         Network
         <button
           class="btn btn-primary float-right btn btn-primary btn-sm"
-          disabled=""
           type="button"
         >
           Import
@@ -166,7 +165,7 @@ exports[`renders without crashing 1`] = `
                 style="fill: Blue;"
               >
                 <title>
-                  Dev_1
+                  Dev 1
                 </title>
               </circle>
               <circle
@@ -176,7 +175,7 @@ exports[`renders without crashing 1`] = `
                 style="fill: SlateGray;"
               >
                 <title>
-                  Dev_2
+                  Dev 2
                 </title>
               </circle>
               <circle
@@ -186,7 +185,7 @@ exports[`renders without crashing 1`] = `
                 style="fill: SlateGray;"
               >
                 <title>
-                  Dev_3
+                  Dev 3
                 </title>
               </circle>
               <circle
@@ -196,7 +195,7 @@ exports[`renders without crashing 1`] = `
                 style="fill: SlateGray;"
               >
                 <title>
-                  Dev_4
+                  Dev 4
                 </title>
               </circle>
               <circle
@@ -206,7 +205,7 @@ exports[`renders without crashing 1`] = `
                 style="fill: SlateGray;"
               >
                 <title>
-                  Dev_5
+                  Dev 5
                 </title>
               </circle>
             </g>

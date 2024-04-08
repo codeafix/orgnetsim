@@ -1,9 +1,14 @@
 type ParseOptions = {
     identifier: number;
     parent: number;
-    regex: any;
+    name: number;
+    regex: Regex;
     delimiter: string;
     payload: string;
 }
 
-export type { ParseOptions };
+type Regex = {
+    [key: string]: string;
+}
+
+export type { ParseOptions, Regex };

@@ -16,11 +16,11 @@ import (
 
 func CreateNetwork() sim.RelationshipMgr {
 	rm := &sim.Network{}
-	agent1 := sim.GenerateRandomAgent("Agent_1", []sim.Color{sim.Blue}, false)
+	agent1 := sim.GenerateRandomAgent("Agent_1", "Agent 1", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent1)
-	agent2 := sim.GenerateRandomAgent("Agent_2", []sim.Color{sim.Blue}, false)
+	agent2 := sim.GenerateRandomAgent("Agent_2", "Agent 2", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent2)
-	agent3 := sim.GenerateRandomAgent("Agent_3", []sim.Color{sim.Blue}, false)
+	agent3 := sim.GenerateRandomAgent("Agent_3", "Agent 3", []sim.Color{sim.Blue}, false)
 	rm.AddAgent(agent3)
 	rm.AddLink(agent1, agent2)
 	rm.AddLink(agent1, agent3)
@@ -291,6 +291,187 @@ func TestParseNetworkSucceeds(t *testing.T) {
 	AreEqual(t, len(simstep.Network.Agents()), 3, "Agents array should have 3 items")
 }
 
+func TestParseNetworkFailsWithNoPayload(t *testing.T) {
+	br, _, _, simid := CreateSimHandlerBrowser()
+
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 0,
+			Parent:     1,
+		},
+		Payload: []byte{},
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "No links data in ParseOptions", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestParseNetworkFailsWithNoParseOptions(t *testing.T) {
+	br, _, _, simid := CreateSimHandlerBrowser()
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/parse", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "EOF: Error reading ParseOptions", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestAddLinksSucceeds(t *testing.T) {
+	br, _, ssfu, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+	ssfu.Obj.(*SimStep).Network.AddAgent(sim.GenerateRandomAgent("Agent_4", "Agent 4", []sim.Color{sim.Blue}, false))
+	ssfu.Obj.(*SimStep).Network.AddAgent(sim.GenerateRandomAgent("Agent_5", "Agent 5", []sim.Color{sim.Blue}, false))
+
+	data := []string{
+		"Header always skipped ,check_this_is_not_an_Id\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Agent_2, Agent_4\n",
+		"Agent_2, Agent_5\n",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 0,
+			Parent:     1,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusOK, resp.Code, "Not Updated")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	IsTrue(t, simstep.Network.Links() != nil, "Links array is nil")
+	AreEqual(t, len(simstep.Network.Links()), 4, "Links should have 4 items")
+	IsTrue(t, simstep.Network.Agents() != nil, "Agents array is nil")
+	AreEqual(t, len(simstep.Network.Agents()), 5, "Agents array should have 5 items")
+}
+
+func TestAddLinksIgnoresLinksWhenAgentDoesntExist(t *testing.T) {
+	br, _, ssfu, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	data := []string{
+		"Header always skipped ,check_this_is_not_an_Id\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Agent_2, Agent_4\n",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 0,
+			Parent:     1,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusOK, resp.Code, "Not Updated")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	IsTrue(t, simstep.Network.Links() != nil, "Links array is nil")
+	AreEqual(t, len(simstep.Network.Links()), 2, "Links should have 2 items")
+	IsTrue(t, simstep.Network.Agents() != nil, "Agents array is nil")
+	AreEqual(t, len(simstep.Network.Agents()), 3, "Agents array should have 3 items")
+}
+
+func TestAddLinksFailsIfNoStepsExist(t *testing.T) {
+	br, _, _, simid := CreateSimHandlerBrowser()
+
+	data := []string{
+		"Header always skipped ,check_this_is_not_an_Id\n",
+		"Should be ignored|||\n",
+		"\n",
+		"Agent_2, Agent_4\n",
+		"Agent_2, Agent_5\n",
+	}
+	var payload = []byte{}
+	for _, s := range data {
+		payload = append(payload, []byte(s)...)
+	}
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 0,
+			Parent:     1,
+		},
+		Payload: payload,
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "The network cannot have links added without an initial step containing a network", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestAddLinksFailsWithNoPayload(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	pb := ParseBody{
+		ParseOptions: sim.ParseOptions{
+			Delimiter:  ",",
+			Identifier: 0,
+			Parent:     1,
+		},
+		Payload: []byte{},
+	}
+
+	pbs, err := json.Marshal(pb)
+	AssertSuccess(t, err)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), string(pbs), hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "No links data in ParseOptions", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestAddLinksFailsWithNoParseOptions(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "EOF: Error reading ParseOptions", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
 func TestGenerateNetworkSucceeds(t *testing.T) {
 	br, simfu, ssfu, simid := CreateSimHandlerBrowser()
 
@@ -319,6 +500,17 @@ func TestGenerateNetworkSucceeds(t *testing.T) {
 	AreEqual(t, 1, len(sim.Options.InitColors), "Wrong InitColors on sim options")
 	AreEqual(t, hs.InitColors[0], sim.Options.InitColors[0], "Wrong InitColors on sim options")
 	AreEqual(t, hs.MaxColors, sim.Options.MaxColors, "Wrong MaxColors on sim options")
+}
+
+func TestGenerateNetworkFailsWithNoHierarchySpec(t *testing.T) {
+	br, _, _, simid := CreateSimHandlerBrowser()
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/generate", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "EOF: Error reading HierarchySpec", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
 }
 
 func TestPostRunFailsIfNoStepsExist(t *testing.T) {
@@ -373,6 +565,17 @@ func TestPostRunFailsWithZeroStepCount(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
 	AreEqual(t, "Steps and Iterations cannot be zero", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+}
+
+func TestPostRunFailsWithNoRunSpec(t *testing.T) {
+	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/run", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
+	AreEqual(t, "EOF: Error reading RunSpec", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
 }
 
 func TestPostRunSucceedsWithOneStep(t *testing.T) {

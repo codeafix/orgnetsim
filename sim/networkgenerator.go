@@ -6,8 +6,8 @@ import (
 	"math/rand"
 )
 
-//HierarchySpec provides parameters to the GenerateHierarchy function specifying the features of the
-//Hierarchical network to generate
+// HierarchySpec provides parameters to the GenerateHierarchy function specifying the features of the
+// Hierarchical network to generate
 type HierarchySpec struct {
 	Levels           int     `json:"levels"`
 	TeamSize         int     `json:"teamSize"`
@@ -21,13 +21,14 @@ type HierarchySpec struct {
 	AgentsWithMemory bool    `json:"agentsWithMemory"`
 }
 
-//GenerateHierarchy generates a hierarchical network
+// GenerateHierarchy generates a hierarchical network
 func GenerateHierarchy(s HierarchySpec) (*Network, *NetworkOptions, error) {
 	n := new(Network)
 	n.MaxColorCount = s.MaxColors
 	nodeCount := new(int)
 	*nodeCount = 1
-	a := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
+	a_id, a_name := generateIDAndName(nodeCount)
+	a := GenerateRandomAgent(a_id, a_name, s.InitColors, s.AgentsWithMemory)
 	n.AddAgent(a)
 
 	leafTeamCount := int(math.Pow(float64(s.TeamSize), float64(s.TeamLinkLevel-1)))
@@ -54,7 +55,8 @@ func GenerateHierarchy(s HierarchySpec) (*Network, *NetworkOptions, error) {
 	}
 
 	if s.LoneEvangelist {
-		o.LoneEvangelist = append(o.LoneEvangelist, generateID(nodeCount))
+		le_id, _ := generateIDAndName(nodeCount)
+		o.LoneEvangelist = append(o.LoneEvangelist, le_id)
 		for i := 0; i < leafTeamCount; i++ {
 			o.LoneEvangelist = append(o.LoneEvangelist, leafTeams[i][2].Identifier())
 		}
@@ -77,7 +79,8 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 
 	peers := make([]Agent, s.TeamSize)
 	for i := 0; i < s.TeamSize; i++ {
-		a := GenerateRandomAgent(generateID(nodeCount), s.InitColors, s.AgentsWithMemory)
+		id, name := generateIDAndName(nodeCount)
+		a := GenerateRandomAgent(id, name, s.InitColors, s.AgentsWithMemory)
 		peers[i] = a
 		n.AddAgent(a)
 		n.AddLink(parent, a)
@@ -89,16 +92,18 @@ func generateChildren(n *Network, parent Agent, leafTeams *[][]Agent, nodeCount 
 	}
 }
 
-func generateID(agentCount *int) string {
-	s := fmt.Sprintf("id_%d", *agentCount)
+func generateIDAndName(agentCount *int) (string, string) {
+	id := fmt.Sprintf("id_%d", *agentCount)
+	name := fmt.Sprintf("Agent %d", *agentCount)
 	*agentCount++
-	return s
+	return id, name
 }
 
-//GenerateRandomAgent creates an Agent with random properties
-func GenerateRandomAgent(id string, initColors []Color, withMemory bool) Agent {
+// GenerateRandomAgent creates an Agent with random properties
+func GenerateRandomAgent(id string, name string, initColors []Color, withMemory bool) Agent {
 	as := AgentState{
 		ID:             id,
+		Name:           name,
 		Color:          Grey,
 		Influence:      rand.NormFloat64()*0.25 + 1,
 		Susceptability: rand.NormFloat64()*0.25 + 1,

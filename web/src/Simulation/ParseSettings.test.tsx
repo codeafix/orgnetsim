@@ -4,7 +4,7 @@ import '../../node_modules/bootstrap/dist/css/bootstrap.css';
 import '../index.css';
 import { test, expect } from 'vitest'
 import { act } from 'react-dom/test-utils';
-import NetworkCard from './NetworkCard';
+import ParseSettings from './ParseSettings';
 import { SimInfo } from '../API/SimInfo';
 import { Step } from '../API/Step';
 
@@ -15,10 +15,15 @@ test('renders without crashing', async () => {
     var result:any;
     await act(async () => {
         result = render(
-            <NetworkCard sim={sim} steps={steps} readsim={function (id: string): void {
-                throw new Error('Function not implemented.');
-            } }/>
-        );
+            <div>
+                <ParseSettings sim={sim} steps={steps} readsim={function (id: string): void {
+                    throw new Error('Function not implemented.');
+                } }
+                showimportmodal={true}
+                onclose={ () => {throw new Error('Function not implemented');}
+                }/>
+            </div>
+        , { container: document.body });
     });
     expect(result).toBeDefined();
     expect(result.asFragment()).toMatchSnapshot();

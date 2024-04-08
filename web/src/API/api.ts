@@ -129,6 +129,17 @@ const API = {
             }) as Response;
             return response.json();
     },
+    addlinks: async function(sim:SimInfo, pdata:ParseOptions){
+        const response = await fetch(this.rootPath+"/api/simulation/"+sim.id+"/links", {
+            "method": "PUT",
+            "headers": {
+                'Content-Type': 'application/json'
+            },
+            "body": JSON.stringify(pdata),
+            }).catch(err => { console.log(err); 
+            }) as Response;
+            return response.json();
+    },
     add: async function(name:string, description:string):Promise<SimInfo>{
         var sim = {name:name,description:description};
         const response = await fetch(this.rootPath+"/api/simulation", {

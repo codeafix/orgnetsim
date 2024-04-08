@@ -1,0 +1,337 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renders without crashing 1`] = `
+<DocumentFragment>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    class="fade modal-backdrop show"
+  />
+  <div
+    aria-modal="true"
+    class="fade modal show"
+    role="dialog"
+    style="display: block;"
+    tabindex="-1"
+  >
+    <div
+      class="modal-dialog"
+    >
+      <div
+        class="modal-content"
+      >
+        <div
+          class="modal-header"
+        >
+          <div
+            class="modal-title h4"
+          >
+            Import Additional Links
+          </div>
+          <button
+            class="close"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span
+              class="sr-only"
+            >
+              Close
+            </span>
+          </button>
+        </div>
+        <div
+          class="modal-body"
+        >
+          <div
+            class="form-group"
+          >
+            <div
+              class="form-file"
+            >
+              <label
+                class="form-file-label"
+                for="form-file"
+              >
+                Select File
+              </label>
+              <input
+                class="form-control-file"
+                id="form-file"
+                type="file"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+              for="form-identifier"
+            >
+              Identifier column
+            </label>
+            <input
+              class="form-control"
+              id="form-identifier"
+              type="number"
+              value="0"
+            />
+            <small
+              class="text-muted form-text"
+            >
+              The column that has the unique identifier in it
+            </small>
+          </div>
+          <div
+            class="form-group"
+            hidden=""
+          >
+            <label
+              class="form-label"
+              for="form-name"
+            >
+              Name column
+            </label>
+            <input
+              class="form-control"
+              id="form-name"
+              type="number"
+              value="0"
+            />
+            <small
+              class="text-muted form-text"
+            >
+              The column that has the agent name in it (this can be the same as the identifier column)
+            </small>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="form-label"
+              for="form-parent"
+            >
+              Parent Identifier Column
+            </label>
+            <input
+              class="form-control"
+              id="form-parent"
+              type="number"
+              value="2"
+            />
+            <small
+              class="text-muted form-text"
+            >
+              The column that has a parent identifier in it to show hierarchy in the network
+            </small>
+          </div>
+          <div
+            class="mb-3 form-group"
+          >
+            <label
+              class="form-label"
+              for="form-delimiter"
+            >
+              Delimiter
+            </label>
+            <input
+              class="form-control"
+              id="form-delimiter"
+              type="string"
+              value=","
+            />
+            <small
+              class="text-muted form-text"
+            >
+              The delimiter used to separate columns in rows of the imported file
+            </small>
+          </div>
+          <div
+            class="mb-3 form-group"
+          >
+            <label
+              class="form-label"
+              for="form-regex"
+            >
+              Column Regular Expression
+            </label>
+            <table
+              class="table table-sm table-bordered"
+            >
+              <thead>
+                <tr>
+                  <th>
+                    Column
+                  </th>
+                  <th>
+                    Regex
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    0
+                  </td>
+                  <td>
+                    ^\\d+_(.*)$
+                    <button
+                      class="p-0 border-0 btn btn-light float-right btn btn-primary"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        viewBox="0 0 16 16"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    2
+                  </td>
+                  <td>
+                    ^\\d+_(.*)$
+                    <button
+                      class="p-0 border-0 btn btn-light float-right btn btn-primary"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        viewBox="0 0 16 16"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    3
+                  </td>
+                  <td>
+                    \\S+
+                    <button
+                      class="p-0 border-0 btn btn-light float-right btn btn-primary"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        viewBox="0 0 16 16"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  hidden=""
+                >
+                  <td>
+                    <input
+                      class="form-control"
+                      id="form-regex"
+                      type="string"
+                      value=""
+                    />
+                  </td>
+                  <td>
+                    <input
+                      class="float-left w-auto form-control"
+                      id="form-regex"
+                      type="string"
+                      value=""
+                    />
+                    <button
+                      class="p-0 border-0 btn btn-light float-right btn btn-primary"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        viewBox="0 0 16 16"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      class="p-0 border-0 btn btn-light float-right btn btn-primary"
+                      type="button"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        viewBox="0 0 16 16"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <button
+              class="btn btn-primary float-right btn btn-primary btn-sm"
+              type="button"
+            >
+              Add
+            </button>
+            <small
+              class="text-muted form-text"
+            >
+              Regular expressions applied to each column to decide whether to include a row in the import
+            </small>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+        >
+          <button
+            class="btn btn-success"
+            type="button"
+          >
+            Save
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

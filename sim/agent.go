@@ -21,6 +21,7 @@ type AgentState struct {
 type Agent interface {
 	Initialise(n RelationshipMgr)
 	Identifier() string
+	AgentName() string
 	State() *AgentState
 	SendMail(n RelationshipMgr) int
 	ReadMail(n RelationshipMgr) Color
@@ -39,6 +40,11 @@ func (a *AgentState) Initialise(n RelationshipMgr) {
 // Identifier returns the Identifier for the Agent
 func (a *AgentState) Identifier() string {
 	return a.ID
+}
+
+// State returns the Name of this Agent
+func (a *AgentState) AgentName() string {
+	return a.Name
 }
 
 // State returns the struct containing the state of this Agent

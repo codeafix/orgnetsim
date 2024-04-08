@@ -24,6 +24,7 @@ import (
 type ParseOptions struct {
 	Identifier int               `json:"identifier"`
 	Parent     int               `json:"parent"`
+	Name       int               `json:"name"`
 	Regex      map[string]string `json:"regex"`
 	Delimiter  string            `json:"delimiter"`
 }
@@ -114,7 +115,13 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 		if exists {
 			continue
 		}
-		a := GenerateRandomAgent(id, id, []Color{}, false)
+
+		name := id
+		if po.Name >= 0 && po.Name < len(cols) {
+			nre, _ := po.GetColRegex(po.Name)
+			name = nre.ReplaceAllString(cols[po.Name], "$1")
+		}
+		a := GenerateRandomAgent(id, name, []Color{}, false)
 		n.AddAgent(a)
 		agents[id] = a
 		if !ws.MatchString(idParent) {
@@ -151,7 +158,9 @@ func (po *ParseOptions) ParseDelim(data []string) (RelationshipMgr, error) {
 // the nodes data is a list of parent child relationships and there are additional relationships to be
 // added to the network to complete it. ParseDelim may be used to parse a list of nodes with or without
 // edges.
-// The edges are expected to be in the form of a list of pairs of IDs.
+// The edges are expected to be in the form of a list of pairs of IDs. Unlike ParseDelim this function
+// will not add any Agents that are not already in the network. It will also ignore any edges that are
+// not between two Agents that are already in the network.
 func (po *ParseOptions) ParseEdges(edges []string, n RelationshipMgr) (RelationshipMgr, error) {
 	ws := whitespace()
 	idre := po.IdentifierRegex()
@@ -184,6 +193,10 @@ func (po *ParseOptions) ParseEdges(edges []string, n RelationshipMgr) (Relations
 		}
 
 		if ws.MatchString(id) || ws.MatchString(idParent) {
+			continue
+		}
+
+		if (n.GetAgentByID(id) == nil) || (n.GetAgentByID(idParent) == nil) {
 			continue
 		}
 

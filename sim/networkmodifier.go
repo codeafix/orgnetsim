@@ -176,7 +176,7 @@ func (o *NetworkOptions) ModifyNetwork(rm RelationshipMgr) error {
 func (o *NetworkOptions) cloneNetwork(rm RelationshipMgr) (*Network, error) {
 	ret := &Network{}
 	for _, agent := range rm.Agents() {
-		clone := GenerateRandomAgent(agent.Identifier(), agent.State().Name, o.InitColors, o.AgentsWithMemory)
+		clone := GenerateRandomAgent(agent.Identifier(), agent.AgentName(), o.InitColors, o.AgentsWithMemory)
 		ret.AddAgent(clone)
 	}
 	ret.PopulateMaps()

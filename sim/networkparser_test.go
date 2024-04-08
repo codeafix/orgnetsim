@@ -5,17 +5,18 @@ import "testing"
 func TestParseDelimAgents(t *testing.T) {
 	data := []string{
 		"Header row is always skipped |check_this_is_not_an_Id||",
-		"Strips ws around Id leaves ws in Id|   id _ 1  |   |  ",
+		"Strips ws around Id leaves ws in Id|   id _ 1  |  name id 1 |  ",
 		"Should be ignored|||",
-		"Strips ws around Id| my_id ||",
+		"Strips ws around Id| my_id |name_my_id  ",
 		"Should also be ignored|   ||",
-		"Pulls entire Id without ws|1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-+={}[]()!£$%^&*@~#<>/?\\||",
+		"Pulls entire Id without ws|1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-+={}[]()!£$%^&*@~#<>/?\\|  long id name|",
 		"Should also be ignored|",
-		"Regular Id|Some_id7|",
+		"Regular Id|Some_id7",
 	}
 	po := ParseOptions{
 		Delimiter:  "|",
 		Identifier: 1,
+		Name:       2,
 		Parent:     -1,
 	}
 	rm, err := po.ParseDelim(data)
@@ -24,9 +25,13 @@ func TestParseDelimAgents(t *testing.T) {
 	agents := rm.Agents()
 	AreEqual(t, 4, len(agents), "Wrong number of agents parsed from source data")
 	AreEqual(t, "id _ 1", agents[0].Identifier(), "Wrong first agent Id")
-	AreEqual(t, "my_id", agents[1].Identifier(), "Wrong first agent Id")
-	AreEqual(t, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-+={}[]()!£$%^&*@~#<>/?\\", agents[2].Identifier(), "Wrong first agent Id")
-	AreEqual(t, "Some_id7", agents[3].Identifier(), "Wrong first agent Id")
+	AreEqual(t, "name id 1", agents[0].AgentName(), "Wrong first agent Name")
+	AreEqual(t, "my_id", agents[1].Identifier(), "Wrong second agent Id")
+	AreEqual(t, "name_my_id", agents[1].AgentName(), "Wrong second agent Name")
+	AreEqual(t, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-+={}[]()!£$%^&*@~#<>/?\\", agents[2].Identifier(), "Wrong third agent Id")
+	AreEqual(t, "long id name", agents[2].AgentName(), "Wrong third agent Name")
+	AreEqual(t, "Some_id7", agents[3].Identifier(), "Wrong fourth agent Id")
+	AreEqual(t, "Some_id7", agents[3].AgentName(), "Wrong fourth agent Name")
 }
 
 func TestParseDelimLinks(t *testing.T) {
@@ -198,7 +203,7 @@ func TestParseEdgesCsv(t *testing.T) {
 	}
 }
 
-func TestParseEdgesThrowsErrorWhenAgentDoesntExist(t *testing.T) {
+func TestParseEdgesThrowsIgnoresWhenAgentDoesntExist(t *testing.T) {
 	data := []string{
 		"Header row is always skipped ,check_this_is_not_an_Id,,",
 		"my_id, my_parent ",
@@ -214,7 +219,7 @@ func TestParseEdgesThrowsErrorWhenAgentDoesntExist(t *testing.T) {
 	n.PopulateMaps()
 
 	_, err := po.ParseEdges(data, &n)
-	IsFalse(t, err == nil, "Expecting an error to be thrown")
+	AssertSuccess(t, err)
 }
 
 func TestParseEdgesAddsMultipleParentLinks(t *testing.T) {

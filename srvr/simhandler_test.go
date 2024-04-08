@@ -366,8 +366,8 @@ func TestAddLinksSucceeds(t *testing.T) {
 	AreEqual(t, len(simstep.Network.Agents()), 5, "Agents array should have 5 items")
 }
 
-func TestAddLinksFailsWhenAgentDoesntExist(t *testing.T) {
-	br, _, _, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
+func TestAddLinksIgnoresLinksWhenAgentDoesntExist(t *testing.T) {
+	br, _, ssfu, _, _, simid := CreateSimHandlerBrowserWithSteps(2)
 
 	data := []string{
 		"Header always skipped ,check_this_is_not_an_Id\n",
@@ -395,8 +395,13 @@ func TestAddLinksFailsWhenAgentDoesntExist(t *testing.T) {
 	hdrs.Set("Content-Type", "application/json")
 	resp, err := br.PutS(fmt.Sprintf("/api/simulation/%s/links", simid), string(pbs), hdrs)
 	AssertSuccess(t, err)
-	AreEqual(t, http.StatusBadRequest, resp.Code, "Not Bad request")
-	AreEqual(t, "Agent id1 'Agent_4' or id2 'Agent_2' not found when adding link", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
+	AreEqual(t, http.StatusOK, resp.Code, "Not Updated")
+	simstep, ok := ssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	IsTrue(t, simstep.Network.Links() != nil, "Links array is nil")
+	AreEqual(t, len(simstep.Network.Links()), 2, "Links should have 2 items")
+	IsTrue(t, simstep.Network.Agents() != nil, "Agents array is nil")
+	AreEqual(t, len(simstep.Network.Agents()), 3, "Agents array should have 3 items")
 }
 
 func TestAddLinksFailsIfNoStepsExist(t *testing.T) {

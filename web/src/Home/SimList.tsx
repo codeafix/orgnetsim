@@ -3,11 +3,13 @@ import {Link} from 'react-router-dom';
 import {Card} from 'react-bootstrap';
 import {Col} from 'react-bootstrap';
 import {Trash} from 'react-bootstrap-icons';
+import {Copy} from 'react-bootstrap-icons';
 import { SimInfo } from '../API/SimInfo';
 
 
 type SimListProps = {
     deleteFunc(id: string, name: string): void;
+    copyFunc(id: string): void;
     sims: Array<SimInfo>;
 }
 
@@ -17,7 +19,7 @@ const SimList = (props:SimListProps) => {
             return(
                 <Col className="mb-4" key={"col_"+sim.id}>
                     <Card border="info" className="h-100" style={{ width: '20rem' }} key={sim.id}>
-                        <Card.Header><Card.Title>{sim.name}<Trash className="float-right" onClick={() => props.deleteFunc(sim.id, sim.name)}/></Card.Title></Card.Header>
+                        <Card.Header><Card.Title>{sim.name}<Trash className="float-right" onClick={() => props.deleteFunc(sim.id, sim.name)}/><Copy className="float-right mx-1" onClick={() => props.copyFunc(sim.id)}/></Card.Title></Card.Header>
                         <Card.Body>
                             <Card.Text>{sim.description}</Card.Text>
                         </Card.Body>

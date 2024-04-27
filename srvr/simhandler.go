@@ -25,7 +25,7 @@ type SimHandler interface {
 	Put(c *mango.Context)
 	GetStepsOrResults(c *mango.Context)
 	GetResults(c *mango.Context)
-	RunGenerateParseNetwork(c *mango.Context)
+	RunGenerateParseCopyNetwork(c *mango.Context)
 	PostRun(siminfo *SimInfo, c *mango.Context)
 	GenerateNetwork(siminfo *SimInfo, c *mango.Context)
 	DeleteStep(c *mango.Context)
@@ -73,7 +73,7 @@ func (sh *SimHandlerState) Register(r *mango.Router) {
 	r.Get("/api/simulation/{sim_id}", sh.Get)
 	r.Put("/api/simulation/{sim_id}", sh.Put)
 	r.Get("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.GetStepsOrResults)
-	r.Post("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.RunGenerateParseNetwork)
+	r.Post("/api/simulation/{sim_id}/{stepResultsRunGenerate}", sh.RunGenerateParseCopyNetwork)
 	r.Put("/api/simulation/{sim_id}/links", sh.AddLinks)
 	r.Delete("/api/simulation/{sim_id}/step/{step_id}", sh.DeleteStep)
 }
@@ -178,14 +178,13 @@ func (sh *SimHandlerState) collectAllResults(c *mango.Context) (sim.Results, str
 	return results, siminfo.Name, nil
 }
 
-// RunGenerateParseNetwork handles three possible routes:
+// RunGenerateParseCopyNetwork handles three possible routes:
 // /simulation/{id}/run Runs the simulation for the specified number of steps and iterations.
 // /simulation/{id}/generate Generates a network to simulate, this will throw if the
 // simulation already has steps.
 // /simulation/{id}/parse Parses a network specified in a text file and sets it as the
 // network to simulate. This will throw if the simulation already has steps.
-// /simulation/{id}/links Parses a text file containing links and adds them to the network.
-func (sh *SimHandlerState) RunGenerateParseNetwork(c *mango.Context) {
+func (sh *SimHandlerState) RunGenerateParseCopyNetwork(c *mango.Context) {
 	siminfo := sh.readSiminfo(c)
 	if siminfo == nil {
 		return
@@ -200,9 +199,40 @@ func (sh *SimHandlerState) RunGenerateParseNetwork(c *mango.Context) {
 	case "parse":
 		sh.ParseNetwork(siminfo, c)
 		return
+	case "copy":
+		sh.CopySim(siminfo, c)
+		return
 	default:
 		c.Error("Not Found", http.StatusNotFound)
 	}
+}
+
+// CopySim creates a copy of the simulation
+func (sh *SimHandlerState) CopySim(siminfo *SimInfo, c *mango.Context) {
+	simlist := NewSimList()
+	sim := CreateSimInfo()
+	sim.Name = siminfo.Name + "(copy)"
+	sim.Description = strings.Join([]string{siminfo.Description, "This is a copy of \"" + siminfo.Name + "\"."}, " ")
+	sim.Options = siminfo.Options
+
+	err := sh.AddItem(sim, simlist, c, "sim")
+	if err != nil {
+		c.Error(err.Error(), http.StatusInternalServerError)
+	}
+
+	if len(siminfo.Steps) > 0 {
+		//Copy the first step into the new simulation
+		ls := NewSimStepFromRelPath(siminfo.Steps[0])
+		objUpdater := sh.ListHandlerState.FileManager.Get(ls.Filepath())
+		err := objUpdater.Read(ls)
+		if err != nil {
+			c.Error(err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sh.createFirstSimStep(sim, ls.Network, c)
+	}
+
+	c.RespondWith(sim).WithStatus(http.StatusCreated)
 }
 
 // RunSpec specifies the number of simulation steps to run, and the number of

@@ -44,6 +44,12 @@ const Home = () => {
             setSimlist(simlist.concat(response));
         });
     };
+
+    const copySimulation = (id:string) => {
+        API.copy(id).then(response => {
+            setSimlist(simlist.concat(response));
+        });
+    };
     
     const deleteSimulation = (id:string) => {
         API.delete(id).then(() => {
@@ -58,7 +64,7 @@ const Home = () => {
             <p>{notes}</p>
             <h2>List of Simulations<Button className="btn btn-primary float-right" onClick={handleAddShow}>Add</Button></h2>
             <Row className="row-cols-1 row-cols-md-3 g-4">
-                <SimList sims={simlist} deleteFunc={handleDelShow}/>
+                <SimList sims={simlist} deleteFunc={handleDelShow} copyFunc={copySimulation}/>
             </Row>
             <EditNameDescModal sim={API.emptySim()} show={showaddmodal} saveFunc={addSimulation} closeFunc={handleAddClose}/>
             <Modal

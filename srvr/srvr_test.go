@@ -47,19 +47,26 @@ func NewTestFileManager(tfu *TestFileUpdater) *TestFileManager {
 		map[string]FileUpdater{
 			tfu.Path(): tfu,
 		},
+		[]*TestFileUpdater{},
 		nil,
 	}
 }
 
 type TestFileManager struct {
 	FileUpdaters map[string]FileUpdater
-	Default      FileUpdater
+	Created      []*TestFileUpdater
+	Default      *TestFileUpdater
 }
 
 func (fm *TestFileManager) Get(path string) FileUpdater {
 	fu, exists := fm.FileUpdaters[path]
 	if !exists {
-		return fm.Default
+		if fm.Default != nil {
+			return fm.Default
+		}
+		dfu := &TestFileUpdater{}
+		fm.Created = append(fm.Created, dfu)
+		return dfu
 	}
 	return fu
 }
@@ -70,6 +77,13 @@ func (fm *TestFileManager) Add(path string, tfu *TestFileUpdater) {
 
 func (fm *TestFileManager) SetDefault(tfu *TestFileUpdater) {
 	fm.Default = tfu
+}
+
+func (fm *TestFileManager) CreatedFileUpdaters(index int) *TestFileUpdater {
+	if index < 0 || index >= len(fm.Created) {
+		return nil
+	}
+	return fm.Created[index]
 }
 
 type TestFileUpdater struct {

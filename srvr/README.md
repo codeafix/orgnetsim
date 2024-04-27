@@ -36,6 +36,10 @@ There should be no existing steps within the simulation otherwise this request w
 Returns the created first step that contains the generated network and the initial color
 results for the generated network.
 
+### `POST /api/simulation/{sim_id}/copy`
+Creates a new copy of the specified simulation and the initial simulation step if it exists.
+This will not copy any subsequent steps in the simulation being copied.
+
 ### `PUT /api/simulation/{sim_id}/links`
 Parses a list of relationships from a byte array and adds them to the network on the
 latest step of the simulation. This modifies the network in the latest step. Unlike

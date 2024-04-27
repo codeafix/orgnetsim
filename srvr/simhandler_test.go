@@ -472,6 +472,130 @@ func TestAddLinksFailsWithNoParseOptions(t *testing.T) {
 	AreEqual(t, "EOF: Error reading ParseOptions", strings.TrimSpace(resp.Body.String()), "Incorrect error response")
 }
 
+func CreateSimHandlerBrowserForCopyTests(stepcount int) (*mango.Browser, *TestFileUpdater, []*TestFileUpdater, string, *TestFileManager) {
+	ssful := []*TestFileUpdater{}
+
+	simid := uuid.New().String()
+	nsim := NewSimInfo(simid)
+	nsim.Name = "mySavedSim"
+	nsim.Description = "A description of mySavedSim"
+	nsim.Steps = []string{}
+	simfu := &TestFileUpdater{
+		Obj:      nsim,
+		Filepath: nsim.Filepath(),
+	}
+
+	sl := NewSimList()
+	sl.Items = []string{
+		"/api/simulation/{someIdHere}",
+	}
+	sl.Notes = "Some notes"
+	slfu := &TestFileUpdater{
+		Obj:      sl,
+		Filepath: sl.Filepath(),
+	}
+
+	tfm := NewTestFileManager(slfu)
+	tfm.Add(simfu.Filepath, simfu)
+
+	for i := 0; i < stepcount; i++ {
+		rm := CreateNetwork()
+		if i > 0 {
+			rm.SetMaxColors(10)
+		}
+		ss := &SimStep{
+			ID:       uuid.New().String(),
+			ParentID: simid,
+			Network:  rm,
+		}
+		ssfu := &TestFileUpdater{
+			Obj:      ss,
+			Filepath: ss.Filepath(),
+		}
+		nsim.Steps = append(nsim.Steps, ss.RelPath())
+		tfm.Add(ss.Filepath(), ssfu)
+		ssful = append(ssful, ssfu)
+	}
+
+	r := CreateRouter(tfm)
+	br := mango.NewBrowser(r)
+
+	return br, simfu, ssful, simid, tfm
+}
+
+func TestSimCopySucceedsWithNoSteps(t *testing.T) {
+	br, simfu, _, simid, tfm := CreateSimHandlerBrowserForCopyTests(0)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/copy", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	siminfo, _ := simfu.Obj.(*SimInfo)
+
+	cpsimfu := tfm.CreatedFileUpdaters(0)
+	cpsim, ok := cpsimfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	AreEqual(t, cpsim.Name, "mySavedSim(copy)", "Wrong name in returned SimInfo")
+	AreEqual(t, cpsim.Description, "A description of mySavedSim This is a copy of \"mySavedSim\".", "Wrong description in returned SimInfo")
+	IsFalse(t, cpsim.ID == siminfo.ID, "ID should be different")
+}
+
+func TestSimCopySucceedsWithInitialStep(t *testing.T) {
+	br, simfu, ssful, simid, tfm := CreateSimHandlerBrowserForCopyTests(1)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/copy", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	siminfo, _ := simfu.Obj.(*SimInfo)
+
+	cpsimfu := tfm.CreatedFileUpdaters(0)
+	cpsim, ok := cpsimfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	AreEqual(t, cpsim.Name, "mySavedSim(copy)", "Wrong name in returned SimInfo")
+	AreEqual(t, cpsim.Description, "A description of mySavedSim This is a copy of \"mySavedSim\".", "Wrong description in returned SimInfo")
+	IsFalse(t, cpsim.ID == siminfo.ID, "ID should be different")
+
+	cpssfu := tfm.CreatedFileUpdaters(1)
+	cpss, ok := cpssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	AreEqual(t, cpss.ParentID, cpsim.ID, "ParentID should be the new sim ID")
+	AreEqual(t, cpss.Network.MaxColors(), 4, "MaxColors should be the same")
+	AreEqual(t, len(cpss.Network.Agents()), 3, "Agents should be the same")
+	AreEqual(t, len(cpss.Network.Links()), 2, "Links should be the same")
+	IsFalse(t, cpss.ID == ssful[0].Obj.(*SimStep).ID, "ID should be different")
+}
+
+func TestSimCopySucceedsWithMultipleSteps(t *testing.T) {
+	br, simfu, ssful, simid, tfm := CreateSimHandlerBrowserForCopyTests(3)
+
+	hdrs := http.Header{}
+	hdrs.Set("Content-Type", "application/json")
+	resp, err := br.PostS(fmt.Sprintf("/api/simulation/%s/copy", simid), "", hdrs)
+	AssertSuccess(t, err)
+	AreEqual(t, http.StatusCreated, resp.Code, "Not Created")
+	siminfo, _ := simfu.Obj.(*SimInfo)
+
+	cpsimfu := tfm.CreatedFileUpdaters(0)
+	cpsim, ok := cpsimfu.Obj.(*SimInfo)
+	IsTrue(t, ok, "Saved object would not cast to *SimInfo")
+	AreEqual(t, cpsim.Name, "mySavedSim(copy)", "Wrong name in returned SimInfo")
+	AreEqual(t, cpsim.Description, "A description of mySavedSim This is a copy of \"mySavedSim\".", "Wrong description in returned SimInfo")
+	IsFalse(t, cpsim.ID == siminfo.ID, "ID should be different")
+	IsTrue(t, len(cpsim.Steps) == 1, "Steps should contain initial step only")
+
+	cpssfu := tfm.CreatedFileUpdaters(1)
+	cpss, ok := cpssfu.Obj.(*SimStep)
+	IsTrue(t, ok, "Saved object would not cast to *SimStep")
+	AreEqual(t, cpss.ParentID, cpsim.ID, "ParentID should be the new sim ID")
+	AreEqual(t, cpss.Network.MaxColors(), 4, "MaxColors should be the same")
+	AreEqual(t, len(cpss.Network.Agents()), 3, "Agents should be the same")
+	AreEqual(t, len(cpss.Network.Links()), 2, "Links should be the same")
+	IsFalse(t, cpss.ID == ssful[0].Obj.(*SimStep).ID, "ID should be different")
+}
+
 func TestGenerateNetworkSucceeds(t *testing.T) {
 	br, simfu, ssfu, simid := CreateSimHandlerBrowser()
 

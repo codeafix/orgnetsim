@@ -153,6 +153,15 @@ const API = {
             }) as Response;
         return response.json();
     },
+    copy: async function(id:string):Promise<SimInfo>{
+        const response = await fetch(this.rootPath+"/api/simulation/"+id+"/copy", {
+            "method": "POST",
+            "headers": {},
+            })
+            .catch(err => { console.log(err); 
+            }) as Response;
+        return response.json();
+    },
     delete: async function(id:string){
         await fetch(this.rootPath+"/api/simulation/"+id, {
             "method": "DELETE",

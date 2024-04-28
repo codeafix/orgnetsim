@@ -15,7 +15,7 @@ func TestCommandLineInvokesHelp(t *testing.T) {
 func TestCommandLineParse(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
-	os.Args = []string{"orgnetsim", "parse", "../sim/tst.json"}
+	os.Args = []string{"orgnetsim", "parse", "./network.json.tst"}
 	main()
 }
 

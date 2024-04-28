@@ -58,11 +58,30 @@ exports[`renders without crashing 1`] = `
                 class="form-file-label"
                 for="form-file"
               >
-                Select File
+                Select File To Parse
               </label>
               <input
                 class="form-control-file"
                 id="form-file"
+                type="file"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <div
+              class="form-file"
+            >
+              <label
+                class="form-file-label"
+                for="form-parse-settings"
+              >
+                Read Parse Settings
+              </label>
+              <input
+                class="form-control-file"
+                id="form-parse-settings"
                 type="file"
               />
             </div>

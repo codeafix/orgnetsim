@@ -49,6 +49,23 @@ const ParseSettings = (props:ParseSettingsProps) => {
         setfiletoupload({} as Blob);
         props.onclose();
     };
+
+    const setParseSettings = (file:Blob) => {
+        const fr = new FileReader();
+        if(!file?.text) return;
+
+        fr.readAsText(file);
+        fr.onload = function() {
+            if(!fr.result) return;
+            const r = fr.result as string;
+            const settings = JSON.parse(r);
+            setidcol(settings.identifier);
+            setpcol(settings.parent);
+            setncol(settings.name);
+            setdelim(settings.delimiter);
+            setregex(settings.regex);
+        };
+    };
     
     const handleimport = () => {
         const fr = new FileReader();
@@ -93,8 +110,13 @@ const ParseSettings = (props:ParseSettingsProps) => {
             </Modal.Header>
             <Modal.Body>
                 <Form.Group controlId="form-file">
-                    <Form.File label="Select File" onChange={(e:any) => {
+                    <Form.File label="Select File To Parse" onChange={(e:any) => {
                         if(e.target.files.length) setfiletoupload(e.target.files[0]);
+                    }}/>
+                </Form.Group>
+                <Form.Group controlId="form-parse-settings">
+                    <Form.File label="Read Parse Settings" onChange={(e:any) => {
+                        if(e.target.files.length) setParseSettings(e.target.files[0]);
                     }}/>
                 </Form.Group>
                 <Form.Group controlId="form-identifier">

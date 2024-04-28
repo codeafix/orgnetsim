@@ -103,7 +103,7 @@ const StepsCard = (props:StepsCardProps) => {
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Import Network</Modal.Title>
+                    <Modal.Title>Run Simulation</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="form-steps">

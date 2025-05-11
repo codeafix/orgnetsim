@@ -122,14 +122,25 @@ func TestGetSimStepsSuccess(t *testing.T) {
 	AssertSuccess(t, err)
 	AreEqual(t, http.StatusOK, resp.Code, "Not OK")
 
-	rsteps := []SimStep{}
+	rsteps := []SimStepSummary{}
 	err = json.Unmarshal(resp.Body.Bytes(), &rsteps)
 
 	AssertSuccess(t, err)
 	AreEqual(t, 3, len(rsteps), "Wrong number of Steps in returned SimInfo")
-	AreEqual(t, steps[0][strings.LastIndex(steps[0], "/")+1:], rsteps[0].ID, "Wrong Step 0 in returned SimInfo")
-	AreEqual(t, steps[1][strings.LastIndex(steps[0], "/")+1:], rsteps[1].ID, "Wrong Step 1 in returned SimInfo")
-	AreEqual(t, steps[2][strings.LastIndex(steps[0], "/")+1:], rsteps[2].ID, "Wrong Step 2 in returned SimInfo")
+	// The 'steps' variable contains full paths, extract ID for comparison
+	// Example step path: /api/simulation/SIM_ID/step/STEP_ID
+	expectedId0 := steps[0][strings.LastIndex(steps[0], "/")+1:]
+	AreEqual(t, expectedId0, rsteps[0].ID, "Wrong Step 0 ID")
+	// Add ParentID assertion if needed, e.g.: AreEqual(t, simid, rsteps[0].ParentID, "Wrong ParentID for Step 0")
+
+	if len(rsteps) > 1 {
+		expectedId1 := steps[1][strings.LastIndex(steps[1], "/")+1:]
+		AreEqual(t, expectedId1, rsteps[1].ID, "Wrong Step 1 ID")
+	}
+	if len(rsteps) > 2 {
+		expectedId2 := steps[2][strings.LastIndex(steps[2], "/")+1:]
+		AreEqual(t, expectedId2, rsteps[2].ID, "Wrong Step 2 ID")
+	}
 }
 
 func TestUpdateSimSuccess(t *testing.T) {

@@ -5,6 +5,8 @@ import { RunSpec } from '../API/Step';
 import { ParseOptions } from '../API/Parse';
 import { ResultsCsv } from '../API/Results';
 import { SimList } from '../API/SimList';
+import { Network } from './Network';
+import { AgentState } from './Network';
 
 const API = {
     rootPath: "http://localhost:8080",
@@ -169,6 +171,30 @@ const API = {
             })
             .catch(err => { console.log(err); 
             }) as Response;
+    },
+    getStepNetwork: async function(simId: string, stepId: string): Promise<Network> {
+        const response = await fetch(`${this.rootPath}/api/simulation/${simId}/step/${stepId}/network`, {
+            "method": "GET",
+            "headers": {}
+        }).catch(err => { console.log(err); }) as Response;
+        return response.json();
+    },
+    getStepAgents: async function(simId: string, stepId: string): Promise<AgentState[]> {
+        const response = await fetch(`${this.rootPath}/api/simulation/${simId}/step/${stepId}/agents`, {
+            "method": "GET",
+            "headers": {}
+        }).catch(err => { console.log(err); }) as Response;
+        return response.json();
+    },
+    updateStepNetwork: async function(simId: string, stepId: string, network: Network): Promise<Network> {
+        const response = await fetch(`${this.rootPath}/api/simulation/${simId}/step/${stepId}/network`, {
+            "method": "PUT",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify(network)
+        }).catch(err => { console.log(err); }) as Response;
+        return response.json();
     },
 }
 

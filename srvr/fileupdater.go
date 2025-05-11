@@ -3,13 +3,12 @@ package srvr
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 )
 
-//FileDetails contains information about a file that will be managed by the FileUpdater
+// FileDetails contains information about a file that will be managed by the FileUpdater
 type FileDetails struct {
 	Rootpath string
 	Filepath string
@@ -17,14 +16,14 @@ type FileDetails struct {
 	DirLock  *sync.RWMutex
 }
 
-//FileUpdater manages a file and provides Read and Update methods that allow the rest of
-//the package to read and update a file.
-//FileUpdater contains a lock to prevent multiple goroutines from trying to write at the
-//same time and also prevents Reads from occuring whilst an update is being performed.
-//The Update function checks the last modified time of the file before it updates it,
-//if it has been modified since the last copy was read, then Update will return an
-//error, and the Update method will attempt to re-read the contents of the file into
-//the object supplied.
+// FileUpdater manages a file and provides Read and Update methods that allow the rest of
+// the package to read and update a file.
+// FileUpdater contains a lock to prevent multiple goroutines from trying to write at the
+// same time and also prevents Reads from occuring whilst an update is being performed.
+// The Update function checks the last modified time of the file before it updates it,
+// if it has been modified since the last copy was read, then Update will return an
+// error, and the Update method will attempt to re-read the contents of the file into
+// the object supplied.
 type FileUpdater interface {
 	Create(obj Persistable) error
 	Read(obj Persistable) error
@@ -33,8 +32,8 @@ type FileUpdater interface {
 	Path() string
 }
 
-//Create creates a file and saves the supplied object into the file identified by path
-//It returns the FileUpdater that should be used to access the file
+// Create creates a file and saves the supplied object into the file identified by path
+// It returns the FileUpdater that should be used to access the file
 func (fd *FileDetails) Create(obj Persistable) error {
 	lkPath, err := fd.createLockFile()
 	if err != nil {
@@ -55,9 +54,9 @@ func (fd *FileDetails) Create(obj Persistable) error {
 	return fd.writeFile(obj)
 }
 
-//Read the file and unmarshal it into the supplied object. If the file hasn't changed
-//since it was last read this function will do nothing. If the file is re-read then
-//the Timestamp on the supplied object is updated
+// Read the file and unmarshal it into the supplied object. If the file hasn't changed
+// since it was last read this function will do nothing. If the file is re-read then
+// the Timestamp on the supplied object is updated
 func (fd *FileDetails) Read(obj Persistable) error {
 	fd.Lock.RLock()
 	defer fd.Lock.RUnlock()
@@ -72,7 +71,7 @@ func (fd *FileDetails) Read(obj Persistable) error {
 	if obj.Timestamp() == s.ModTime() {
 		return nil
 	}
-	b, err := ioutil.ReadFile(fd.Path())
+	b, err := os.ReadFile(fd.Path())
 	if err != nil {
 		return err
 	}
@@ -80,8 +79,8 @@ func (fd *FileDetails) Read(obj Persistable) error {
 	return json.Unmarshal(b, obj)
 }
 
-//Update the contents of the file with the supplied persistable object. If the write
-//to the file is successful, then the Timestamp of the persistable is updated too.
+// Update the contents of the file with the supplied persistable object. If the write
+// to the file is successful, then the Timestamp of the persistable is updated too.
 func (fd *FileDetails) Update(obj Persistable) error {
 	fd.Lock.Lock()
 	defer fd.Lock.Unlock()
@@ -100,17 +99,17 @@ func (fd *FileDetails) Update(obj Persistable) error {
 	return fd.writeFile(obj)
 }
 
-//Delete the file on the file system
+// Delete the file on the file system
 func (fd *FileDetails) Delete() error {
 	return fd.remove(fd.Path())
 }
 
-//Path to the file on the file system
+// Path to the file on the file system
 func (fd *FileDetails) Path() string {
 	return filepath.Join(fd.Rootpath, fd.Filepath)
 }
 
-//Actually writes data into a file
+// Actually writes data into a file
 func (fd *FileDetails) writeFile(obj Persistable) error {
 	fo, err := os.OpenFile(fd.Path(), os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
@@ -139,7 +138,7 @@ func (fd *FileDetails) writeFile(obj Persistable) error {
 	return nil
 }
 
-//Creates a lock file to avoid multiple instances clobbering each other
+// Creates a lock file to avoid multiple instances clobbering each other
 func (fd *FileDetails) createLockFile() (string, error) {
 	lkPath := fd.lockpath()
 	err := fd.createFile(lkPath)
@@ -149,7 +148,7 @@ func (fd *FileDetails) createLockFile() (string, error) {
 	return lkPath, nil
 }
 
-//Returns a true if the file currently exists
+// Returns a true if the file currently exists
 func (fd *FileDetails) fileExists(path string) (bool, error) {
 	_, err := fd.stat(path)
 	if os.IsNotExist(err) {
@@ -158,26 +157,26 @@ func (fd *FileDetails) fileExists(path string) (bool, error) {
 	return true, err
 }
 
-//Returns the path to the lock file for this file
+// Returns the path to the lock file for this file
 func (fd *FileDetails) lockpath() string {
 	return fd.Path() + ".lk"
 }
 
-//Removes the specified file
+// Removes the specified file
 func (fd *FileDetails) remove(path string) error {
 	fd.DirLock.Lock()
 	defer fd.DirLock.Unlock()
 	return os.Remove(path)
 }
 
-//stat the given file path
+// stat the given file path
 func (fd *FileDetails) stat(path string) (os.FileInfo, error) {
 	fd.DirLock.RLock()
 	defer fd.DirLock.RUnlock()
 	return os.Stat(path)
 }
 
-//createFile the given file path
+// createFile the given file path
 func (fd *FileDetails) createFile(path string) error {
 	fd.DirLock.Lock()
 	defer fd.DirLock.Unlock()

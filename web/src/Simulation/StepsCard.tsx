@@ -166,7 +166,7 @@ const StepItem = (props:StepItemProps) => {
         setiterations(step.results.iterations);
         setconversations(step.results.conversations[itrs]);
         const culrs = [];
-        for (var i = 0; i < step.network['maxColors']; i++) {
+        for (var i = 0; i < step.results.colors[itrs].length; i++) {
             culrs.push(step.results.colors[itrs][i]);
         }
         setcolors(culrs);

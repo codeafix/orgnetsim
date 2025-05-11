@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom, Simulation, SimulationNodeDatum, SimulationLinkDatum, ForceLink, ZoomBehavior } from 'd3';
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceX, forceY, drag, zoom, Simulation, SimulationNodeDatum, SimulationLinkDatum, ForceLink, Selection } from 'd3';
 import Color from './Color';
 import API from '../API/api';
 import Spinner from 'react-bootstrap/Spinner';
@@ -7,14 +7,12 @@ import {Button} from 'react-bootstrap';
 import {indexBy} from 'underscore';
 import { SimInfo } from '../API/SimInfo';
 import { Step } from '../API/Step';
-import { Network, Link, AgentState } from '../API/Network';
+import type { Network, Link, AgentState } from '../API/Network';
 
 type NetworkGraphProps = {
     sim:SimInfo;
     steps:Array<Step>;
 }
-
-import { Selection } from 'd3';
 
 type Run = {
     stopped: boolean;
@@ -27,6 +25,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
     const [loading, setloading] = useState<boolean>(false);
     const [layout, setlayout] = useState<boolean>(false);
     const [step, setstep] = useState<Step>();
+    const [networkData, setNetworkData] = useState<Network | null>(null);
     const [run,] = useState<Run>({stopped:true});
     const [steps, setsteps] = useState<Array<Step>>([]);
     const [play,] = useState({playing: false});
@@ -55,10 +54,10 @@ const NetworkGraph = (props:NetworkGraphProps) => {
     };
 
     const savegraph = () => {
-        if(!run.sim || !step) return;
+        if(!run.sim || !step || !networkData) return;
 
         var graphnodes = run.sim.nodes();
-        var netnodes = step.network.nodes;
+        var netnodes = networkData.nodes;
         for(var i = 0; i < graphnodes.length; i++) {
             var uinode = graphnodes[i];
             var netnode = netnodes[i];
@@ -78,12 +77,16 @@ const NetworkGraph = (props:NetworkGraphProps) => {
             };
             links.push(link);
         }
-        step.network.links = links;
-        var response = API.updateStep(step);
-        response.then(updatedstep => setstep(updatedstep)
-        ).catch(err => {
+        
+        const updatedNetworkData = {...networkData, links};
+        try {
+            const response = API.updateStepNetwork(step.parent, step.id, updatedNetworkData);
+            response.then(updatedNetwork => {
+                setNetworkData(updatedNetwork);
+            });
+        } catch (err) {
             console.log(err);
-        });
+        }
     };
 
     const hold = (ms:number) => {
@@ -113,7 +116,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
 
     const renderstep = async (step:Step, graphnodesbyid:any, waittime:number) => {
         if(!run.sim || !run.nodes) return;
-        var netnodes = step.network.nodes;
+        var netnodes = await API.getStepAgents(step.parent, step.id) || [];
         for(var i = 0; i < netnodes.length; i++) {
             var node = netnodes[i];
             var graphnode = graphnodesbyid[node.id];
@@ -124,7 +127,8 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         await hold(waittime);
     };
 
-    const createGraph = (network:Network) => {
+    const createGraph = (network: Network | null) => {
+        if (!network) return;
         if(!graph.current) return;
         const parentElement = graph.current.parentElement;
         if(!parentElement) return;
@@ -135,7 +139,7 @@ const NetworkGraph = (props:NetworkGraphProps) => {
             ch = vheight - margin.top - margin.bottom;
         
         const width = 1024, height = 768;
-
+        
         const resize = () => {
             const c = graph.current;
             if(!c) return;
@@ -231,27 +235,27 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         ticked();
         
         function dragstarted(event:any, d:AgentState) {
-            if(run.stopped) return;
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        };
+    if(run.stopped) return;
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+};
             
-        function dragged(event:any, d:AgentState) {
-            if(run.stopped) return;
-            d.fx = event.x;
-            d.fy = event.y;
-        };
+function dragged(event:any, d:AgentState) {
+    if(run.stopped) return;
+    d.fx = event.x;
+    d.fy = event.y;
+};
             
-        function dragended(event:any, d:AgentState) {
-            if(run.stopped) return;
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = undefined;
-            d.fy = undefined;
-        };
-    }
+function dragended(event:any, d:AgentState) {
+    if(run.stopped) return;
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = undefined;
+    d.fy = undefined;
+};
+}
 
-    useEffect(() => {
+useEffect(() => {
         setloading(true);
         if (!props.sim['id']) {
             setloading(false);
@@ -264,11 +268,22 @@ const NetworkGraph = (props:NetworkGraphProps) => {
         if (steplist.length === 0) return;
 
         select(graph.current).selectAll("*").remove();
-        
+
         const lastStep = steplist[steplist.length-1];
         setstep(lastStep);
-        createGraph(lastStep.network);
-        setloading(false);
+
+        try {
+            // Fetch network data for the last step
+            const response = API.getStepNetwork(props.sim.id, lastStep.id);
+            response.then(networkData => {
+                setNetworkData(networkData);
+                createGraph(networkData);
+            });
+        } catch (error) {
+            console.error('Failed to fetch network data', error);
+        } finally {
+            setloading(false);
+        }
     },[props.sim, props.steps]);//eslint-disable-line react-hooks/exhaustive-deps
 
     return <div id="graph-container">

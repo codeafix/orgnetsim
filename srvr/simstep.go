@@ -18,6 +18,15 @@ type SimStep struct {
 	ParentID string              `json:"parent"`
 }
 
+// SimStepSummary holds a summary of a simulation step, excluding the detailed network.
+// This is used for listings of steps to reduce payload size.
+type SimStepSummary struct {
+	TimestampHolder
+	Results  sim.Results `json:"results"`
+	ID       string      `json:"id"`
+	ParentID string      `json:"parent"`
+}
+
 //UnmarshalJSON implements unmarshaling to make sure network is properly unmarshalled into sim.Network
 func (ss *SimStep) UnmarshalJSON(b []byte) error {
 	var simstep map[string]json.RawMessage

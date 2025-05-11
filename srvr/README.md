@@ -68,3 +68,12 @@ Updates the results and network state in the specified step
 
 ### `DELETE /api/simulation/{sim_id}/step/{step_id}`
 Deletes the specified step
+
+### `GET /api/simulation/{sim_id}/step/{step_id}/network`
+Returns the full network structure at the end of this step.
+
+### `PUT /api/simulation/{sim_id}/step/{step_id}/network`
+Updates only the network structure at the end of this step.
+
+### `GET /api/simulation/{sim_id}/step/{step_id}/agents`
+Returns the agent color and state data for this step (typically used for animations).

@@ -54,16 +54,25 @@ func NewSimHandler(fm FileManager) SimHandler {
 
 func (sh *SimHandlerState) EncodeStepList(listHolder ListHolder, listname string) (interface{}, error) {
 	paths := listHolder.GetItems(listname)
-	items := []*SimStep{}
+	items := []*SimStepSummary{} // Changed to SimStepSummary
 	for _, path := range paths {
 		elems := strings.Split(path, "/")
-		newItem := NewSimStep(elems[len(elems)-1], elems[len(elems)-3])
-		itemUpdater := sh.ListHandlerState.FileManager.Get(newItem.Filepath())
-		err := itemUpdater.Read(newItem)
+		// Read the full SimStep first to get all data
+		fullStep := NewSimStep(elems[len(elems)-1], elems[len(elems)-3])
+		itemUpdater := sh.ListHandlerState.FileManager.Get(fullStep.Filepath())
+		err := itemUpdater.Read(fullStep)
 		if err != nil {
 			return nil, err
 		}
-		items = append(items, newItem)
+
+		// Create SimStepSummary and populate it
+		summaryItem := &SimStepSummary{
+			TimestampHolder: fullStep.TimestampHolder, // Assuming TimestampHolder is directly assignable
+			Results:         fullStep.Results,
+			ID:              fullStep.ID,
+			ParentID:        fullStep.ParentID,
+		}
+		items = append(items, summaryItem)
 	}
 	return items, nil
 }

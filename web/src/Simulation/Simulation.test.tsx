@@ -6,7 +6,7 @@ import { test, expect } from 'vitest'
 import { vi } from 'vitest'
 import { act } from 'react-dom/test-utils';
 import Simulation from './Simulation';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 vi.mock('../API/api');
 
@@ -14,13 +14,12 @@ test('renders without crashing', async () => {
     var result:any;
     await act(async () => {
         result = render(
-            <BrowserRouter>
-                <Simulation match={{
-                        params: {
-                            id: ''
-                        }
-                    }}/>
-            </BrowserRouter>
+            <MemoryRouter initialEntries={['/simulation/']}>
+                <Routes>
+                    <Route path='/simulation/:id' element={<Simulation/>}/>
+                    <Route path='/simulation/' element={<Simulation/>}/>
+                </Routes>
+            </MemoryRouter>
         );
     });
     expect(result).toBeDefined();

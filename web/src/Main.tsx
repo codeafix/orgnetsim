@@ -7,10 +7,10 @@ import Simulation from './Simulation/Simulation';
 const Main = () => (
   <main>
     <Routes>
-      <Route path='/' element={<Home/>}/>
-      <Route path='/simulation/:id' element={<Simulation/>}/>
+      <Route path='/' element={<Home />}/>
+      <Route path='/simulation/:id' element={<Simulation />}/>
     </Routes>
   </main>
   )
-
+  
   export default Main;

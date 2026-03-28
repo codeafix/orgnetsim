@@ -11,7 +11,7 @@ exports[`renders without crashing 1`] = `
         <h1>
           <img
             alt="logo"
-            src="/src/logo.svg"
+            src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2060%2060'%3e%3cg%20class='links'%3e%3cline%20x1='29.47845386204116'%20y1='30.2993068845328'%20x2='5'%20y2='22.76864355842357'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='29.47845386204116'%20y1='30.2993068845328'%20x2='14.07820565912296'%20y2='51.53600876990375'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='43.86203789162526'%20y1='52.0669709714013'%20x2='5'%20y2='22.76864355842357'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='43.86203789162526'%20y1='52.0669709714013'%20x2='54.36201579120926'%20y2='23.96621520614607'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='43.86203789162526'%20y1='52.0669709714013'%20x2='14.07820565912296'%20y2='51.53600876990375'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='43.86203789162526'%20y1='52.0669709714013'%20x2='30.07898864117986'%20y2='5'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='5'%20y1='22.76864355842357'%20x2='54.36201579120926'%20y2='23.96621520614607'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='5'%20y1='22.76864355842357'%20x2='14.07820565912296'%20y2='51.53600876990375'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='5'%20y1='22.76864355842357'%20x2='30.07898864117986'%20y2='5'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='54.36201579120926'%20y1='23.96621520614607'%20x2='14.07820565912296'%20y2='51.53600876990375'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='54.36201579120926'%20y1='23.96621520614607'%20x2='30.07898864117986'%20y2='5'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='14.07820565912296'%20y1='51.53600876990375'%20x2='30.07898864117986'%20y2='5'%20style='stroke:%20lightgray;'%3e%3c/line%3e%3cline%20x1='29.47845386204116'%20y1='30.2993068845328'%20x2='54.36201579120926'%20y2='23.96621520614607'%20style='stroke:%20blue;'%3e%3c/line%3e%3cline%20x1='29.47845386204116'%20y1='30.2993068845328'%20x2='43.86203789162526'%20y2='52.0669709714013'%20style='stroke:%20blue;'%3e%3c/line%3e%3cline%20x1='29.47845386204116'%20y1='30.2993068845328'%20x2='30.07898864117986'%20y2='5'%20style='stroke:%20blue;'%3e%3c/line%3e%3c/g%3e%3cg%20class='nodes'%3e%3ccircle%20r='5'%20cx='29.47845386204116'%20cy='30.2993068845328'%20style='fill:%20blue;'%3e%3ctitle%3eLead%3c/title%3e%3c/circle%3e%3ccircle%20r='5'%20cx='14.07820565912296'%20cy='51.53600876990375'%20style='fill:%20slategray;'%3e%3ctitle%3eDev_1%3c/title%3e%3c/circle%3e%3ccircle%20r='5'%20cx='30.07898864117986'%20cy='5'%20style='fill:%20blue;'%3e%3ctitle%3eDev_2%3c/title%3e%3c/circle%3e%3ccircle%20r='5'%20cx='43.86203789162526'%20cy='52.0669709714013'%20style='fill:%20blue;'%3e%3ctitle%3eDev_3%3c/title%3e%3c/circle%3e%3ccircle%20r='5'%20cx='5'%20cy='22.76864355842357'%20style='fill:%20slategray;'%3e%3ctitle%3eDev_4%3c/title%3e%3c/circle%3e%3ccircle%20r='5'%20cx='54.36201579120926'%20cy='23.96621520614607'%20style='fill:%20blue;'%3e%3ctitle%3eDev_5%3c/title%3e%3c/circle%3e%3c/g%3e%3c/svg%3e"
             style="height: 60px; width: 60px;"
           />
           Simulation Set
@@ -89,6 +89,7 @@ exports[`renders without crashing 1`] = `
               >
                 <a
                   class="btn btn-primary"
+                  data-discover="true"
                   href="/simulation/1"
                   role="button"
                 >
@@ -155,6 +156,7 @@ exports[`renders without crashing 1`] = `
               >
                 <a
                   class="btn btn-primary"
+                  data-discover="true"
                   href="/simulation/2"
                   role="button"
                 >

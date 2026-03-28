@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../API/api';
-import {Link} from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import {ArrowLeftCircle} from 'react-bootstrap-icons';
 import {Card, Button, Row, Col, Container} from 'react-bootstrap'
 import EditNameDescModal from '../Home/EditNameDescModal'
@@ -10,28 +10,21 @@ import StepsCard from './StepsCard'
 import { SimInfo } from '../API/SimInfo';
 import { Step } from '../API/Step';
 
-type SimulationProps = {
-    match: {
-        params: {
-            id: string;
-        }
-    }
-}
-
-const Simulation = (props:SimulationProps) => {
+const Simulation = () => {
+    const { id = '' } = useParams<{ id: string }>();
     const [sim, setSim] = useState<SimInfo>(API.emptySim());
     const [simsteps, setSimsteps] = useState<Array<Step>>([]);
     const [showsimeditmodal, setShowsimeditmodal] = useState<boolean>(false);
 
     useEffect(() => {
-        readsim(props.match.params.id);
-      }, [props.match.params.id]);
+        readsim(id);
+      }, [id]);
 
     const handlesimeditshow = () => setShowsimeditmodal(true);
     const handlesimeditclose = () => setShowsimeditmodal(false);
 
-    const readsim = (id:string) => {
-        API.get(id).then(sresp => {
+    const readsim = (simid:string) => {
+        API.get(simid).then(sresp => {
             setSim(sresp);
             API.getSteps(sresp).then(steps => {
                 setSimsteps(steps);

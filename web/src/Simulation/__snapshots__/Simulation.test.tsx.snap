@@ -10,6 +10,7 @@ exports[`renders without crashing 1`] = `
     >
       <a
         class="btn btn-outline-secondary mr-3 mt-n2 mb-2"
+        data-discover="true"
         href="/"
         role="button"
       >

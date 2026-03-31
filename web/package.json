@@ -9,7 +9,7 @@
     "@types/node": "^20.11.19",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "bootstrap": "5.3.8",
     "d3": "7.9.0",
     "jquery": "4.0.0",

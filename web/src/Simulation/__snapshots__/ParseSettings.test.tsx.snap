@@ -176,6 +176,7 @@ exports[`renders without crashing 1`] = `
                       type="button"
                     >
                       <svg
+                        class="bi bi-x"
                         fill="currentColor"
                         height="1em"
                         viewBox="0 0 16 16"
@@ -200,6 +201,7 @@ exports[`renders without crashing 1`] = `
                       type="button"
                     >
                       <svg
+                        class="bi bi-x"
                         fill="currentColor"
                         height="1em"
                         viewBox="0 0 16 16"
@@ -224,6 +226,7 @@ exports[`renders without crashing 1`] = `
                       type="button"
                     >
                       <svg
+                        class="bi bi-x"
                         fill="currentColor"
                         height="1em"
                         viewBox="0 0 16 16"
@@ -260,6 +263,7 @@ exports[`renders without crashing 1`] = `
                       type="button"
                     >
                       <svg
+                        class="bi bi-x"
                         fill="currentColor"
                         height="1em"
                         viewBox="0 0 16 16"
@@ -276,6 +280,7 @@ exports[`renders without crashing 1`] = `
                       type="button"
                     >
                       <svg
+                        class="bi bi-check"
                         fill="currentColor"
                         height="1em"
                         viewBox="0 0 16 16"

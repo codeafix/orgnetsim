@@ -15,7 +15,7 @@ exports[`renders without crashing 1`] = `
         role="button"
       >
         <svg
-          class="mt-n1"
+          class="bi bi-arrow-left-circle mt-n1"
           fill="currentColor"
           height="1em"
           viewBox="0 0 16 16"

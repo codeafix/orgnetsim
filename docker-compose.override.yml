@@ -1,0 +1,3 @@
+services:
+  orgnetsim:
+    userns_mode: "keep-id"

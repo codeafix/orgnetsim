@@ -110,12 +110,14 @@ const ParseSettings = (props:ParseSettingsProps) => {
             </Modal.Header>
             <Modal.Body>
                 <Form.Group controlId="form-file">
-                    <Form.File label="Select File To Parse" onChange={(e:any) => {
+                    <Form.Label>Select File To Parse</Form.Label>
+                    <Form.Control type="file" onChange={(e:any) => {
                         if(e.target.files.length) setfiletoupload(e.target.files[0]);
                     }}/>
                 </Form.Group>
                 <Form.Group controlId="form-parse-settings">
-                    <Form.File label="Read Parse Settings" onChange={(e:any) => {
+                    <Form.Label>Read Parse Settings</Form.Label>
+                    <Form.Control type="file" onChange={(e:any) => {
                         if(e.target.files.length) setParseSettings(e.target.files[0]);
                     }}/>
                 </Form.Group>

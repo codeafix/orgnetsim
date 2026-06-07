@@ -50,9 +50,7 @@ const EditNameDescModal = (props:EditNameProps) => {
             </Modal.Header>
             <Modal.Body>
                 <InputGroup className="mb-3">
-                    <InputGroup.Prepend>
-                        <InputGroup.Text id="basic-on1">Name</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text id="basic-on1">Name</InputGroup.Text>
                     <FormControl
                     placeholder="Simulation name"
                     aria-label="Simulation name"
@@ -62,9 +60,7 @@ const EditNameDescModal = (props:EditNameProps) => {
                     />
                 </InputGroup>
                 <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>Description</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>Description</InputGroup.Text>
                     <FormControl as="textarea" aria-label="Description" defaultValue={simdescription} onChange={e => setsimdescription(e.target.value)}/>
                 </InputGroup>
             </Modal.Body>

@@ -18,7 +18,7 @@
     "react-bootstrap-icons": "^1.4.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "7.17.0",
-    "typescript": "^5.3.3",
+    "typescript": "^6.0.3",
     "underscore": "^1.13.8",
     "vite": "^8.0.16",
     "vite-tsconfig-paths": "^6.1.1"
